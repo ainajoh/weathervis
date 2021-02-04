@@ -1,0 +1,305 @@
+INFO :                                            File                                                var  ... ml_bool                                           p_levels
+0        arome_arctic_sfx_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False                                               None
+1       arome_arctic_full_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...    True                                               None
+2  arome_arctic_extracted_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False  [50, 100, 150, 200, 250, 300, 400, 500, 700, 8...
+
+[3 rows x 6 columns]
+INFO : file_param
+INFO :                                            File                                                var  ... ml_bool                                           p_levels
+0        arome_arctic_sfx_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False                                               None
+1       arome_arctic_full_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...    True                                               None
+2  arome_arctic_extracted_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False  [50, 100, 150, 200, 250, 300, 400, 500, 700, 8...
+
+[3 rows x 6 columns]
+INFO : file_type
+INFO :                                            File                                                var  ... ml_bool                                           p_levels
+0        arome_arctic_sfx_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False                                               None
+1       arome_arctic_full_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...    True                                               None
+2  arome_arctic_extracted_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False  [50, 100, 150, 200, 250, 300, 400, 500, 700, 8...
+
+[3 rows x 6 columns]
+INFO : file
+INFO :                                            File                                                var  ... ml_bool                                           p_levels
+0        arome_arctic_sfx_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False                                               None
+1       arome_arctic_full_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...    True                                               None
+2  arome_arctic_extracted_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False  [50, 100, 150, 200, 250, 300, 400, 500, 700, 8...
+
+[3 rows x 6 columns]
+INFO :                                            File                                                var  ... ml_bool                                           p_levels
+0        arome_arctic_sfx_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False                                               None
+1       arome_arctic_full_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...    True                                               None
+2  arome_arctic_extracted_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False  [50, 100, 150, 200, 250, 300, 400, 500, 700, 8...
+
+[3 rows x 6 columns]
+INFO : file_param
+INFO :                                            File                                                var  ... ml_bool                                           p_levels
+0        arome_arctic_sfx_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False                                               None
+1       arome_arctic_full_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...    True                                               None
+2  arome_arctic_extracted_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False  [50, 100, 150, 200, 250, 300, 400, 500, 700, 8...
+
+[3 rows x 6 columns]
+INFO : file_type
+INFO :                                            File                                                var  ... ml_bool                                           p_levels
+0        arome_arctic_sfx_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False                                               None
+1       arome_arctic_full_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...    True                                               None
+2  arome_arctic_extracted_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False  [50, 100, 150, 200, 250, 300, 400, 500, 700, 8...
+
+[3 rows x 6 columns]
+INFO : file
+INFO :                                            File                                                var  ... ml_bool                                           p_levels
+0        arome_arctic_sfx_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False                                               None
+1       arome_arctic_full_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...    True                                               None
+2  arome_arctic_extracted_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False  [50, 100, 150, 200, 250, 300, 400, 500, 700, 8...
+
+[3 rows x 6 columns]
+INFO :                                            File                                                var  ... ml_bool                                           p_levels
+0        arome_arctic_sfx_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False                                               None
+1       arome_arctic_full_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...    True                                               None
+2  arome_arctic_extracted_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False  [50, 100, 150, 200, 250, 300, 400, 500, 700, 8...
+
+[3 rows x 6 columns]
+INFO : file_param
+INFO :                                            File                                                var  ... ml_bool                                           p_levels
+0        arome_arctic_sfx_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False                                               None
+1       arome_arctic_full_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...    True                                               None
+2  arome_arctic_extracted_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False  [50, 100, 150, 200, 250, 300, 400, 500, 700, 8...
+
+[3 rows x 6 columns]
+INFO : file_type
+INFO :                                            File                                                var  ... ml_bool                                           p_levels
+0        arome_arctic_sfx_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False                                               None
+1       arome_arctic_full_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...    True                                               None
+2  arome_arctic_extracted_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False  [50, 100, 150, 200, 250, 300, 400, 500, 700, 8...
+
+[3 rows x 6 columns]
+INFO : file
+INFO :                                            File                                                var  ... ml_bool                                           p_levels
+0        arome_arctic_sfx_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False                                               None
+1       arome_arctic_full_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...    True                                               None
+2  arome_arctic_extracted_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False  [50, 100, 150, 200, 250, 300, 400, 500, 700, 8...
+
+[3 rows x 6 columns]
+INFO :                                            File                                                var  ... ml_bool                                           p_levels
+0        arome_arctic_sfx_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False                                               None
+1       arome_arctic_full_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...    True                                               None
+2  arome_arctic_extracted_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False  [50, 100, 150, 200, 250, 300, 400, 500, 700, 8...
+
+[3 rows x 6 columns]
+INFO : file_param
+INFO :                                            File                                                var  ... ml_bool                                           p_levels
+0        arome_arctic_sfx_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False                                               None
+1       arome_arctic_full_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...    True                                               None
+2  arome_arctic_extracted_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False  [50, 100, 150, 200, 250, 300, 400, 500, 700, 8...
+
+[3 rows x 6 columns]
+INFO : file_type
+INFO :                                            File                                                var  ... ml_bool                                           p_levels
+0        arome_arctic_sfx_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False                                               None
+1       arome_arctic_full_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...    True                                               None
+2  arome_arctic_extracted_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False  [50, 100, 150, 200, 250, 300, 400, 500, 700, 8...
+
+[3 rows x 6 columns]
+INFO : file
+INFO :                                            File                                                var  ... ml_bool                                           p_levels
+0        arome_arctic_sfx_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False                                               None
+1       arome_arctic_full_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...    True                                               None
+2  arome_arctic_extracted_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False  [50, 100, 150, 200, 250, 300, 400, 500, 700, 8...
+
+[3 rows x 6 columns]
+INFO :                                            File                                                var  ... ml_bool                                           p_levels
+0        arome_arctic_sfx_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False                                               None
+1       arome_arctic_full_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...    True                                               None
+2  arome_arctic_extracted_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False  [50, 100, 150, 200, 250, 300, 400, 500, 700, 8...
+
+[3 rows x 6 columns]
+INFO : file_param
+INFO :                                            File                                                var  ... ml_bool                                           p_levels
+0        arome_arctic_sfx_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False                                               None
+1       arome_arctic_full_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...    True                                               None
+2  arome_arctic_extracted_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False  [50, 100, 150, 200, 250, 300, 400, 500, 700, 8...
+
+[3 rows x 6 columns]
+INFO : file_type
+INFO :                                            File                                                var  ... ml_bool                                           p_levels
+0        arome_arctic_sfx_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False                                               None
+1       arome_arctic_full_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...    True                                               None
+2  arome_arctic_extracted_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False  [50, 100, 150, 200, 250, 300, 400, 500, 700, 8...
+
+[3 rows x 6 columns]
+INFO : file
+INFO :                                            File                                                var  ... ml_bool                                           p_levels
+0        arome_arctic_sfx_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False                                               None
+1       arome_arctic_full_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...    True                                               None
+2  arome_arctic_extracted_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False  [50, 100, 150, 200, 250, 300, 400, 500, 700, 8...
+
+[3 rows x 6 columns]
+INFO :                                            File                                                var  ... ml_bool                                           p_levels
+0        arome_arctic_sfx_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False                                               None
+1       arome_arctic_full_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...    True                                               None
+2  arome_arctic_extracted_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False  [50, 100, 150, 200, 250, 300, 400, 500, 700, 8...
+
+[3 rows x 6 columns]
+INFO : file_param
+INFO :                                            File                                                var  ... ml_bool                                           p_levels
+0        arome_arctic_sfx_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False                                               None
+1       arome_arctic_full_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...    True                                               None
+2  arome_arctic_extracted_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False  [50, 100, 150, 200, 250, 300, 400, 500, 700, 8...
+
+[3 rows x 6 columns]
+INFO : file_type
+INFO :                                            File                                                var  ... ml_bool                                           p_levels
+0        arome_arctic_sfx_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False                                               None
+1       arome_arctic_full_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...    True                                               None
+2  arome_arctic_extracted_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False  [50, 100, 150, 200, 250, 300, 400, 500, 700, 8...
+
+[3 rows x 6 columns]
+INFO : file
+INFO :                                            File                                                var  ... ml_bool                                           p_levels
+0        arome_arctic_sfx_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False                                               None
+1       arome_arctic_full_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...    True                                               None
+2  arome_arctic_extracted_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False  [50, 100, 150, 200, 250, 300, 400, 500, 700, 8...
+
+[3 rows x 6 columns]
+INFO :                                            File                                                var  ... ml_bool                                           p_levels
+0        arome_arctic_sfx_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False                                               None
+1       arome_arctic_full_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...    True                                               None
+2  arome_arctic_extracted_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False  [50, 100, 150, 200, 250, 300, 400, 500, 700, 8...
+
+[3 rows x 6 columns]
+INFO : file_param
+INFO :                                            File                                                var  ... ml_bool                                           p_levels
+0        arome_arctic_sfx_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False                                               None
+1       arome_arctic_full_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...    True                                               None
+2  arome_arctic_extracted_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False  [50, 100, 150, 200, 250, 300, 400, 500, 700, 8...
+
+[3 rows x 6 columns]
+INFO : file_type
+INFO :                                            File                                                var  ... ml_bool                                           p_levels
+0        arome_arctic_sfx_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False                                               None
+1       arome_arctic_full_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...    True                                               None
+2  arome_arctic_extracted_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False  [50, 100, 150, 200, 250, 300, 400, 500, 700, 8...
+
+[3 rows x 6 columns]
+INFO : file
+INFO :                                            File                                                var  ... ml_bool                                           p_levels
+0        arome_arctic_sfx_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False                                               None
+1       arome_arctic_full_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...    True                                               None
+2  arome_arctic_extracted_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False  [50, 100, 150, 200, 250, 300, 400, 500, 700, 8...
+
+[3 rows x 6 columns]
+INFO : START
+INFO : File                  arome_arctic_full_2_5km_20180317T00Z.nc
+var         {'time': {'shape': (67,), 'dim': ('time',)}, '...
+dim         {'time': {'shape': 67, 'value': nan}, 'atmosph...
+mbr_bool                                                False
+ml_bool                                                  True
+p_levels                                                 None
+Name: 0, dtype: object
+INFO : https://thredds.met.no/thredds/dodsC/aromearcticarchive/2018/03/17/arome_arctic_full_2_5km_20180317T00Z.nc?air_temperature_ml[2:1:2][0:1:64][0:1:948][0:1:738],hybrid[0:1:64],time[2:1:2],x[0:1:738],y[0:1:948],ap[0:1:64],b[0:1:64],forecast_reference_time,latitude[0:1:948][0:1:738],longitude[0:1:948][0:1:738],projection_lambert,specific_humidity_2m[2:1:2][0:1:0][0:1:948][0:1:738],height1[0:1:0],specific_humidity_ml[2:1:2][0:1:64][0:1:948][0:1:738]
+INFO : -------> start retrieve from thredds
+INFO : -------> Getting variable: 
+INFO : air_temperature_ml
+INFO : ap
+INFO : b
+INFO : forecast_reference_time
+INFO : latitude
+INFO : longitude
+INFO : projection_lambert
+INFO : specific_humidity_2m
+INFO : specific_humidity_ml
+INFO : hybrid
+INFO : time
+INFO : x
+INFO : y
+INFO : height1
+INFO :                                            File                                                var  ... ml_bool                                           p_levels
+0        arome_arctic_sfx_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False                                               None
+1       arome_arctic_full_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...    True                                               None
+2  arome_arctic_extracted_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False  [50, 100, 150, 200, 250, 300, 400, 500, 700, 8...
+
+[3 rows x 6 columns]
+INFO : file_param
+INFO :                                            File                                                var  ... ml_bool                                           p_levels
+0        arome_arctic_sfx_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False                                               None
+1       arome_arctic_full_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...    True                                               None
+2  arome_arctic_extracted_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False  [50, 100, 150, 200, 250, 300, 400, 500, 700, 8...
+
+[3 rows x 6 columns]
+INFO : file_type
+INFO :                                            File                                                var  ... ml_bool                                           p_levels
+0        arome_arctic_sfx_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False                                               None
+1       arome_arctic_full_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...    True                                               None
+2  arome_arctic_extracted_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False  [50, 100, 150, 200, 250, 300, 400, 500, 700, 8...
+
+[3 rows x 6 columns]
+INFO : file
+INFO :                                            File                                                var  ... ml_bool                                           p_levels
+0        arome_arctic_sfx_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False                                               None
+1       arome_arctic_full_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...    True                                               None
+2  arome_arctic_extracted_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False  [50, 100, 150, 200, 250, 300, 400, 500, 700, 8...
+
+[3 rows x 6 columns]
+INFO : START
+INFO : File                  arome_arctic_full_2_5km_20180317T00Z.nc
+var         {'time': {'shape': (67,), 'dim': ('time',)}, '...
+dim         {'time': {'shape': 67, 'value': nan}, 'atmosph...
+mbr_bool                                                False
+ml_bool                                                  True
+p_levels                                                 None
+Name: 0, dtype: object
+INFO : https://thredds.met.no/thredds/dodsC/aromearcticarchive/2018/03/17/arome_arctic_full_2_5km_20180317T00Z.nc?air_temperature_ml[2:1:2][0:1:64][0:1:948][0:1:738],hybrid[0:1:64],time[2:1:2],x[0:1:738],y[0:1:948],ap[0:1:64],b[0:1:64],forecast_reference_time,latitude[0:1:948][0:1:738],longitude[0:1:948][0:1:738],projection_lambert,specific_humidity_2m[2:1:2][0:1:0][0:1:948][0:1:738],height1[0:1:0],specific_humidity_ml[2:1:2][0:1:64][0:1:948][0:1:738]
+INFO : -------> start retrieve from thredds
+INFO : -------> Getting variable: 
+INFO : air_temperature_ml
+INFO : ap
+INFO : b
+INFO : forecast_reference_time
+INFO : latitude
+INFO : longitude
+INFO : projection_lambert
+INFO : specific_humidity_2m
+INFO : specific_humidity_ml
+INFO : hybrid
+INFO : time
+INFO : x
+INFO : y
+INFO : height1
+INFO :                                            File                                                var  ... ml_bool                                           p_levels
+0        arome_arctic_sfx_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False                                               None
+1       arome_arctic_full_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...    True                                               None
+2  arome_arctic_extracted_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False  [50, 100, 150, 200, 250, 300, 400, 500, 700, 8...
+
+[3 rows x 6 columns]
+INFO : file_param
+INFO :                                            File                                                var  ... ml_bool                                           p_levels
+0        arome_arctic_sfx_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False                                               None
+1       arome_arctic_full_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...    True                                               None
+2  arome_arctic_extracted_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False  [50, 100, 150, 200, 250, 300, 400, 500, 700, 8...
+
+[3 rows x 6 columns]
+INFO : file_type
+INFO :                                            File                                                var  ... ml_bool                                           p_levels
+0        arome_arctic_sfx_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False                                               None
+1       arome_arctic_full_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...    True                                               None
+2  arome_arctic_extracted_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False  [50, 100, 150, 200, 250, 300, 400, 500, 700, 8...
+
+[3 rows x 6 columns]
+INFO : file
+INFO :                                            File                                                var  ... ml_bool                                           p_levels
+0        arome_arctic_sfx_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False                                               None
+1       arome_arctic_full_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...    True                                               None
+2  arome_arctic_extracted_2_5km_20180317T00Z.nc  {'time': {'shape': (67,), 'dim': ('time',)}, '...  ...   False  [50, 100, 150, 200, 250, 300, 400, 500, 700, 8...
+
+[3 rows x 6 columns]
+INFO : START
+INFO : File                  arome_arctic_full_2_5km_20180317T00Z.nc
+var         {'time': {'shape': (67,), 'dim': ('time',)}, '...
+dim         {'time': {'shape': 67, 'value': nan}, 'atmosph...
+mbr_bool                                                False
+ml_bool                                                  True
+p_levels                                                 None
+Name: 0, dtype: object
+INFO : https://thredds.met.no/thredds/dodsC/aromearcticarchive/2018/03/17/arome_arctic_full_2_5km_20180317T00Z.nc?air_temperature_ml[2:1:2][0:1:64][0:1:948][0:1:738],hybrid[0:1:64],time[2:1:2],x[0:1:738],y[0:1:948],ap[0:1:64],b[0:1:64],forecast_reference_time,latitude[0:1:948][0:1:738],longitude[0:1:948][0:1:738],projection_lambert,specific_humidity_2m[2:1:2][0:1:0][0:1:948][0:1:738],height1[0:1:0],specific_humidity_ml[2:1:2][0:1:64][0:1:948][0:1:738]
+INFO : -------> start retrieve from thredds
+INFO : -------> Getting variable: 
+INFO : air_temperature_ml
