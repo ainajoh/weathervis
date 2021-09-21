@@ -857,10 +857,15 @@ def windfromspeed_dir(wind_speed,wind_direction ):
     v = -wind_speed * np.cos(np.deg2rad(wind_direction))  # m/s v wind
 
     return u,v
-def xwind2uwind( xwind, ywind, alpha ):
+def xwind2uwind( xwind, ywind, alpha=None ):
     # u,v = xwind2uwind( data.xwind, data.ywind, data.alpha )
     #source: https://www-k12.atmos.washington.edu/~ovens/wrfwinds.html
     #source: https://github.com/metno/NWPdocs/wiki/From-x-y-wind-to-wind-direction
+
+    if alpha==None:
+        os.system('python wind2alpha.py')
+
+
     u = np.zeros(shape=np.shape(xwind))
     v = np.zeros(shape=np.shape(ywind))
     for t in range(0,np.shape(xwind)[0]):

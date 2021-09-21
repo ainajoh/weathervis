@@ -10,7 +10,10 @@ if __name__ == "__main__":
 
 def lonlat2idx(lonlat, url):
     #Todo: add like, when u have a domain outside region of data then return idx= Only the full data.
+    print(url)
     dataset = Dataset(url)
+
+
     lon = dataset.variables["longitude"][:]
     lat = dataset.variables["latitude"][:]
     # DOMAIN FOR SHOWING GRIDPOINT:: MANUALLY ADJUSTED
@@ -40,9 +43,7 @@ def idx2lonlat(idx, url):
 
 
 class domain():
-    def __init__(self, date, model, file, lonlat=None, idx=None,domain_name=None, point_name=None, use_latest=True,delta_index=None):
-        print("delta_index in domain")
-        print(delta_index)
+    def __init__(self, date=None, model=None, file=None, lonlat=None, idx=None,domain_name=None, point_name=None, use_latest=True,delta_index=None, url=None):
         self.date = date
         self.model = model
         self.lonlat = lonlat
@@ -51,47 +52,34 @@ class domain():
         self.point_name=point_name
         self.use_latest = use_latest
         self.delta_index=delta_index
+
         if type(file)==pd.core.frame.DataFrame:
             self.file = file.loc[0,'File']
         else:
             self.file = file.loc['File']
+        if self.date:
+            YYYY = self.date[0:4]
+            MM = self.date[4:6]
+            DD = self.date[6:8]
+            HH = self.date[8:10]
 
-        YYYY = self.date[0:4]
-        MM = self.date[4:6]
-        DD = self.date[6:8]
-        HH = self.date[8:10]
-
-
-        if model == "AromeArctic":
-            if self.use_latest==False:
-              url = f"https://thredds.met.no/thredds/dodsC/aromearcticarchive/{YYYY}/{MM}/{DD}/{self.file}?latitude,longitude"
-            else:
-              url = f"https://thredds.met.no/thredds/dodsC/aromearcticlatest/{self.file}?latitude,longitude"
-
-        elif model == "MEPS":
-            if self.use_latest==False:
-              url = f"https://thredds.met.no/thredds/dodsC/meps25epsarchive/{YYYY}/{MM}/{DD}/{self.file}?latitude,longitude"
-            else:
-              url = f"https://thredds.met.no/thredds/dodsC/meps25epslatest/{self.file}?latitude,longitude"
-
-        self.url = url
+        if url==None:
+            url=self.make_url_base()
+            print(url)
+            self.url = url + "?latitude,longitude"
+        else:
+            self.url = url + "?latitude,longitude"
+        print("HAAAA22")
+        print(self.url)
 
         if self.lonlat and not self.idx:
             self.idx = lonlat2idx(self.lonlat, self.url)
-        print("IN DOMAIN")
-        print(self.point_name)
-        print(self.domain_name)
         if self.point_name != None and self.domain_name == None:
-            print("GOTCHA")
             sites = pd.read_csv("../../data/sites.csv", sep=";", header=0, index_col=0)
             plon = float(sites.loc[self.point_name].lon)
             plat = float(sites.loc[self.point_name].lat)
             self.lonlat = [plon,plat]
-            print(self.lonlat)
             self.idx = lonlat2idx(self.lonlat, self.url)
-            print(self.idx)
-            print("aina")
-            print(self.delta_index)
             if self.delta_index!=None:
                 ii_max =  int(self.idx[0] + self.delta_index[0]/2)
                 ii_min = int(self.idx[0] - self.delta_index[0]/2)
@@ -116,6 +104,26 @@ class domain():
         #else:
         #    url = f"https://thredds.met.no/thredds/dodsC/meps25epsarchive/{YYYY}/{MM}/{DD}/meps_det_2_5km_{YYYY}{MM}{DD}T{HH}Z.nc?latitude,longitude"
         #eval()
+    def make_url_base(self):
+        YYYY = self.date[0:4]
+        MM = self.date[4:6]
+        DD = self.date[6:8]
+        HH = self.date[8:10]
+        if self.model == "AromeArctic":
+            if self.use_latest==False:
+                url = f"https://thredds.met.no/thredds/dodsC/aromearcticarchive/{YYYY}/{MM}/{DD}/{self.file}"
+            else:
+                url = f"https://thredds.met.no/thredds/dodsC/aromearcticlatest/{self.file}"
+
+        if self.model == "MEPS":
+            if self.use_latest==False:
+                url = f"https://thredds.met.no/thredds/dodsC/meps25epsarchive/{YYYY}/{MM}/{DD}/{self.file}"
+            else:
+                url = f"https://thredds.met.no/thredds/dodsC/meps25epslatest/{self.file}"
+
+        return url
+
+
 
     def MEPS(self):
         self.lonlat = [-1, 60., 49., 72]
