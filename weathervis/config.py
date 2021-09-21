@@ -5,47 +5,54 @@ import numpy as np
 abspath = os.path.abspath(__file__)
 dname = os.path.dirname(abspath)
 import os.path as path
+import pandas as pd
 #from weathervis.checkget_data_handler import * #checkget_data_handler #add_point_on_map
 
 print(dname)
 print(abspath)
 #global projectpath
 global OUTPUTPATH
-OUTPUTPATH = dname + "/../../../../../output/weathervis/"
+OUTPUTPATH = dname + "/../../../../output/weathervis/"
 
 def make_data_uptodate():
     filepath=f"{dname}/data/"
     filenames= ["MEPS_filesandvar.csv", "AromeArctic_filesandvar.csv"]
 
-    for file in filenames:
+    for file_nn in filenames:
         try:
-            file_time = path.getmtime(filepath+ file)
+            file_time = path.getmtime(filepath+ file_nn)
         except:
             Question = input(f"#################################################################################################\n"
-                            f"##   You are missing model metadata for {filepath+ file}.                                         \n"
+                            f"##   You are missing model metadata for {filepath+ file_nn}.                                         \n"
                             f"##   This requires some time to generate the first time. Not having it might resolve in errors   \n"
                             f"##   You  might have to run; conda install -c r r-rvest and conda install -c r r-tidyverse        \n"
                             f"##   DO YOU WANT TO UPDATE IT NOW? ----->yes/no  ")
 
             if Question == ("yes") or Question == ("y"):
                 print("Uppdating now....") #/Users/ainajoh/anaconda3/envs/r_env/bin/rscript
-                input_rscript= "MEPS" if file == "MEPS_filesandvar.csv" else "AromeArctic"
-                os.system(f'rscript ../util/scrap4filevariable.R {input_rscript}')
-            elif Question == ("no") or Question == ("n"):
-                print("NO updates")
 
-    form_time= ((time.time() - file_time) /86400)
-    if int(form_time) > 90: #update metainfo every 3rd month
-        Question = input(f"#################################################################################################\n"
-                         f"## It is 3 month since model metadata was updated for {filepath + file}                         \n"
+                #input_rscript= "MEPS" if file == "MEPS_filesandvar.csv" else "AromeArctic"
+                #os.system(f'rscript ../util/scrap4filevariable.R {input_rscript}')
+
+            elif Question == ("no") or Question == ("n"):
+                print("NO updes")
+
+        form_time= ((time.time() - file_time)) /(24)
+        if int(form_time) > 90: #update metainfo every 3rd month
+            Question = input(f"#################################################################################################\n"
+                         f"## It is 3 month since model metadata was updated for {filepath + file_nn}                         \n"
                          f"## *** You  might have to run; conda install -c r r-rvest and conda install -c r r-tidyverse *** \n"
                          f"##   DO YOU WANT TO UPDATE IT NOW? ----->yes/no  ")
 
-        if Question == ("yes") or Question == ("y"):
-            input_rscript = "MEPS" if file == "MEPS_filesandvar.csv" else "AromeArctic"
-            os.system(f'rscript ../util/scrap4filevariable.R {input_rscript}')
-        elif Question == ("no") or Question == ("n"):
-            print("NO updates")
+            if Question == ("yes") or Question == ("y"):
+                #print(filepath+ file_nn)
+                df = pd.read_csv(filepath+ file_nn)
+                last_date = df.loc[len(df)-1,"Date"]
+                #print(last_date)
+                input_rscript = "MEPS" if file_nn == "MEPS_filesandvar.csv" else "AromeArctic"
+                os.system(f'rscript ../util/scrap4filevariable.R {input_rscript} {last_date}')
+            elif Question == ("no") or Question == ("n"):
+                print("NO updates")
 
 
 #make_data_uptodate()

@@ -9,8 +9,12 @@ import os #setup_directory
 import matplotlib.colors as mcolors #add_point_on_map
 import pandas as pd  #add_point_on_map
 import datetime  #add_point_on_map
+from weathervis.domain import *
 #from weathervis.checkget_data_handler import * #checkget_data_handler #add_point_on_map did not like this call..
 import matplotlib.offsetbox as offsetbox  #add_point_on_map
+import re
+import cartopy.crs as ccrs
+
 
 def to_bool(value):
     """Convert values into bool.
@@ -339,19 +343,18 @@ GpsAlt_m = 'GpsAlt_m'):
 #    data_domain = domain_input_handler(dt=date, model=model, domain_name=domain_name, domain_lonlat=domain_lonlat, file =ourfileobj,point_name=point_name,point_lonlat=point_lonlat, use_latest=use_latest,delta_index=delta_index)#
 
 def domain_input_handler(dt=None, model=None, domain_name=None, domain_lonlat=None, file=None, point_name=None, point_lonlat=None, use_latest=True, delta_index=None, url=None):
+    print("IN DOM")
+
     if domain_name or domain_lonlat:
         if domain_lonlat:
             print(f"\n####### Setting up domain for coordinates: {domain_lonlat} ##########")
             data_domain = domain(dt, model, file=file, lonlat=domain_lonlat,use_latest=use_latest,delta_index=delta_index, url=url)
         else:
-            data_domain = domain(dt, model, file=file,use_latest=use_latest,delta_index=delta_index, url=url)#
-
-        print(data_domain)
+            data_domain = domain(dt, model, file=file, use_latest=use_latest,delta_index=delta_index, url=url)#
 
         if domain_name != None and domain_name in dir(data_domain):
             print(f"\n####### Setting up domain: {domain_name} ##########")
             domain_name = domain_name.strip()
-            data_domain = domain(dt, model, file=file, domain_name=domain_name,delta_index=delta_index,use_latest=use_latest, url=url)
             if re.search("\(\)$", domain_name):
                 func = f"data_domain.{domain_name}"
             else:
@@ -361,8 +364,71 @@ def domain_input_handler(dt=None, model=None, domain_name=None, domain_lonlat=No
             print(f"No domain found with that name; {domain_name}")
     else:
         data_domain=None
+    print(data_domain)
+
     if (point_name !=None and domain_name == None and domain_lonlat == None):
+        print("here")
         data_domain = domain(dt, model, file=file, point_name=point_name,use_latest=use_latest,delta_index=delta_index, url=url)
     if (point_lonlat != None and point_name == None and domain_name == None and domain_lonlat == None):
+        print("here2")
         data_domain = domain(dt, model, file=file, lonlat=point_lonlat,use_latest=use_latest,delta_index=delta_index, url=url)
+    print(data_domain)
+
+    print("DOM DONE")
     return data_domain
+
+def default_map_projection(dmet):
+    lon0 = dmet.longitude_of_central_meridian_projection_lambert
+    lat0 = dmet.latitude_of_projection_origin_projection_lambert
+    parallels = dmet.standard_parallel_projection_lambert
+
+    globe = ccrs.Globe(ellipse='sphere', semimajor_axis=6371000., semiminor_axis=6371000.)
+    crs = ccrs.LambertConformal(central_longitude=lon0, central_latitude=lat0, standard_parallels=parallels,
+                                globe=globe)
+    return crs
+def filter_values_over_mountain(geop, value):
+    # reduces noise over mountains by removing values over a certain height.
+    value = np.where(geop < 3000, value, np.NaN).squeeze()
+    return value
+
+def default_mslp_contour( x, y, MSLP, ax1):
+    # MSLP with contour labels every 10 hPa
+    C_P = ax1.contour(x, y, MSLP, zorder=1, alpha=1.0,
+                      levels=np.arange(round(np.nanmin(MSLP), -1) - 10, round(np.nanmax(MSLP), -1) + 10, 1),
+                      colors='grey', linewidths=0.5)
+    C_P = ax1.contour( x, y, MSLP, zorder=2, alpha=1.0,
+                      levels=np.arange(round(np.nanmin(MSLP), -1) - 10, round(np.nanmax(MSLP), -1) + 10, 10),
+                      colors='grey', linewidths=1.0, label="MSLP [hPa]")
+    ax1.clabel(C_P, C_P.levels, inline=True, fmt="%3.0f", fontsize=10)
+    return ax1
+
+def nice_legend(dict, ax1):
+    proxy = []
+    lg = []
+    for k in dict.keys():
+        color =dict[k]["color"]
+        linestyle = dict[k]["linestyle"]
+        legend =  dict[k]["legend"]
+        proxy.append(plt.axhline(y=0, xmin=1, xmax=1, color=color, linestyle=linestyle))
+        lg.append(legend)
+    print(proxy)
+    lg = ax1.legend(proxy, lg)
+    frame = lg.get_frame()
+    frame.set_facecolor('white')
+    frame.set_alpha(1)
+
+def default_arguments():
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--datetime", help="YYYYMMDDHH for modelrun", required=True, type=str)
+    parser.add_argument("--steps", default=0, nargs="+", type=int,
+                        help="forecast times example --steps 0 3 gives time 0 to 3")
+    parser.add_argument("--model", default="MEPS", help="MEPS or AromeArctic")
+    parser.add_argument("--domain_name", default=None, help="MEPS or AromeArctic")
+    parser.add_argument("--domain_lonlat", default=None, help="[ lonmin, lonmax, latmin, latmax]")
+    parser.add_argument("--legend", default=True, help="Display legend")
+    parser.add_argument("--grid", default=True, help="Display legend")
+    parser.add_argument("--info", default=False, help="Display info")
+    args = parser.parse_args()
+
+    return args

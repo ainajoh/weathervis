@@ -328,15 +328,12 @@ class get_data():
         logging.info("-------> start retrieve from thredds")
         print(url)
         dataset = Dataset(url)
-        print("after url")
         self.indexidct = dict.fromkeys(self.indexidct, ":")  #reset the index dictionary
-        print(self.indexidct)
         for k in dataset.__dict__.keys(): #info of the file
             ss = f"{k}"
             self.__dict__[ss] = dataset.__dict__[k]
         logging.info("-------> Getting variable: ")
         iteration =-1
-        print("bbbff")
         for prm in self.param:
             iteration += 1
             logging.info(prm)
@@ -347,6 +344,14 @@ class get_data():
             #mbrs_dim = list(filter(re.compile(f'.*ensemble*').match, dimlist))
 
             startsub = ":" #retrieve everything if startsub = :
+            #for time
+            t_arr = np.arange(0,int(self.file["dim"]["time"]["shape"]))
+            idx = np.where(t_arr[:, None] == np.array(self.step)[None, :])[0]
+            idx = ",".join([str(i) for i in idx - idx[0]])
+            idx = '[{:}]'.format(idx)
+            self.indexidct["time"] = ''.join(str(idx))
+            newlist1 = [self.indexidct[i] for i in dimlist]
+            startsub = ','.join(newlist1) if newlist1 else ":"
             if pressure_dim:
                 idx = np.where(np.array(self.file["p_levels"][pressure_dim[0]])[:,None]==np.array(self.p_level)[None,:])[0]
                 idx = ",".join([str(i) for i in idx -idx[0]])
@@ -355,9 +360,7 @@ class get_data():
                 newlist1 = [self.indexidct[i] for i in dimlist]  # convert dependent variable name to our set values. E.g: time = step = [0:1:0]
                 startsub = ','.join(newlist1)  # example: ('time', 'pressure','ensemble_member','y','x') = [0:1:0][0:1:1][0:1:10][0:1:798][0:1:978]
             elif model_dim:
-                print("modeldim2")
                 lev_num = np.arange(0,len(self.file["m_levels"][model_dim[0]]))
-
                 idx = \
                 np.where(np.array(lev_num)[:, None] == np.array(self.m_level)[None, :])[
                     0]
@@ -367,8 +370,6 @@ class get_data():
                 newlist1 = [self.indexidct[i] for i in
                             dimlist]  # convert dependent variable name to our set values. E.g: time = step = [0:1:0]
                 startsub = ','.join(newlist1)  # ex
-                print("modeldim DONE")
-
 
             if "units" in dataset.variables[prm].__dict__.keys():
                 self.units.__dict__[prm] = dataset.variables[prm].__dict__["units"]
@@ -376,8 +377,6 @@ class get_data():
                 self.FillValue.__dict__[prm] = int(dataset.variables[prm].__dict__["_FillValue"])
             else:
                 self.FillValue.__dict__[prm] = np.nan
-
-
             if prm == "projection_lambert":
                 for k in dataset.variables[prm].__dict__.keys():
                     ss = f"{k}_{prm}"

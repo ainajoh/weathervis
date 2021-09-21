@@ -57,14 +57,47 @@ def filter_type(file,mbrs, p_level,m_level):
     """Used by check_data: Remove files not having the userdefined mbrs or levels
     Returns only files containing all the user defined preferences."""
     if mbrs != 0 and mbrs != None:
-        file = file[file["mbr_bool"] == True]
+        #file = file[file["mbr_bool"] == True] deprecated
+        file = file[~file.mbr_ens.isnull()] #not needed?
+        file.reset_index(inplace=True)      #not needed?
+        def find_mbrs(value):
+            df_val = pd.DataFrame(value).isin(mbrs).sum(axis=0)
+            if len(df_val) >= 1:
+                return True
+            else:
+                return False
+        ll = file["mbr_bool"].apply(find_mbrs)
+        file = file[ll]
+
+
     if m_level != None:
-        file = file[file["ml_bool"] == True]
+        file = file[~file.m_levels.isnull()] #not needed?
+        file.reset_index(inplace=True)       #not needed?
+        file = file[file["ml_bool"] == True]  #deprecated
+
+        #print(file.dim)
+
+        #exit(1)
+        #def find_mlevel(value):
+        #   #print()
+        #
+        #    print("find_mlevel")
+        #    val = value.values() #            df_val = pd.DataFrame(value).isin(p_level).sum(axis=0)
+        #
+        #    dd = pd.DataFrame([val])#.index.values
+        #    print(dd)
+
     elif p_level:
-        file = file[~file.p_levels.isnull()]
-        file.reset_index(inplace=True)
-        ll = file.p_levels.tolist()
-        file = file[pd.DataFrame(ll).isin(p_level).sum(axis=1)==len(p_level)]
+        file = file[~file.p_levels.isnull()]   #not needed?
+        file.reset_index(inplace=True)         #not needed?
+        def find_plevel(value):
+            df_val = pd.DataFrame(value).isin(p_level).sum(axis=0)
+            if len(df_val) >=1:
+                return True
+            else:
+                return False
+        ll= file["p_levels"].apply(find_plevel)
+        file = file[ll]
     file.reset_index(inplace=True, drop=True)
     return file
 
@@ -144,6 +177,8 @@ class check_data():
         step:
         use_latest: True if you want a recent date, False if u want to get from the archive
         """
+        logging.info("# check_data() #\n#################")
+
         self.date = str(date) if date != None else None
         self.model = model
         self.url = url
@@ -163,8 +198,10 @@ class check_data():
         self.model = filter_function_for_models_ignore_uppercases(self.model) if self.model != None else None
         self.p_level = [p_level] if p_level != None and type(p_level) != list else p_level
         self.m_level = [m_level] if m_level != None and type(m_level) != list else m_level
-        all_files = self.check_files(date, model, param,  mbrs, url) #the main outcome
-        self.file = self.check_file_info(all_files, param, mbrs)
+
+        if (self.model !=None and self.date !=None) or self.url !=None:
+            all_files = self.check_files(date, model, param,  mbrs, url) #the main outcome
+            self.file = self.check_file_info(all_files, param, mbrs)
 
         ###################################################
         # SEARCH OPTIONS UNDER
@@ -189,6 +226,8 @@ class check_data():
         """
         Returns a dataframe containing file name and file url
         """
+        logging.info("--> check_files() <---\n")
+
         base_url = ""
 
         if self.url != None:
@@ -226,11 +265,11 @@ class check_data():
             gc.collect()
         return df
 
-
     def check_file_info(self, df, param, mbrs):
         """
         Returns a dataframe containing info about file. used in get_data
         """
+        logging.info("--> check_file_info() <---\n")
 
         # df["var"] = None
         # df["dim"] = None
@@ -273,6 +312,8 @@ class check_data():
                     dimframe.loc[dim_tmp[0],"value"] = ",".join(str(int(x)) for x in dim_value)
                     #Check if dimention is a  pressure/hybrid/height or member dimention category
                     if dim_tmp[0] in pressure_dim:
+                        print("INF")
+                        print(dim_tmp[0])
                         tt = [int(x) for x in dataset.variables[dim_tmp[0]][:]] if dim_tmp[0] in dimdic and dimdic[
                             dim_tmp[0]] >= 1 else None
                         d_p.update({dim_tmp[0]: tt})
@@ -293,6 +334,7 @@ class check_data():
                         dimframe.loc[dim_tmp[0], "unit"] = prminfo.getncattr("units")
                     except:
                         pass
+            #print(d_p)
             df.at[i, "p_levels"] = d_p
             df.at[i, "m_levels"] = d_ml
             df.at[i, "h_levels"] = d_hl
@@ -310,7 +352,7 @@ class check_data():
         #while has ended
 
         file_withparam = filter_param( df.copy(), param)
-        file_corrtype = filter_type(df.copy(), mbrs, self.p_level,self.m_level)
+        file_corrtype = filter_type( df.copy(), mbrs, self.p_level, self.m_level)
         file = file_withparam[file_withparam.File.isin(file_corrtype.File)]
         file.reset_index(inplace=True, drop = True)
 
@@ -332,8 +374,8 @@ class check_data():
 
         return file
 
-
     def check_available_date(self, model, search = None):
+        logging.info("--> check_available_date() <---\n")
 
         df = pd.read_csv(f"{package_path}/data/{model}_filesandvar.csv")
         dfc = df.copy()  # df['base_name'] = [re.sub(r'_[0-9]*T[0-9]*Z.nc','', str(x)) for x in df['File']]
@@ -354,6 +396,8 @@ class check_data():
 
     def check_variable(self, file, search, url):
         #url not supported yet in var search
+        logging.info("--> check_variable() <---\n")
+
         var_dict = file.at[0, "var"]
         param = []
         for n in range(0,len(file)):
@@ -368,6 +412,8 @@ class check_data():
         return param.to_string()
 
     def check_variable_all(self, model, numbervar, search ):
+        logging.info("--> check_variable_all <---\n")
+
         df = pd.read_csv(f"{package_path}/data/{model}_filesandvar.csv")
         dfc = df.copy()  # df['base_name'] = [re.sub(r'_[0-9]*T[0-9]*Z.nc','', str(x)) for x in df['File']]
         drop_files = ["_vc_", "thunder", "_kf_", "_ppalgs_", "_pp_", "t2myr", "wbkz", "vtk","_preop_"]
@@ -387,6 +433,8 @@ class check_data():
         return param.to_string()
 
     def check_filecontainingvar(self, model, numbervar, search ):
+        logging.info("--> check_filecontainingvar <---\n")
+
         #NOT IN USE
         #Nice to have a list of the files containing that var, but that means scraping the web too often.
         #Maybe add on file. scraping only new dates...DID It! Just need to update this function to find file containing: Then another function saying at what date.
@@ -408,10 +456,8 @@ class check_data():
 
     #OTHER FUNC
     def clean_all(self):
-        del self.date
         del self.model
         del self.url
-        del self.param
         del self.mbrs
         del self.numbervar
         del self.search
