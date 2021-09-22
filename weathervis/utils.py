@@ -423,13 +423,82 @@ def default_arguments():
     parser.add_argument("--steps", default=0, nargs="+", type=int,
                         help="forecast times example --steps 0 3 gives time 0 to 3")
     parser.add_argument("--model", default=None, help="MEPS or AromeArctic")
-    parser.add_argument("--domain_name", default=None, help="MEPS or AromeArctic")
+    parser.add_argument("--domain_name", default=None, nargs="+")
     parser.add_argument("--domain_lonlat", default=None, help="[ lonmin, lonmax, latmin, latmax]")
+    parser.add_argument("--point_name", default=None, nargs="+")
+    parser.add_argument("--point_lonlat", default=None, help="[ lonmin, lonmax, latmin, latmax]")
     parser.add_argument("--legend", default=True, help="Display legend")
     parser.add_argument("--grid", default=True, help="Display legend")
     parser.add_argument("--info", default=False, help="Display info")
     parser.add_argument("--url", default=None, help="use url", type=str)
+    parser.add_argument("--use_latest", default=False, type=bool)
+    parser.add_argument("--delta_index", default=None, type=str)
+
+
 
     args = parser.parse_args()
 
     return args
+
+def find_subdomains(domain_name, datetime=None, model=None, domain_lonlat=None, file=None, point_name=None, point_lonlat=None, use_latest=None, delta_index=None, url=None):
+
+    idx_domain_name = []
+    domain_lonlat = None  # args.domain_lonlat
+    point_lonlat = None  # args.point_lonlat
+    point_name = None  # args.point_name
+    delta_index = None  # args.delta_index
+    file = None
+    dom1 = domain_input_handler(dt = datetime, model = model, domain_name = domain_name[0], domain_lonlat = domain_lonlat,
+                                file=file, point_name=point_name, point_lonlat=point_lonlat,
+                                use_latest=use_latest, delta_index=delta_index, url=url)
+    for dom in domain_name:
+        eval(f"dom1.{dom}()")
+        idx_domain_name.append(dom1.idx)
+    domain_dep = {}
+
+    def subsets(idx_A, idx_B):
+        is_A_subset_of_B_i = set(idx_A[0]) <= set(idx_B[0])  # is prev a subset of next
+        is_A_subset_of_B_j = set(idx_A[1]) <= set(idx_B[1])  # is prev a subset of next
+        A_subset_of_B = bool(is_A_subset_of_B_i * is_A_subset_of_B_j)
+        return A_subset_of_B
+
+    for i in range(0, len(domain_name)):
+        dom_A = domain_name[i]
+        idx_A = idx_domain_name[i]
+        for j in range(0, len(domain_name)):
+            dom_B = domain_name[j]
+            idx_B = idx_domain_name[j]
+            A_subset_of_B = subsets(idx_A, idx_B)
+            if A_subset_of_B:
+                if dom_B not in [*domain_dep.keys()]:
+                    domain_dep[dom_B] = [dom_A]
+                else:
+                    domain_dep[dom_B].append(dom_A)
+    print(domain_dep)
+    dom_frame = pd.DataFrame(False, columns=domain_name, index=domain_name)
+    for k in domain_dep.keys():
+        value = domain_dep[k]
+        for v in value:
+            dom_frame.loc[k, v] = True
+    dom_frame["sum"] = dom_frame.sum(axis=1).astype(int)
+
+    for i in range(dom_frame["sum"].min() - 1, dom_frame["sum"].max()):
+        i = dom_frame["sum"].max() - i
+        largest_dom = dom_frame[dom_frame["sum"] == i]
+        if len(largest_dom) != 0:
+            print("largest_dom")
+            print(largest_dom)
+            index_of_largest_dom = largest_dom.index.values[0]
+            print(index_of_largest_dom)
+            sub_domains = largest_dom.apply(lambda row: row[row == True].index.tolist(), axis=1)[index_of_largest_dom]
+            print(sub_domains)
+            sub_domains.remove(index_of_largest_dom)
+            print(sub_domains)
+            sub_domains.remove("sum")
+            print(sub_domains)
+
+            dom_frame = dom_frame.drop(sub_domains)  # removes what largest domain have
+    dom_frame = dom_frame.drop("sum", axis=1)
+    print("SONEEEE")
+    print(dom_frame)
+    return dom_frame

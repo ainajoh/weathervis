@@ -17,12 +17,11 @@ import gc
 
 warnings.filterwarnings("ignore", category=UserWarning) # suppress matplotlib warning
 
-def BLH(datetime, steps=[0,2], model= None, domain_name = None, domain_lonlat = None, legend=False, info = False, save = True,grid=True, url = None):
+def plot_BLH(datetime, data_domain, dmet, steps=[0,2], model= None, domain_name = None, domain_lonlat = None, legend=False, info = False, save = True,grid=True, url = None):
   #RETRIEVE
-  param = ["air_pressure_at_sea_level", "surface_geopotential","atmosphere_boundary_layer_thickness","upward_air_velocity_pl"]
-  dmet, data_domain, bad_param = checkget_data_handler( p_level=[850], date = datetime, domain_name = domain_name, model = model, step= steps,  all_param=param, url = url)
+  eval(f"data_domain.{domain_name}()")
 
-  print(data_domain.lonlat)
+  print(model)
   #CALCULATE AND INITIALISE
   scale = data_domain.scale
   dmet.air_pressure_at_sea_level /= 100
@@ -60,7 +59,8 @@ def BLH(datetime, steps=[0,2], model= None, domain_name = None, domain_lonlat = 
       #Done plotting, now adjusting
       ax_cb = adjustable_colorbar_cax(fig1, ax1 )
       fig1.colorbar(CF_BLH, fraction=0.046, pad=0.01,aspect=25,cax = ax_cb, label="Boundary layer thickness [m]", extend="both") ##__N
-
+      print("HHH##############################################################################")
+      print(model)
       ax1.text(0, 1, "{0}_BLH_{1}+{2:02d}".format(model, datetime, leadtime), ha='left', va='bottom', transform=ax1.transAxes, color='dimgrey')
       if legend:
         pressure_dim = list(filter(re.compile(f'press*').match, dmet.__dict__.keys())) #need to find the correcvt pressure name
@@ -71,8 +71,8 @@ def BLH(datetime, steps=[0,2], model= None, domain_name = None, domain_lonlat = 
       if grid:
         nicegrid(ax=ax1)
 
-      #if domain_name != model and data_domain != None:  #
-      #  ax1.set_extent(data_domain.lonlat)
+      if domain_name != model and data_domain != None:  #
+          ax1.set_extent(data_domain.lonlat)
 
       make_modelrun_folder = setup_directory(OUTPUTPATH, "{0}".format(datetime))
       file_path="{0}/{1}_{2}_{3}_{4}+{5:02d}.png".format(make_modelrun_folder, model, domain_name, "BLH", datetime, leadtime)
@@ -85,12 +85,48 @@ def BLH(datetime, steps=[0,2], model= None, domain_name = None, domain_lonlat = 
   plt.close("all")
   del dmet
   del data_domain
-  del bad_param
   del crs
   gc.collect()
 
+def BLH(datetime, steps, model, domain_name, domain_lonlat, legend, info, grid, url,point_lonlat,use_latest,delta_index):
+
+    param = ["air_pressure_at_sea_level", "surface_geopotential", "atmosphere_boundary_layer_thickness",
+             "upward_air_velocity_pl"]
+
+    domain_name = ["Andenes"]  # , "KingsBay_Z0", "Svalbard_z2", "Svalbard_z1"] #args.domain_name
+    #one way of making the process of subdomain faster is handling domain if called once,
+    # url dont need to load for everytime we change domain_name
+    domains_with_subdomains = find_subdomains(domain_name=domain_name, datetime=datetime, model=model, domain_lonlat=domain_lonlat,
+                                point_lonlat=point_lonlat, use_latest=use_latest, delta_index=delta_index, url=url)
+
+    for domain_name in domains_with_subdomains.index.values:
+        dmet, data_domain, bad_param = checkget_data_handler(p_level=[850], date=datetime, domain_name=domain_name,
+                                                             model=model, step=steps, all_param=param, url=url)
+        subdom = domains_with_subdomains.loc[domain_name]
+        ii = subdom[subdom == True]
+        subdom_list = list(ii.index.values)
+        subdom_list.remove(domain_name)
+        if subdom_list:
+            for sub in subdom_list:
+                print(sub)
+                plot_BLH(datetime=datetime, steps=steps, model=model, domain_name=sub, data_domain=data_domain,
+                    domain_lonlat=domain_lonlat, legend=legend, info=info, grid=grid, url=url,
+                    dmet=dmet)
+        else:
+            plot_BLH(datetime=datetime, steps=steps, model=model, domain_name=domain_name,
+                data_domain=data_domain, dmet=dmet,
+                domain_lonlat=domain_lonlat, legend=legend, info=info, grid=grid, url=url)
+
 
 if __name__ == "__main__":
-  args = default_arguments()
-  BLH(datetime=args.datetime, steps = args.steps, model = args.model, domain_name = args.domain_name,
-          domain_lonlat=args.domain_lonlat, legend = args.legend, info = args.info,grid=args.grid, url = args.url)
+    args = default_arguments()
+    BLH(datetime=args.datetime, steps=args.steps, model=args.model, domain_name=args.domain_name,
+        domain_lonlat=args.domain_lonlat, legend=args.legend, info=args.info, grid=args.grid, url=args.url,
+        point_lonlat =args.point_lonlat,use_latest=args.use_latest,delta_index=args.delta_index)
+
+    #del bad_param
+    gc.collect()
+
+
+def is_box_in_box():
+    pass

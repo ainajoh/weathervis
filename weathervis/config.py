@@ -45,10 +45,11 @@ def make_data_uptodate():
                          f"##   DO YOU WANT TO UPDATE IT NOW? ----->yes/no  ")
 
             if Question == ("yes") or Question == ("y"):
-                #print(filepath+ file_nn)
+                print(filepath+ file_nn)
                 df = pd.read_csv(filepath+ file_nn)
+                print(df)
                 last_date = df.loc[len(df)-1,"Date"]
-                #print(last_date)
+                print(last_date)
                 input_rscript = "MEPS" if file_nn == "MEPS_filesandvar.csv" else "AromeArctic"
                 os.system(f'rscript ../util/scrap4filevariable.R {input_rscript} {last_date}')
             elif Question == ("no") or Question == ("n"):

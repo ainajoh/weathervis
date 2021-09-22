@@ -12,8 +12,6 @@ def lonlat2idx(lonlat, url):
     #Todo: add like, when u have a domain outside region of data then return idx= Only the full data.
     print(url)
     dataset = Dataset(url)
-
-
     lon = dataset.variables["longitude"][:]
     lat = dataset.variables["latitude"][:]
     # DOMAIN FOR SHOWING GRIDPOINT:: MANUALLY ADJUSTED
@@ -40,6 +38,7 @@ def idx2lonlat(idx, url):
     latlon = [lon.min(), lon.max(),lat.min(), lat.max(), ]
 
     return latlon
+
 def find_scale(lonlat):
     dim = ((float(lonlat[1]) - float(lonlat[0])) + (float(lonlat[3]) - float(lonlat[2])))  # / 31850.000000321685 #/ 107025.
     scale = int((1 / (dim / 124)) / 5 + 0.9) #empirical:
@@ -61,29 +60,23 @@ class domain():
         self.delta_index=delta_index
         self.scale = find_scale(self.lonlat) if self.lonlat else 1
 
-        print("DOO")
         print(file)
-        if type(file)==pd.core.frame.DataFrame:
-            self.file = file.loc[0,'File']
+        print(type(file)) #isinstance(x, pd.DataFrame)
+        if (file is not None and isinstance(file, pd.DataFrame) ):  #type(file)==pd.core.frame.DataFrame):
+            self.url = file.loc[0,'url']
+        elif (file is not None):
+            self.url = file.loc['url']
+        elif (url is not None):
+            self.url = url
         else:
-            self.file = file.loc['File']
-        if self.date:
-            YYYY = self.date[0:4]
-            MM = self.date[4:6]
-            DD = self.date[6:8]
-            HH = self.date[8:10]
-
-        if url==None:
-            url=self.make_url_base()
-            print(url)
-            self.url = url + "?latitude,longitude"
-        else:
-            self.url = url + "?latitude,longitude"
-        print("HAAAA22")
+            self.url = make_url_base()
+        self.url = url + "?latitude,longitude"
         print(self.url)
+
 
         if self.lonlat and not self.idx:
             self.idx = lonlat2idx(self.lonlat, self.url)
+
         if self.point_name != None and self.domain_name == None:
             sites = pd.read_csv("../../data/sites.csv", sep=";", header=0, index_col=0)
             plon = float(sites.loc[self.point_name].lon)
@@ -109,27 +102,19 @@ class domain():
         #if self.model == "MEPS" and ( (int(YYYY)==2018 and int(MM)<9) or ( int(YYYY)<2018 ) ):
         #    url = f"https://thredds.met.no/thredds/dodsC/meps25epsarchive/{YYYY}/{MM}/{DD}/meps_mbr0_extracted_backup_2_5km_{YYYY}{MM}{DD}T{HH}Z.nc?latitude,longitude"
         #
-        #elif self.model == "MEPS" and ( (int(YYYY)==2018 and int(MM)>=9) or (int(YYYY)>2018 )) and ((int(YYYY)==2020 and int(MM)<=2 and int(DD)<4)):
+        #elif self.model == "MEPS"
+        #
+        # and ( (int(YYYY)==2018 and int(MM)>=9) or (int(YYYY)>2018 )) and ((int(YYYY)==2020 and int(MM)<=2 and int(DD)<4)):
         #    url = f"https://thredds.met.no/thredds/dodsC/meps25epsarchive/{YYYY}/{MM}/{DD}/meps_mbr0_extracted_2_5km_{YYYY}{MM}{DD}T{HH}Z.nc?latitude,longitude"
         #else:
         #    url = f"https://thredds.met.no/thredds/dodsC/meps25epsarchive/{YYYY}/{MM}/{DD}/meps_det_2_5km_{YYYY}{MM}{DD}T{HH}Z.nc?latitude,longitude"
         #eval()
     def make_url_base(self):
-        YYYY = self.date[0:4]
-        MM = self.date[4:6]
-        DD = self.date[6:8]
-        HH = self.date[8:10]
         if self.model == "AromeArctic":
-            if self.use_latest==False:
-                url = f"https://thredds.met.no/thredds/dodsC/aromearcticarchive/{YYYY}/{MM}/{DD}/{self.file}"
-            else:
-                url = f"https://thredds.met.no/thredds/dodsC/aromearcticlatest/{self.file}"
+            url = "https://thredds.met.no/thredds/dodsC/aromearcticlatest/arome_arctic_sfx_2_5km_latest.nc"
 
         if self.model == "MEPS":
-            if self.use_latest==False:
-                url = f"https://thredds.met.no/thredds/dodsC/meps25epsarchive/{YYYY}/{MM}/{DD}/{self.file}"
-            else:
-                url = f"https://thredds.met.no/thredds/dodsC/meps25epslatest/{self.file}"
+            url = "https://thredds.met.no/thredds/dodsC/aromearcticlatest/arome_arctic_sfx_2_5km_latest.nc"
 
         return url
 
