@@ -30,10 +30,10 @@ def plot_BLH(datetime, data_domain, dmet, steps=[0,2], model= None, domain_name 
   if scale < 8:
     W =  filter_values_over_mountain(dmet.surface_geopotential[:], dmet.upward_air_velocity_pl[:])
   else:
-    W = dmet.upward_air_velocity_pl[:].squeeze()
+    W = dmet.upward_air_velocity_pl[:]#.squeeze()
 
   MSLP = filter_values_over_mountain(dmet.surface_geopotential[:], dmet.air_pressure_at_sea_level[:])
-  BLH = (dmet.atmosphere_boundary_layer_thickness[:, :, :]).squeeze()
+  BLH = (dmet.atmosphere_boundary_layer_thickness[:, :, :])#.squeeze()
 
   #PLOT
   crs = default_map_projection(dmet)
@@ -42,15 +42,15 @@ def plot_BLH(datetime, data_domain, dmet, steps=[0,2], model= None, domain_name 
   itim = 0
   for leadtime in np.array(steps):
       print('Plotting {0} + {1:02d} UTC'.format(datetime,leadtime))
-      ax1 = default_mslp_contour(dmet.x, dmet.y, MSLP[itim,:], ax1, scale=scale)
+      ax1 = default_mslp_contour(dmet.x, dmet.y, MSLP[itim,0,:,:], ax1, scale=scale)
 
       # vertical velocity
-      C_W = ax1.contour(dmet.x, dmet.y, W[itim,:], zorder=3, alpha=1.0,
+      C_W = ax1.contour(dmet.x, dmet.y, W[itim,0,:,:], zorder=3, alpha=1.0,
                          levels=np.linspace(0.07,2.0,4*scale), colors="red", linewidths=0.7)
-      C_W = ax1.contour(dmet.x, dmet.y, W[itim,:], zorder=3, alpha=1.0,
+      C_W = ax1.contour(dmet.x, dmet.y, W[itim,0,:,:], zorder=3, alpha=1.0,
                         levels=np.linspace(-2.0,-0.07,4*scale ), colors="blue", linewidths=0.7)
       # boundary layer thickness
-      CF_BLH = ax1.contourf(dmet.x, dmet.y, BLH[itim,:], zorder=1, alpha=0.5,
+      CF_BLH = ax1.contourf(dmet.x, dmet.y, BLH[itim,0,:,:], zorder=1, alpha=0.5,
                         levels=np.arange(50, 5000, 200), linewidths=0.7,label = "BLH", cmap = "summer",extend="both")
       #coastline
       ax1.add_feature(cfeature.GSHHSFeature(scale=coast_details))
@@ -93,7 +93,7 @@ def BLH(datetime, steps, model, domain_name, domain_lonlat, legend, info, grid, 
     param = ["air_pressure_at_sea_level", "surface_geopotential", "atmosphere_boundary_layer_thickness",
              "upward_air_velocity_pl"]
 
-    domain_name = ["Andenes"]  # , "KingsBay_Z0", "Svalbard_z2", "Svalbard_z1"] #args.domain_name
+    #domain_name = ["Andenes"]  # , "KingsBay_Z0", "Svalbard_z2", "Svalbard_z1"] #args.domain_name
     #one way of making the process of subdomain faster is handling domain if called once,
     # url dont need to load for everytime we change domain_name
     domains_with_subdomains = find_subdomains(domain_name=domain_name, datetime=datetime, model=model, domain_lonlat=domain_lonlat,

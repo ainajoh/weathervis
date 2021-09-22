@@ -8,12 +8,11 @@ from weathervis.calculation import *
 if __name__ == "__main__":
     print("Run by itself")
 
-def lonlat2idx(lonlat, url):
+def lonlat2idx(lonlat, lon, lat):
     #Todo: add like, when u have a domain outside region of data then return idx= Only the full data.
-    print(url)
-    dataset = Dataset(url)
-    lon = dataset.variables["longitude"][:]
-    lat = dataset.variables["latitude"][:]
+    #print(url)
+    #lon = dataset.variables["longitude"][:]
+    #lat = dataset.variables["latitude"][:]
     # DOMAIN FOR SHOWING GRIDPOINT:: MANUALLY ADJUSTED
     if len(lonlat)>2:
         idx = np.where((lat > lonlat[2]) & (lat < lonlat[3]) & \
@@ -21,7 +20,6 @@ def lonlat2idx(lonlat, url):
     else:
         print("nearest")
         idx = nearest_neighbour_idx(lonlat[0],lonlat[1],lon,lat)
-    dataset.close()  #        self.lonlat = [0,30, 73, 82]  #
 
     return idx
 
@@ -73,16 +71,20 @@ class domain():
         self.url = url + "?latitude,longitude"
         print(self.url)
 
+        dataset = Dataset(self.url)
+        self.lon = dataset.variables["longitude"][:]
+        self.lat = dataset.variables["latitude"][:]
+        dataset.close()  # self.lonlat = [0,30, 73, 82]  #
 
         if self.lonlat and not self.idx:
-            self.idx = lonlat2idx(self.lonlat, self.url)
+            self.idx = lonlat2idx(self.lonlat, self.lon, self.lat)
 
         if self.point_name != None and self.domain_name == None:
             sites = pd.read_csv("../../data/sites.csv", sep=";", header=0, index_col=0)
             plon = float(sites.loc[self.point_name].lon)
             plat = float(sites.loc[self.point_name].lat)
             self.lonlat = [plon,plat]
-            self.idx = lonlat2idx(self.lonlat, self.url)
+            self.idx = lonlat2idx(self.lonlat, self.lon, self.lat)
             if self.delta_index!=None:
                 ii_max =  int(self.idx[0] + self.delta_index[0]/2)
                 ii_min = int(self.idx[0] - self.delta_index[0]/2)
@@ -122,22 +124,22 @@ class domain():
 
     def MEPS(self):
         self.lonlat = [-1, 60., 49., 72]
-        self.idx = lonlat2idx(self.lonlat, self.url)
+        self.idx = lonlat2idx(self.lonlat, self.lon, self.lat)
         self.scale = find_scale(self.lonlat)
     def Finse(self):
         self.lonlat = [7.524026, 8.524026, 60, 61.5]
-        self.idx = lonlat2idx(self.lonlat, self.url)
+        self.idx = lonlat2idx(self.lonlat, self.lon, self.lat)
         self.scale = find_scale(self.lonlat)
 
     def South_Norway(self):
         self.lonlat = [4., 9.18, 58.01, 62.2]  # lonmin,lonmax,latmin,latmax,
-        self.idx = lonlat2idx(self.lonlat, self.url)
+        self.idx = lonlat2idx(self.lonlat, self.lon, self.lat)
         self.scale = find_scale(self.lonlat)
 
     def West_Norway(self):
         # self.lonlat = [2., 12., 53., 64.]  # lonmin,lonmax,latmin,latmax,
         self.lonlat = [1.0, 12., 54.5, 64.]  # lonmin,lonmax,latmin,latmax,
-        self.idx = lonlat2idx(self.lonlat, self.url)
+        self.idx = lonlat2idx(self.lonlat, self.lon, self.lat)
         self.scale = find_scale(self.lonlat)
 
     def AromeArctic(self):
@@ -145,40 +147,33 @@ class domain():
         self.lonlat = [-18.0, 80.0, 62.0, 88.0]  # [-30,90,10,91] #lonmin,lonmax,latmin,latmax,
 
         # url = "https://thredds.met.no/thredds/dodsC/aromearcticlatest/arome_arctic_sfx_2_5km_latest.nc?latitude,longitude"
-        self.idx = lonlat2idx(self.lonlat,
-                              url=self.url)  # RIUGHNone#[0, -1, 0, -1]  # Index; y_min,y_max,x_min,x_max such that lat[y_min] = latmin
+        self.idx = lonlat2idx(self.lonlat, self.lon, self.lat)  # RIUGHNone#[0, -1, 0, -1]  # Index; y_min,y_max,x_min,x_max such that lat[y_min] = latmin
         self.scale = find_scale(self.lonlat)
 
     def Svalbard_z2(self):  # map
         url = "https://thredds.met.no/thredds/dodsC/aromearcticlatest/arome_arctic_sfx_2_5km_latest.nc?latitude,longitude"
 
         self.lonlat = [15, 23, 77, 82]  #
-        self.idx = lonlat2idx(self.lonlat,
-                              url)  # RIUGHNone#[0, -1, 0, -1]  # Index; y_min,y_max,x_min,x_max such that lat[y_min] = latmin
+        self.idx = lonlat2idx(self.lonlat, self.lon, self.lat)  # RIUGHNone#[0, -1, 0, -1]  # Index; y_min,y_max,x_min,x_max such that lat[y_min] = latmin
         self.scale = find_scale(self.lonlat)
 
     def Svalbard_z1(self):  # map
-        url = "https://thredds.met.no/thredds/dodsC/aromearcticlatest/arome_arctic_sfx_2_5km_latest.nc?latitude,longitude"
-
         self.lonlat = [4, 23, 76.3, 82]  #
-        self.idx = lonlat2idx(self.lonlat,
-                              url)  # RIUGHNone#[0, -1, 0, -1]  # Index; y_min,y_max,x_min,x_max such that lat[y_min] = latmin
+        self.idx = lonlat2idx(self.lonlat, self.lon, self.lat)  # RIUGHNone#[0, -1, 0, -1]  # Index; y_min,y_max,x_min,x_max such that lat[y_min] = latmin
         self.scale = find_scale(self.lonlat)
 
     def Svalbard(self):  # data
         # url = "https://thredds.met.no/thredds/dodsC/aromearcticlatest/arome_arctic_sfx_2_5km_latest.nc?latitude,longitude"
         self.domain_name = "Svalbard"
         self.lonlat = [-8, 30, 73, 82]  #
-        self.idx = lonlat2idx(self.lonlat,
-                              url=self.url)  # RIUGHNone#[0, -1, 0, -1]  # Index; y_min,y_max,x_min,x_max such that lat[y_min] = latmin
+        self.idx = lonlat2idx(self.lonlat, self.lon, self.lat)  # RIUGHNone#[0, -1, 0, -1]  # Index; y_min,y_max,x_min,x_max such that lat[y_min] = latmin
         self.scale = find_scale(self.lonlat)
 
     def North_Norway(self):  # data
         url = "https://thredds.met.no/thredds/dodsC/aromearcticlatest/arome_arctic_sfx_2_5km_latest.nc?latitude,longitude"
         self.domain_name = "North_Norway"
         self.lonlat = [5, 20, 66.5, 76.2]  #
-        self.idx = lonlat2idx(self.lonlat,
-                              url)  # RIUGHNone#[0, -1, 0, -1]  # Index; y_min,y_max,x_min,x_max such that lat[y_min] = latmin
+        self.idx = lonlat2idx(self.lonlat, self.lon, self.lat)  # RIUGHNone#[0, -1, 0, -1]  # Index; y_min,y_max,x_min,x_max such that lat[y_min] = latmin
         self.scale = find_scale(self.lonlat)
 
     def KingsBay(self):  # bigger data
@@ -226,21 +221,20 @@ class domain():
         # 16.120;69.310;10
         self.domain_name = "Andenes"
         self.lonlat = [15.8, 16.4, 69.2, 69.4]
-        self.idx = lonlat2idx(self.lonlat, self.url)
+        self.idx = lonlat2idx(self.lonlat, self.lon, self.lat)
         self.scale = find_scale(self.lonlat)
 
     def ALOMAR(self):
         # 16.120;69.310;10
         self.domain_name = "ALOMAR"
         self.lonlat = [15.8, 16.4, 69.2, 69.4]
-        self.idx = lonlat2idx(self.lonlat, self.url)
+        self.idx = lonlat2idx(self.lonlat, self.lon, self.lat)
         self.scale = find_scale(self.lonlat)
 
     def Andenes_area(self):
-        url = "https://thredds.met.no/thredds/dodsC/aromearcticlatest/arome_arctic_sfx_2_5km_latest.nc?latitude,longitude"
         self.domain_name = "Andenes_area"
         self.lonlat = [12.0, 19.5, 68.0, 70.6]
-        self.idx = lonlat2idx(self.lonlat, self.url)
+        self.idx = lonlat2idx(self.lonlat, self.lon, self.lat)
         self.scale = find_scale(self.lonlat)
 
     def Varlegenhuken(self):
@@ -253,7 +247,7 @@ class domain():
         minlat = float(plat - 0.11)
         maxlat = float(plat + 0.09)
         self.lonlat = [minlon, maxlon, minlat, maxlat]
-        self.idx = lonlat2idx(self.lonlat, self.url)
+        self.idx = lonlat2idx(self.lonlat, self.lon, self.lat)
         self.scale = find_scale(self.lonlat)
 
     def Longyearbyen(self):
@@ -266,7 +260,7 @@ class domain():
         minlat = float(plat - 0.11)
         maxlat = float(plat + 0.09)
         self.lonlat = [minlon, maxlon, minlat, maxlat]
-        self.idx = lonlat2idx(self.lonlat, self.url)
+        self.idx = lonlat2idx(self.lonlat, self.lon, self.lat)
         self.scale = find_scale(self.lonlat)
 
     def Hopen(self):
@@ -279,7 +273,7 @@ class domain():
         minlat = float(plat - 0.11)
         maxlat = float(plat + 0.09)
         self.lonlat = [minlon, maxlon, minlat, maxlat]
-        self.idx = lonlat2idx(self.lonlat, self.url)
+        self.idx = lonlat2idx(self.lonlat, self.lon, self.lat)
         self.scale = find_scale(self.lonlat)
 
     def Bodo(self):
@@ -292,7 +286,7 @@ class domain():
         minlat = float(plat - 0.11)
         maxlat = float(plat + 0.09)
         self.lonlat = [minlon, maxlon, minlat, maxlat]
-        self.idx = lonlat2idx(self.lonlat, self.url)
+        self.idx = lonlat2idx(self.lonlat, self.lon, self.lat)
         self.scale = find_scale(self.lonlat)
 
     def Tromso(self):
@@ -305,7 +299,7 @@ class domain():
         minlat = float(plat - 0.11)
         maxlat = float(plat + 0.09)
         self.lonlat = [minlon, maxlon, minlat, maxlat]
-        self.idx = lonlat2idx(self.lonlat, self.url)
+        self.idx = lonlat2idx(self.lonlat, self.lon, self.lat)
         self.scale = find_scale(self.lonlat)
 
     def Bjornoya(self):
@@ -318,7 +312,7 @@ class domain():
         minlat = float(plat - 0.11)
         maxlat = float(plat + 0.09)
         self.lonlat = [minlon, maxlon, minlat, maxlat]
-        self.idx = lonlat2idx(self.lonlat, self.url)
+        self.idx = lonlat2idx(self.lonlat, self.lon, self.lat)
         self.scale = find_scale(self.lonlat)
 
     def NyAlesund(self):
@@ -331,7 +325,7 @@ class domain():
         minlat = float(plat - 0.11)
         maxlat = float(plat + 0.09)
         self.lonlat = [minlon, maxlon, minlat, maxlat]
-        self.idx = lonlat2idx(self.lonlat, self.url)
+        self.idx = lonlat2idx(self.lonlat, self.lon, self.lat)
         self.scale = find_scale(self.lonlat)
 
     def MetBergen(self):
@@ -344,7 +338,7 @@ class domain():
         minlat = float(plat - 0.11)
         maxlat = float(plat + 0.09)
         self.lonlat = [minlon, maxlon, minlat, maxlat]
-        self.idx = lonlat2idx(self.lonlat, self.url)
+        self.idx = lonlat2idx(self.lonlat, self.lon, self.lat)
         self.scale = find_scale(self.lonlat)
 
     def Osteroy(self):
@@ -357,7 +351,7 @@ class domain():
         minlat = float(plat - 0.80)
         maxlat = float(plat + 1.00)
         self.lonlat = [minlon, maxlon, minlat, maxlat]
-        self.idx = lonlat2idx(self.lonlat, self.url)
+        self.idx = lonlat2idx(self.lonlat, self.lon, self.lat)
         self.scale = find_scale(self.lonlat)
 
     def Olsnesnipa(self):  # PAraglidingstart
@@ -370,7 +364,7 @@ class domain():
         minlat = float(plat - 0.08)
         maxlat = float(plat + 0.05)
         self.lonlat = [minlon, maxlon, minlat, maxlat]
-        self.idx = lonlat2idx(self.lonlat, self.url)
+        self.idx = lonlat2idx(self.lonlat, self.lon, self.lat)
         self.scale = find_scale(self.lonlat)
 
     def JanMayen(self):  # PAraglidingstart
@@ -383,7 +377,7 @@ class domain():
         minlat = float(plat - 0.08)
         maxlat = float(plat + 0.05)
         self.lonlat = [minlon, maxlon, minlat, maxlat]
-        self.idx = lonlat2idx(self.lonlat, self.url)
+        self.idx = lonlat2idx(self.lonlat, self.lon, self.lat)
         self.scale = find_scale(self.lonlat)
 
     def CAO(self):  # PAraglidingstart
@@ -396,7 +390,7 @@ class domain():
         minlat = float(plat - 0.08)
         maxlat = float(plat + 0.05)
         self.lonlat = [minlon, maxlon, minlat, maxlat]
-        self.idx = lonlat2idx(self.lonlat, self.url)
+        self.idx = lonlat2idx(self.lonlat, self.lon, self.lat)
         self.scale = find_scale(self.lonlat)
 
     def NorwegianSea(self):  # PAraglidingstart
@@ -409,14 +403,14 @@ class domain():
         minlat = float(plat - 0.08)
         maxlat = float(plat + 0.05)
         self.lonlat = [minlon, maxlon, minlat, maxlat]
-        self.idx = lonlat2idx(self.lonlat, self.url)
+        self.idx = lonlat2idx(self.lonlat, self.lon, self.lat)
         self.scale = find_scale(self.lonlat)
 
     def NorwegianSea_area(self):  # PAraglidingstart
         url = "https://thredds.met.no/thredds/dodsC/aromearcticlatest/arome_arctic_sfx_2_5km_latest.nc?latitude,longitude"
         self.domain_name = "NorwegianSea_area"
         self.lonlat = [-7, 16, 69.0, 77.2]  #
-        self.idx = lonlat2idx(self.lonlat, self.url)
+        self.idx = lonlat2idx(self.lonlat, self.lon, self.lat)
         self.scale = find_scale(self.lonlat)
 
     def GEOF322(self):  # PAraglidingstart
@@ -429,18 +423,18 @@ class domain():
         minlat = float(plat - 0.08)
         maxlat = float(plat + 0.05)
         self.lonlat = [minlon, maxlon, minlat, maxlat]
-        self.idx = lonlat2idx(self.lonlat, self.url)
+        self.idx = lonlat2idx(self.lonlat, self.lon, self.lat)
         self.scale = find_scale(self.lonlat)
 
     def Iceland(self):
         #url = "https://thredds.met.no/thredds/dodsC/aromearcticlatest/arome_arctic_sfx_2_5km_latest.nc?latitude,longitude"
         self.domain_name = "Iceland"
         #self.lonlat = [12.0, 19.5, 68.0, 70.6]
-        #self.idx = lonlat2idx(self.lonlat, self.url)
+        #self.idx = lonlat2idx(self.lonlat, self.lon, self.lat)
         #self.lonlat = [-65, 20., 58., 85]
         self.lonlat = [-26., -8, 63., 67]
 
-        self.idx = lonlat2idx(self.lonlat, self.url)
+        self.idx = lonlat2idx(self.lonlat, self.lon, self.lat)
         self.scale = find_scale(self.lonlat)
 
     def pcmet1(self):
@@ -453,7 +447,7 @@ class domain():
         minlat = float(plat - 0.08)
         maxlat = float(plat + 0.05)
         self.lonlat = [minlon, maxlon, minlat, maxlat]
-        self.idx = lonlat2idx(self.lonlat, self.url)
+        self.idx = lonlat2idx(self.lonlat, self.lon, self.lat)
         self.scale = find_scale(self.lonlat)
 
     def pcmet2(self):
@@ -466,7 +460,7 @@ class domain():
         minlat = float(plat - 0.08)
         maxlat = float(plat + 0.05)
         self.lonlat = [minlon, maxlon, minlat, maxlat]
-        self.idx = lonlat2idx(self.lonlat, self.url)
+        self.idx = lonlat2idx(self.lonlat, self.lon, self.lat)
         self.scale = find_scale(self.lonlat)
 
     def pcmet3(self):
@@ -479,7 +473,7 @@ class domain():
         minlat = float(plat - 0.08)
         maxlat = float(plat + 0.05)
         self.lonlat = [minlon, maxlon, minlat, maxlat]
-        self.idx = lonlat2idx(self.lonlat, self.url)
+        self.idx = lonlat2idx(self.lonlat, self.lon, self.lat)
         self.scale = find_scale(self.lonlat)
 
 

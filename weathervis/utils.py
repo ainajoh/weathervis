@@ -387,7 +387,7 @@ def default_map_projection(dmet):
     return crs
 def filter_values_over_mountain(geop, value):
     # reduces noise over mountains by removing values over a certain height.
-    value = np.where(geop < 3000, value, np.NaN).squeeze()
+    value = np.where(geop < 3000, value, np.NaN)#.squeeze()
     return value
 
 def default_mslp_contour( x, y, MSLP, ax1, scale=1):
@@ -441,7 +441,8 @@ def default_arguments():
     return args
 
 def find_subdomains(domain_name, datetime=None, model=None, domain_lonlat=None, file=None, point_name=None, point_lonlat=None, use_latest=None, delta_index=None, url=None):
-
+    print("########################################################")
+    print(domain_name)
     idx_domain_name = []
     domain_lonlat = None  # args.domain_lonlat
     point_lonlat = None  # args.point_lonlat
@@ -494,7 +495,8 @@ def find_subdomains(domain_name, datetime=None, model=None, domain_lonlat=None, 
             print(sub_domains)
             sub_domains.remove(index_of_largest_dom)
             print(sub_domains)
-            sub_domains.remove("sum")
+            if "sum" in sub_domains:
+                sub_domains.remove("sum")
             print(sub_domains)
 
             dom_frame = dom_frame.drop(sub_domains)  # removes what largest domain have
