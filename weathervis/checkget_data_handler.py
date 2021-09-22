@@ -183,7 +183,7 @@ def checkget_data_handler(all_param, date=None,  model=None, step=None, p_level=
         fileobj = check_data(url=url, model=model, date=date, step=step, use_latest=use_latest).file
         print("checc")
         print(url)
-        data_domain = domain_input_handler(url=url, dt=date, model=model, domain_name=domain_name, domain_lonlat=domain_lonlat,
+        data_domain = domain_input_handler(file = fileobj, url=url, dt=date, model=model, domain_name=domain_name, domain_lonlat=domain_lonlat,
                                            point_name=point_name, point_lonlat=point_lonlat, delta_index=delta_index)
 
         dmet = get_data(file = fileobj, url=url, model=model, param=all_param, step=step, date=date, m_level=m_level,

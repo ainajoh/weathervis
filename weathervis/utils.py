@@ -344,7 +344,6 @@ GpsAlt_m = 'GpsAlt_m'):
 
 def domain_input_handler(dt=None, model=None, domain_name=None, domain_lonlat=None, file=None, point_name=None, point_lonlat=None, use_latest=True, delta_index=None, url=None):
     print("IN DOM")
-
     if domain_name or domain_lonlat:
         if domain_lonlat:
             print(f"\n####### Setting up domain for coordinates: {domain_lonlat} ##########")
@@ -391,13 +390,13 @@ def filter_values_over_mountain(geop, value):
     value = np.where(geop < 3000, value, np.NaN).squeeze()
     return value
 
-def default_mslp_contour( x, y, MSLP, ax1):
+def default_mslp_contour( x, y, MSLP, ax1, scale=1):
     # MSLP with contour labels every 10 hPa
     C_P = ax1.contour(x, y, MSLP, zorder=1, alpha=1.0,
-                      levels=np.arange(round(np.nanmin(MSLP), -1) - 10, round(np.nanmax(MSLP), -1) + 10, 1),
+                      levels=np.arange(round(np.nanmin(MSLP), -1) - 10, round(np.nanmax(MSLP), -1) + 10, 1/scale),
                       colors='grey', linewidths=0.5)
     C_P = ax1.contour( x, y, MSLP, zorder=2, alpha=1.0,
-                      levels=np.arange(round(np.nanmin(MSLP), -1) - 10, round(np.nanmax(MSLP), -1) + 10, 10),
+                      levels=np.arange(round(np.nanmin(MSLP), -1) - 10, round(np.nanmax(MSLP), -1) + 10, 10/scale),
                       colors='grey', linewidths=1.0, label="MSLP [hPa]")
     ax1.clabel(C_P, C_P.levels, inline=True, fmt="%3.0f", fontsize=10)
     return ax1
@@ -423,12 +422,14 @@ def default_arguments():
     parser.add_argument("--datetime", help="YYYYMMDDHH for modelrun", required=True, type=str)
     parser.add_argument("--steps", default=0, nargs="+", type=int,
                         help="forecast times example --steps 0 3 gives time 0 to 3")
-    parser.add_argument("--model", default="MEPS", help="MEPS or AromeArctic")
+    parser.add_argument("--model", default=None, help="MEPS or AromeArctic")
     parser.add_argument("--domain_name", default=None, help="MEPS or AromeArctic")
     parser.add_argument("--domain_lonlat", default=None, help="[ lonmin, lonmax, latmin, latmax]")
     parser.add_argument("--legend", default=True, help="Display legend")
     parser.add_argument("--grid", default=True, help="Display legend")
     parser.add_argument("--info", default=False, help="Display info")
+    parser.add_argument("--url", default=None, help="use url", type=str)
+
     args = parser.parse_args()
 
     return args

@@ -17,34 +17,42 @@ import gc
 
 warnings.filterwarnings("ignore", category=UserWarning) # suppress matplotlib warning
 
-def BLH(datetime, steps=[0,2], model= "MEPS", domain_name = None, domain_lonlat = None, legend=False, info = False, save = True,grid=True):
+def BLH(datetime, steps=[0,2], model= None, domain_name = None, domain_lonlat = None, legend=False, info = False, save = True,grid=True, url = None):
+  #RETRIEVE
   param = ["air_pressure_at_sea_level", "surface_geopotential","atmosphere_boundary_layer_thickness","upward_air_velocity_pl"]
-  dmet, data_domain, bad_param = checkget_data_handler( p_level=[1000], date = "2021030300", domain_name = "AromeArctic", model = model, step= steps,  all_param=param )
+  dmet, data_domain, bad_param = checkget_data_handler( p_level=[850], date = datetime, domain_name = domain_name, model = model, step= steps,  all_param=param, url = url)
+
+  print(data_domain.lonlat)
+  #CALCULATE AND INITIALISE
+  scale = data_domain.scale
   dmet.air_pressure_at_sea_level /= 100
-
-
   plev = 0 #velocity presuure level at first request
-  coast_details='intermediate'
-  W = filter_values_over_mountain(dmet.surface_geopotential[:], dmet.upward_air_velocity_pl[:])
+  coast_details='auto' # ‘auto’, ‘coarse’, ‘low’, ‘intermediate’, ‘high, or ‘full’ (default is ‘auto’).
+  if scale < 8:
+    W =  filter_values_over_mountain(dmet.surface_geopotential[:], dmet.upward_air_velocity_pl[:])
+  else:
+    W = dmet.upward_air_velocity_pl[:].squeeze()
+
   MSLP = filter_values_over_mountain(dmet.surface_geopotential[:], dmet.air_pressure_at_sea_level[:])
   BLH = (dmet.atmosphere_boundary_layer_thickness[:, :, :]).squeeze()
 
+  #PLOT
   crs = default_map_projection(dmet)
   fig1, ax1 = plt.subplots(1, 1, figsize=(7, 9), subplot_kw={'projection': crs})
 
   itim = 0
   for leadtime in np.array(steps):
       print('Plotting {0} + {1:02d} UTC'.format(datetime,leadtime))
-      ax1 = default_mslp_contour(dmet.x, dmet.y, MSLP[itim,:], ax1)
+      ax1 = default_mslp_contour(dmet.x, dmet.y, MSLP[itim,:], ax1, scale=scale)
 
       # vertical velocity
       C_W = ax1.contour(dmet.x, dmet.y, W[itim,:], zorder=3, alpha=1.0,
-                         levels=np.linspace(0.07,2.0,4), colors="red", linewidths=0.7)
+                         levels=np.linspace(0.07,2.0,4*scale), colors="red", linewidths=0.7)
       C_W = ax1.contour(dmet.x, dmet.y, W[itim,:], zorder=3, alpha=1.0,
-                        levels=np.linspace(-2.0,-0.07,4 ), colors="blue", linewidths=0.7)
+                        levels=np.linspace(-2.0,-0.07,4*scale ), colors="blue", linewidths=0.7)
       # boundary layer thickness
       CF_BLH = ax1.contourf(dmet.x, dmet.y, BLH[itim,:], zorder=1, alpha=0.5,
-                        levels=np.arange(500, 5000, 500), linewidths=0.7,label = "BLH", cmap = "summer",extend="both")
+                        levels=np.arange(50, 5000, 200), linewidths=0.7,label = "BLH", cmap = "summer",extend="both")
       #coastline
       ax1.add_feature(cfeature.GSHHSFeature(scale=coast_details))
 
@@ -55,15 +63,16 @@ def BLH(datetime, steps=[0,2], model= "MEPS", domain_name = None, domain_lonlat 
 
       ax1.text(0, 1, "{0}_BLH_{1}+{2:02d}".format(model, datetime, leadtime), ha='left', va='bottom', transform=ax1.transAxes, color='dimgrey')
       if legend:
-        llg = {'W_over':  {'color': 'red', 'linestyle': None, 'legend': f"W [m s-1]>0.07 m/s at {dmet.pressure[plev]:.0f} hPa"},
-               'W_under': {'color': 'blue', 'linestyle': 'dashed', 'legend': f"W [m s-1]<0.07 m/s at {dmet.pressure[plev]:.0f} hPa"},
+        pressure_dim = list(filter(re.compile(f'press*').match, dmet.__dict__.keys())) #need to find the correcvt pressure name
+        llg = {'W_over':  {'color': 'red', 'linestyle': None, 'legend': f"W [m s-1]>0.07 m/s at {dmet.__dict__[pressure_dim[0]][plev]:.0f} hPa"},
+               'W_under': {'color': 'blue', 'linestyle': 'dashed', 'legend': f"W [m s-1]<0.07 m/s at {dmet.__dict__[pressure_dim[0]][plev]:.0f} hPa"},
                'MSLP': {'color': 'gray', 'linestyle': None, 'legend':  "MSLP [hPa]"}  }
         nice_legend(llg, ax1)
       if grid:
         nicegrid(ax=ax1)
 
-      if domain_name != model and data_domain != None:  #
-        ax1.set_extent(data_domain.lonlat)
+      #if domain_name != model and data_domain != None:  #
+      #  ax1.set_extent(data_domain.lonlat)
 
       make_modelrun_folder = setup_directory(OUTPUTPATH, "{0}".format(datetime))
       file_path="{0}/{1}_{2}_{3}_{4}+{5:02d}.png".format(make_modelrun_folder, model, domain_name, "BLH", datetime, leadtime)
@@ -84,4 +93,4 @@ def BLH(datetime, steps=[0,2], model= "MEPS", domain_name = None, domain_lonlat 
 if __name__ == "__main__":
   args = default_arguments()
   BLH(datetime=args.datetime, steps = args.steps, model = args.model, domain_name = args.domain_name,
-          domain_lonlat=args.domain_lonlat, legend = args.legend, info = args.info,grid=args.grid)
+          domain_lonlat=args.domain_lonlat, legend = args.legend, info = args.info,grid=args.grid, url = args.url)

@@ -198,11 +198,9 @@ class check_data():
         self.model = filter_function_for_models_ignore_uppercases(self.model) if self.model != None else None
         self.p_level = [p_level] if p_level != None and type(p_level) != list else p_level
         self.m_level = [m_level] if m_level != None and type(m_level) != list else m_level
-
         if (self.model !=None and self.date !=None) or self.url !=None:
             all_files = self.check_files(date, model, param,  mbrs, url) #the main outcome
             self.file = self.check_file_info(all_files, param, mbrs)
-
         ###################################################
         # SEARCH OPTIONS UNDER
         ###################################################
@@ -293,7 +291,7 @@ class check_data():
             dimframe = pd.DataFrame(list(zip(ds, valued, valued)),index = dn, columns=["shape","value", "unit"])
 
             #seperate dimentions into pressure, hybrid, height and ensmembers.
-            pressure_dim = list(filter(re.compile(f'.*press*').match, dimframe.index))
+            pressure_dim = list(filter(re.compile(f'press*').match, dimframe.index))
             hybrid_dim = list(filter(re.compile(f'.*hybrid*').match, dimframe.index))
             height_dim = list(filter(re.compile(f'.*height*').match, dimframe.index))
             memb_dim = list(filter(re.compile(f'.*member*').match, dimframe.index))
