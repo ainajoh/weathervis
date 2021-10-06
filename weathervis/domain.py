@@ -67,8 +67,8 @@ class domain():
         elif (url is not None):
             self.url = url
         else:
-            self.url = make_url_base()
-        self.url = url + "?latitude,longitude"
+            self.url = self.make_url_base()
+        self.url = self.url + "?latitude,longitude"
         print(self.url)
 
         dataset = Dataset(self.url)

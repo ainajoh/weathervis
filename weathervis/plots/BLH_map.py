@@ -1,5 +1,5 @@
 # %%
-#python BLH.py --datetime 2020091000 --steps 0 1 --model MEPS --domain_name West_Norway
+#python BLH_map.py --datetime 2020091000 --steps 0 1 --model MEPS --domain_name West_Norway
 #
 from weathervis.config import *
 from weathervis.utils import *
