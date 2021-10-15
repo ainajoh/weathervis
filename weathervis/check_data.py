@@ -71,9 +71,13 @@ def filter_type(file,mbrs, p_level,m_level):
 
 
     if m_level != None:
+        print("FILT")
+
         file = file[~file.m_levels.isnull()] #not needed?
         file.reset_index(inplace=True)       #not needed?
-        file = file[file["ml_bool"] == True]  #deprecated
+        print(file.columns)
+        #file = file[file["ml_bool"] == True]  #deprecated
+
 
         #print(file.dim)
 
@@ -189,6 +193,24 @@ class check_data():
         self.search = search
         self.p_level = p_level
         self.m_level = m_level
+
+        if step != None and type(step[0]) == str:
+            if len(step) == 1:
+                if ":" in step[0]:
+                    ss = step[0].split(":")
+                    ss = [int(x.strip()) for x in ss]
+                    if len(ss) == 3:
+                        step = list(np.arange(ss[0], ss[1], ss[2]))
+                    else:
+                        step = list(np.arange(ss[0], ss[1], 1))
+                elif "," in step[0]:
+                    ss = step[0].split(",")
+                    step = [int(x.strip()) for x in ss]
+                else:
+                    step = [int(x.strip()) for x in step]
+            else:
+                step = [int(x.strip()) for x in step]
+
         self.maxstep = np.max(step) if step != None or type(step) != float or type(step) != int else step
         self.use_latest=use_latest
 
@@ -332,6 +354,7 @@ class check_data():
                         dimframe.loc[dim_tmp[0], "unit"] = prminfo.getncattr("units")
                     except:
                         pass
+
             #print(d_p)
             df.at[i, "p_levels"] = d_p
             df.at[i, "m_levels"] = d_ml
@@ -341,6 +364,7 @@ class check_data():
             dv_shape = [dataset.variables[d].shape for d in dataset.variables.keys()]    #save var shape
             dv_dim = [dataset.variables[d].dimensions for d in dataset.variables.keys()] #save var dimensions / what it depends on
             varlist = list(zip(dv_shape,dv_dim))
+
             varframe = pd.DataFrame(varlist, index = dataset.variables.keys() ,columns=["shape", "dim"])
             df.loc[i,"var"] = [varframe.to_dict(orient='index')]
             df.loc[i,"dim"] = [dimframe.to_dict(orient='index')]
@@ -348,13 +372,24 @@ class check_data():
             dataset.close()
 
         #while has ended
-
+        print("HOLa df")
+        print(df)
         file_withparam = filter_param( df.copy(), param)
+        print("HOLa file_withparam")
+        print(file_withparam)
+        print(mbrs)
+        print(self.p_level)
+        print(self.m_level)
         file_corrtype = filter_type( df.copy(), mbrs, self.p_level, self.m_level)
+        print("HOLa fole_corrrtyope")
+        print(file_corrtype)
         file = file_withparam[file_withparam.File.isin(file_corrtype.File)]
+
         file.reset_index(inplace=True, drop = True)
 
         file = filter_step(file,self.maxstep)
+
+
         if len(file) ==0 and len(df) !=0:#SomeError(ValueError, f'Type not found: c
             SomeError( ValueError,  f"Not able to find file at {self.date} for model {self.model} for these parameters. Available files are: \n {df}")
         elif len(file) ==0 and len(df) ==0:
@@ -365,6 +400,7 @@ class check_data():
             folder= "archive" if self.use_latest==False else " the latest data"
             SomeError( ValueError,  f"Not able to find any file at {self.date} for model {self.model}. "
                                     f"The requested file is {abs(delta_time.days)} days from current date, and you have been looking in an {folder} folder. Maybe change use_latest = True if it is a recent date, and use_latest = False for archived dates")
+
 
         del file_withparam
         del file_corrtype
@@ -471,6 +507,10 @@ class check_data():
         except requests.exceptions.Timeout as e:
             print(e)
             print("There might be problems with the server; check out https://status.met.no")
+        except:
+            print("internet problems?")
+            exit(1)
+
         if webcheck.status_code != 200:  # SomeError(ValueError, f'Type not found: c
             SomeError(ConnectionError,
                       f"Website {url} is down with {webcheck}; . Wait until it is up again. Check https://status.met.no")

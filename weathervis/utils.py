@@ -25,6 +25,27 @@ def to_bool(value):
     if str(value).lower() in ("no",  "n", "false", "f", "0", "0.0", "", "none", "[]", "{}"): return False
     raise Exception('Invalid value for boolean conversion: ' + str(value))
 
+def any_int_range(step):
+    if step != None and type(step[0]) == str:
+        if len(step) == 1:
+            if ":" in step[0]:
+                ss = step[0].split(":")
+                ss = [int(x.strip()) for x in ss]
+                if len(ss) == 3:
+                    step = list(np.arange(ss[0], ss[1], ss[2]))
+                else:
+                    step = list(np.arange(ss[0], ss[1], 1))
+            elif "," in step[0]:
+                ss = step[0].split(",")
+                step = [int(x.strip()) for x in ss]
+            else:
+                step = [int(x.strip()) for x in step]
+        else:
+            step = [int(x.strip()) for x in step]
+
+    return step
+
+
 def setup_directory( path, folder_name):
     """Makes a directory in a specific path.
         Returns:
