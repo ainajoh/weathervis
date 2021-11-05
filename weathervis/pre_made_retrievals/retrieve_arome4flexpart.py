@@ -1,7 +1,6 @@
 from weathervis.domain import *  # require netcdf4
 from weathervis.check_data import *
 from weathervis.utils import *
-
 from weathervis.get_data import *
 from weathervis.calculation import *
 from netCDF4 import Dataset
@@ -27,7 +26,7 @@ This script however used retrievals from thredds netcdf files, instead of from d
 flexpart uses "name" parameter of the variable, so forexample surface_air_pressure is the parameter used for retrieving
 from arome, but in flexpart it is called "SP". So "SP" is important to keep like it is.
     """
-
+    #due to different attributes for 2d, 3d values they are split up
     variable2d_arome = {}  # dictionary containing 2dimentional variables
     variable3d_arome = {}  # dictionary containing 3dimentional variables
     variable2d_sfx = {}    # dictionary containing specific surfex variables
@@ -293,10 +292,6 @@ def fix(modelruntime, steps=[0,64], lvl=[0,64]):
 
 if __name__ == "__main__":
   import argparse
-  def none_or_str(value):
-    if value == 'None':
-      return None
-    return value
   parser = argparse.ArgumentParser()
   parser.add_argument("--datetime", help="YYYYMMDDHH for modelrun", required=True, type=str)
   #parser.add_argument("--steps", default=[0,64], nargs="+", type=int,help=" j")

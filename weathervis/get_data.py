@@ -85,7 +85,9 @@ class get_data():
         print("START")
         # Initialising -- NB! The order matters ###
         self.model = model
-        self.mbrs = mbrs
+        self.mbrs_bool = False if mbrs == None else True
+        mbrs = [0] if mbrs == None else mbrs
+        self.mbrs = list(mbrs) if type(mbrs)!=list else mbrs
         self.date = str(date)
         self.step = step if step != None else 0
         if type( self.step[0] ) == str:
@@ -120,9 +122,8 @@ class get_data():
 
         self.lonlat = data_domain.lonlat if data_domain else None
         #if no member is wanted initially, then we exclude an aditional dimension caused by this with mbrs_bool later
-        self.mbrs_bool = False if self.mbrs == None else True
+
         #If No member is wanted, we take the control (mbr=0)
-        self.mbrs = 0 if self.mbrs == None else mbrs
         self.url = url
         self.units = self.dummyobject()
         self.FillValue = self.dummyobject()
@@ -142,8 +143,7 @@ class get_data():
 
             if self.model: filter_function_for_models(self.model)
             print("filter_function_for_models")
-
-            filter_function_for_mbrs(np.array(self.mbrs), self.file) if self.mbrs != None and self.mbrs_bool else None
+            filter_function_for_mbrs(np.array(self.mbrs), self.file) if self.mbrs != None and self.mbrs_bool and self.file.mbr_bool else None
             print("filter_function_for_mbrs")
 
             if self.date: filter_function_for_date(self.date)
@@ -212,7 +212,7 @@ class get_data():
 
             prm = param[i]
             url += f"{prm}"  # example:  url =url+x_wind_pl
-            dimlist = list(file["var"][prm]["dim"])  # List of the variables the param depends on ('time', 'pressure', 'ensemble_member', 'y', 'x')
+            dimlist = list( file["var"][prm]["dim"] )  # List of the variables the param depends on ('time', 'pressure', 'ensemble_member', 'y', 'x')
             print("TEST")
             print(prm)
             print(dimlist)
@@ -226,6 +226,7 @@ class get_data():
             pressure_dim = list(filter(re.compile(f'press*').match, dimlist))
             model_dim = list(filter(re.compile(f'.*hybrid*').match, dimlist))
             height_dim = list(filter(re.compile(f'.*height*').match, dimlist))
+            other_dim = list(filter(re.compile(f'.*top_of_atmosphere*').match, dimlist))
             ens_mbr_dim = list(filter(re.compile(f'.*ensemble*').match, dimlist))
 
             if pressure_dim:
@@ -238,7 +239,19 @@ class get_data():
 
                 idx = np.where(np.array(self.file["p_levels"][pressure_dim[0]])[:, None] == np.array(self.p_level)[None, :])[0]
                 pl_idx = f"[{np.min(idx)}:1:{np.max(idx)}]"
-                indexidct[pressure_dim[0]] = pl_idx
+                indexidct[pressure_dim[0]] = "[0:1:0]"
+
+            if other_dim:
+                print("other_dim")
+                #self.p_level = self.file["p_levels"][pressure_dim[0]] if self.p_level is None else self.p_level
+                #is_in_any = np.sum((np.array(self.file["p_levels"][pressure_dim[0]])[:, None] == np.array(self.p_level)[None, :])[:])
+                #if is_in_any == 0:
+                #    SomeError(ValueError, f'Please provide valid pressure levels for parameter {prm}. \n'
+                #                          f'Options are {self.file["p_levels"][pressure_dim[0]]}, but you requested { self.p_level}')
+
+                #idx = np.where(np.array(self.file["p_levels"][pressure_dim[0]])[:, None] == np.array(self.p_level)[None, :])[0]
+                #pl_idx = f"[{np.min(idx)}:1:{np.max(idx)}]"
+                indexidct[other_dim[0]] = pl_idx
 
 
             extra = []
@@ -340,14 +353,14 @@ class get_data():
                 indexidct[ens_mbr_dim[0]] = mbr_idx
                 print("HE")
                 print(indexidct)
-
+            print(indexidct)
             #Convert the dimentional variables to numbers
             newlist = [indexidct[i] for i in
                        dimlist]  # convert dependent variable name to our set values. E.g: time = step = [0:1:0]
             startsub = ''.join(
                 newlist) + ","  # example: ('time', 'pressure','ensemble_member','y','x') = [0:1:0][0:1:1][0:1:10][0:1:798][0:1:978]
             aditional = list(file["var"][prm]["dim"])# + list(set(extra))
-            for dimen in np.setdiff1d(aditional, self.param):
+            for dimen in np.setdiff1d( aditional, self.param ):
                 # includes the dim parameters like, pressure, hybrid, height as long as we havent already gone through them
                 self.param = np.append(self.param,
                                        dimen)  # update global param with the var name so that we do not go through it multiple time.
@@ -419,6 +432,10 @@ class get_data():
         logging.info("-------> Getting variable: ")
         iteration =-1
         for prm in self.param:
+            print("################################################")
+            print("################################################")
+            print("################################################")
+            print(prm)
             iteration += 1
             logging.info(prm)
             dimlist = list(file["var"][prm]["dim"])  # List of the variables the param depends on ('time', 'pressure', 'ensemble_member', 'y', 'x')
@@ -475,12 +492,15 @@ class get_data():
             varvar = f"dataset.variables[prm][{startsub}]" ##
             varvar = eval(varvar)
             dimlist = np.array(list(file["var"][prm]["dim"]))  # ('time', 'pressure', 'ensemble_member', 'y', 'x')
+
             if not self.mbrs_bool and any(np.isin(dimlist, "ensemble_member")):#"ensemble_member" in dimlist:
                 indxmember = np.where(dimlist == "ensemble_member")[0][0]
                 varvar = dataset.variables[prm][:].squeeze(axis=indxmember)
 
             self.__dict__[prm] = varvar
 
+        print("HEEERE")
+        print( self.__dict__[prm] )
         dataset.close()
         iteration += 1
 
