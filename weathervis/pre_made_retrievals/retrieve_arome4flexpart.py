@@ -303,7 +303,7 @@ if __name__ == "__main__":
 
   args = parser.parse_args()
   steps=any_int_range(args.steps)
-  m_levels = list(np.arange(args.m_levels[0], args.m_levels[-1], 1))
+  m_levels = list(np.arange(args.m_levels[0], args.m_levels[-1]+1, 1))
   print(args.m_levels)
   print(m_levels)
   #exit(1)
