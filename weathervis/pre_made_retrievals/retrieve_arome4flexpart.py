@@ -15,7 +15,7 @@ else:
     outputpath="./"
     print("LOCAL")
 
-def retrieve_arome4flexpart(modelruntime,steps,lvl,xres,yres,model):
+def retrieve_arome4flexpart(modelruntime,steps,lvl,xres,yres,model, use_latest):
     """
 Retrieves arome model data to be used as inputs for flexpart-arome
 --------------------------------------------------------------------
@@ -134,7 +134,7 @@ from arome, but in flexpart it is called "SP". So "SP" is important to keep like
     param2d_arome = [*variable2d_arome.keys()]
     print(param2d_arome)
     print("check 2d arome")
-    arome2d = check_data(date=modelruntime, model=model, param=param2d_arome)
+    arome2d = check_data(date=modelruntime, model=model, param=param2d_arome, use_latest=use_latest)
     #
     print(arome2d)
     file_arome2d= arome2d.file
@@ -142,7 +142,7 @@ from arome, but in flexpart it is called "SP". So "SP" is important to keep like
     print(arome2d.file.loc[0,"var"])
     print("befor retrieve arome")
 
-    dmap_arome2d = get_data(model=model, file=file_arome2d, param=param2d_arome, step=steps,date=modelruntime)
+    dmap_arome2d = get_data(model=model, file=file_arome2d, param=param2d_arome, step=steps,date=modelruntime, use_latest=use_latest)
     print("########AFT retrieve arome")
 
     print(dmap_arome2d.url)
@@ -151,23 +151,23 @@ from arome, but in flexpart it is called "SP". So "SP" is important to keep like
     print("check 3darome")
     # 3dArome This can be included in 2darome for timeefficency
     param3d_arome = [*variable3d_arome.keys()]
-    arome3d = check_data(date=modelruntime, model=model, param=param3d_arome, m_level=lvl)
+    arome3d = check_data(date=modelruntime, model=model, param=param3d_arome, m_level=lvl, use_latest=use_latest)
     file_arome3d = arome3d.file
     print("done check 3darome")
 
     print(file_arome3d)
     print("get 3darome")
     dmap_arome3d = get_data(model=model, file=file_arome3d, param=param3d_arome, step=steps,
-                        date=modelruntime,  m_level=lvl)
+                        date=modelruntime,  m_level=lvl, use_latest=use_latest)
     print(dmap_arome3d.url)
     dmap_arome3d.retrieve()
     print(dmap_arome3d.__dir__)
     print("retrive sfxarome")
     #2dsfx
     param2d_sfx = [*variable2d_sfx.keys()]
-    sfx2d = check_data(date=modelruntime, model=model, param=param2d_sfx)
+    sfx2d = check_data(date=modelruntime, model=model, param=param2d_sfx, use_latest=use_latest)
     file_sfx2d=sfx2d.file
-    dmap_sfx2d = get_data(model=model, file=file_sfx2d, param=param2d_sfx, step=steps, date=modelruntime)
+    dmap_sfx2d = get_data(model=model, file=file_sfx2d, param=param2d_sfx, step=steps, date=modelruntime, use_latest=use_latest)
     dmap_sfx2d.retrieve()
 
     #attr
@@ -280,7 +280,7 @@ from arome, but in flexpart it is called "SP". So "SP" is important to keep like
             vid[:] = data
         ncid.close()
     #return variable2d_arome
-def fix(modelruntime, steps=[0,64], lvl=[0,64]):
+def fix(modelruntime, steps=[0,64], lvl=[0,64], archive=1):
     print(modelruntime)
     #lt = 7
     #lvl = [0,1]  # 64   #64 #  49..#
@@ -288,7 +288,8 @@ def fix(modelruntime, steps=[0,64], lvl=[0,64]):
     model = "AromeArctic"
     xres = 1
     yres = 1
-    variable2d = retrieve_arome4flexpart(modelruntime,steps,lvl,xres,yres,model)
+    use_latest = False if archive==1 else True
+    variable2d = retrieve_arome4flexpart(modelruntime,steps,lvl,xres,yres,model, use_latest)
 
 if __name__ == "__main__":
   import argparse
@@ -297,13 +298,15 @@ if __name__ == "__main__":
   #parser.add_argument("--steps", default=[0,64], nargs="+", type=int,help=" j")
   parser.add_argument("--steps", default= any_int_range(["0:64:1"]), nargs="+", type=str,help=" j")
   parser.add_argument("--m_levels", default=[0,64], nargs="+", type=int,help="model level, 64 is lowest")
+  parser.add_argument("--archive", default=1, type=int,help="fetch from archive if 1")
+
   args = parser.parse_args()
   steps=any_int_range(args.steps)
   m_levels = list(np.arange(args.m_levels[0], args.m_levels[-1], 1))
   print(args.m_levels)
   print(m_levels)
   #exit(1)
-  fix(args.datetime, steps, m_levels)
+  fix(args.datetime, steps, m_levels, args.archive)
 
   #datetime, step=4, model= "MEPS", domain = None
   #retrieve_arome4flexpart
