@@ -180,14 +180,14 @@ class domain():
         url = "https://thredds.met.no/thredds/dodsC/aromearcticlatest/arome_arctic_sfx_2_5km_latest.nc?latitude,longitude"
 
         self.lonlat = [10, 13.3, 78.6, 79.3]
-        self.idx = lonlat2idx(self.lonlat, url)  # Rough
+        self.idx = lonlat2idx(self.lonlat,  self.lon, self.lat)  # Rough
         self.scale = find_scale(self.lonlat)
 
     def KingsBay_Z0(self):  # map
         url = "https://thredds.met.no/thredds/dodsC/aromearcticlatest/arome_arctic_sfx_2_5km_latest.nc?latitude,longitude"
 
         self.lonlat = [11, 13., 78.73, 79.16]
-        self.idx = lonlat2idx(self.lonlat, url)  # Rough
+        self.idx = lonlat2idx(self.lonlat, self.lon, self.lat)  # Rough
         #self.area = np.shape(self.idx)[1]         #24 vs
         #di = np.max(self.idx[0]) - np.min(self.idx[0])
         #dj = np.max(self.idx[1]) - np.min(self.idx[1])
@@ -214,7 +214,7 @@ class domain():
                               186, 187, 188, 189, 182, 183, 184, 185, 186, 187, 188, 189, 190, 183, 184, 185, 186, 187,
                               188, 189, 190, 191, 185, 186, 187, 188, 189, 190, 186, 187, 188, 189, 190, 187, 188,
                               189]])  # y,x
-        self.lonlat = idx2lonlat(self.idx, url)  # rough
+        self.lonlat = idx2lonlat(self.idx, self.lon, self.lat)  # rough
         self.scale = find_scale(self.lonlat)
 
     def Andenes(self):

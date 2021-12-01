@@ -423,6 +423,7 @@ class get_data():
         """
 
         logging.info("-------> start retrieve from thredds")
+        print("RET THRED")
         print(url)
         dataset = Dataset(url)
         self.indexidct = dict.fromkeys(self.indexidct, ":")  #reset the index dictionary
@@ -456,6 +457,7 @@ class get_data():
             newlist1 = [self.indexidct[i] for i in dimlist]
             startsub = ','.join(newlist1) if newlist1 else ":"
             if pressure_dim:
+                print("press dim")
                 idx = np.where(np.array(self.file["p_levels"][pressure_dim[0]])[:,None]==np.array(self.p_level)[None,:])[0]
                 idx = ",".join([str(i) for i in idx -idx[0]])
                 idx = '[{:}]'.format(idx)
@@ -463,13 +465,13 @@ class get_data():
                 newlist1 = [self.indexidct[i] for i in dimlist]  # convert dependent variable name to our set values. E.g: time = step = [0:1:0]
                 startsub = ','.join(newlist1)  # example: ('time', 'pressure','ensemble_member','y','x') = [0:1:0][0:1:1][0:1:10][0:1:798][0:1:978]
             elif model_dim:
+                print("hyb dim")
                 lev_num = np.arange(0,len(self.file["m_levels"][model_dim[0]]))
                 print(lev_num)
                 print("te")
                 print(self.m_level)
                 if self.m_level is None:
                     self.m_level = lev_num
-
                 idx = \
                 np.where(np.array(lev_num)[:, None] == np.array(self.m_level)[None, :])[0]
                 idx = ",".join([str(i) for i in idx - idx[0]])
@@ -489,7 +491,9 @@ class get_data():
                 for k in dataset.variables[prm].__dict__.keys():
                     ss = f"{k}_{prm}"
                     self.__dict__[ss] = dataset.variables[prm].__dict__[k]
-            varvar = f"dataset.variables[prm][{startsub}]" ##
+
+            varvar = f"dataset.variables['{prm}'][{startsub}]" ##
+            print(varvar)
             varvar = eval(varvar)
             dimlist = np.array(list(file["var"][prm]["dim"]))  # ('time', 'pressure', 'ensemble_member', 'y', 'x')
 
