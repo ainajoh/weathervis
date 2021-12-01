@@ -299,8 +299,11 @@ if __name__ == "__main__":
   parser.add_argument("--m_levels", default=[0,64], nargs="+", type=int,help="model level, 64 is lowest")
   args = parser.parse_args()
   steps=any_int_range(args.steps)
-
-  fix(args.datetime, steps, args.m_levels)
+  m_levels = list(np.arange(args.m_levels[0], args.m_levels[-1], 1))
+  print(args.m_levels)
+  print(m_levels)
+  #exit(1)
+  fix(args.datetime, steps, m_levels)
 
   #datetime, step=4, model= "MEPS", domain = None
   #retrieve_arome4flexpart
