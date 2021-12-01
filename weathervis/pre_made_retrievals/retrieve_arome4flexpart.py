@@ -10,7 +10,8 @@ import platform
 
 if "cyclone.hpc.uib.no" in platform.node():
     print("detected cyclone")
-    outputpath="/Data/gfi/work/cat010/flexpart_arome/input/"
+    #outputpath="/Data/gfi/work/cat010/flexpart_arome/input/"
+    outputpath="/Data/gfi/work/hso039/flexpart_arome/input/"
 else:
     outputpath="./"
     print("LOCAL")

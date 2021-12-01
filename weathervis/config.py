@@ -12,7 +12,8 @@ print(dname)
 print(abspath)
 #global projectpath
 global OUTPUTPATH
-OUTPUTPATH = dname + "/../../../../output/weathervis/"
+#OUTPUTPATH = dname + "/../../../../output/weathervis/"
+OUTPUTPATH = dname + "//output/"
 
 def make_data_uptodate():
     filepath=f"{dname}/data/"
@@ -85,8 +86,9 @@ def cyclone():
     module = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = module
     spec.loader.exec_module(module)
-    OUTPUTPATH = dname+"/../../../../../output/weathervis/"
-    OUTPUTPATH = setup_directory(OUTPUTPATH)
+    #OUTPUTPATH = dname+"/../../../../../output/weathervis/"
+    OUTPUTPATH = dname+"/output/"
+    OUTPUTPATH = setup_directory_config(OUTPUTPATH)
     return OUTPUTPATH
 
 def islas_server():
@@ -96,7 +98,7 @@ def islas_server():
     cyclone_conf = dname + "/data/config/config_islas_server.sh"
     call(f"source {cyclone_conf}", shell=True)
     OUTPUTPATH = dname+"/../../../../output/weathervis/"
-    OUTPUTPATH = setup_directory(OUTPUTPATH)
+    OUTPUTPATH = setup_directory_config(OUTPUTPATH)
     print(OUTPUTPATH)
     return OUTPUTPATH
 
