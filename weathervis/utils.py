@@ -454,11 +454,13 @@ def default_arguments():
     parser.add_argument("--url", default=None, help="use url", type=str)
     parser.add_argument("--use_latest", default=False, type=bool)
     parser.add_argument("--delta_index", default=None, type=str)
+    args = parser.parse_args()
 
     #steps = any_int_range(args.steps)
-
-
-    args = parser.parse_args()
+    if args.domain_name == None:
+        print("iiii")
+        args.domain_name = [args.model]
+        print(args.domain_name)
 
     return args
 

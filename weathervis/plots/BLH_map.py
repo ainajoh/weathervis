@@ -102,6 +102,9 @@ def BLH(datetime, steps, model, domain_name, domain_lonlat, legend, info, grid, 
     # url dont need to load for everytime we change domain_name
     domains_with_subdomains = find_subdomains(domain_name=domain_name, datetime=datetime, model=model, domain_lonlat=domain_lonlat,
                                 point_lonlat=point_lonlat, use_latest=use_latest, delta_index=delta_index, url=url)
+    #print(domains_with_subdomains)
+    #print( domains_with_subdomains.index.values)
+    #print(len( domains_with_subdomains.index.values))
 
     for domain_name in domains_with_subdomains.index.values:
         dmet, data_domain, bad_param = checkget_data_handler(p_level=[850], date=datetime, domain_name=domain_name,
@@ -118,6 +121,8 @@ def BLH(datetime, steps, model, domain_name, domain_lonlat, legend, info, grid, 
         ii = subdom[subdom == True]
         subdom_list = list(ii.index.values)
         subdom_list.remove(domain_name)
+        #print(subdom_list)
+        #exit(1)
         if subdom_list:
             for sub in subdom_list:
                 print(sub)
@@ -132,6 +137,7 @@ def BLH(datetime, steps, model, domain_name, domain_lonlat, legend, info, grid, 
 
 if __name__ == "__main__":
     args = default_arguments()
+
     BLH(datetime=args.datetime, steps=args.steps, model=args.model, domain_name=args.domain_name,
         domain_lonlat=args.domain_lonlat, legend=args.legend, info=args.info, grid=args.grid, url=args.url,
         point_lonlat =args.point_lonlat,use_latest=args.use_latest,delta_index=args.delta_index)

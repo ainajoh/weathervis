@@ -295,8 +295,8 @@ if __name__ == "__main__":
   import argparse
   parser = argparse.ArgumentParser()
   parser.add_argument("--datetime", help="YYYYMMDDHH for modelrun", required=True, type=str)
-  #parser.add_argument("--steps", default=[0,64], nargs="+", type=int,help=" j")
-  parser.add_argument("--steps", default= any_int_range(["0:64:1"]), nargs="+", type=str,help=" j")
+  parser.add_argument("--steps", default=[0,64], nargs="+", type=int,help=" j")
+  #parser.add_argument("--steps", default= any_int_range(["0:64:1"]), nargs="+", type=str,help=" j")
   parser.add_argument("--m_levels", default=[0,64], nargs="+", type=int,help="model level, 64 is lowest")
   parser.add_argument("--archive", default=1, type=int,help="fetch from archive if 1")
 
