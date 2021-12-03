@@ -183,6 +183,7 @@ def checkget_data_handler(all_param, date=None,  model=None, step=None, p_level=
         fileobj = check_data(url=url, model=model, date=date, step=step, use_latest=use_latest).file
         print("checc")
         print(url)
+
         data_domain = domain_input_handler(file = fileobj, url=url, dt=date, model=model, domain_name=domain_name, domain_lonlat=domain_lonlat,
                                            point_name=point_name, point_lonlat=point_lonlat, delta_index=delta_index)
 
@@ -197,6 +198,9 @@ def checkget_data_handler(all_param, date=None,  model=None, step=None, p_level=
     fileobj = check_data(model, date=date, step=step, use_latest=use_latest).file
     all_choices, bad_param  = find_best_combinationoffiles(all_param=all_param, fileobj=fileobj,m_level=m_level,p_level=p_level)
     print(all_choices)
+    #print(bad_param)
+
+
     bad_param_sfx=[]
     if bad_param:
         new_bad = ["SFX_"+x for x in bad_param]
@@ -206,22 +210,27 @@ def checkget_data_handler(all_param, date=None,  model=None, step=None, p_level=
     if len(all_choices)==0:
         SomeError(ValueError, f'No matches for your parameter found, try using the check_data search option')
     # RETRIEVE FROM THE BEST COMBINATIONS AND TOWARDS WORSE COMBINATION IF ANY ERROR
+
+    print(len(all_choices))
+
     for i in range(0, len(all_choices)):
         gc.collect()
         print("YE")
         print(all_choices.loc[i])
         print(all_choices.loc[i].combo)
 
-        #try:
-        dmet, data_domain,bad_param = retrievenow(our_choice = all_choices.loc[i],model=model,step=step, date=date,fileobj=fileobj,
+        try:
+            dmet, data_domain,bad_param = retrievenow(our_choice = all_choices.loc[i],model=model,step=step, date=date,fileobj=fileobj,
                                    m_level=m_level,p_level=p_level,domain_name=domain_name, domain_lonlat=domain_lonlat,
                                     bad_param = bad_param,bad_param_sfx = bad_param_sfx,point_name=point_name,point_lonlat=point_lonlat,use_latest=use_latest,
                                                      delta_index=delta_index)
-        #    break
-        #except:
-        #    print("Oops!", sys.exc_info()[0], "occurred.")
-        #    print("Next entry.")
-        #    print(" ")
+            break
+        except:
+            print("Oops!", sys.exc_info()[0], "occurred.")
+            print("Next entry.")
+            print(" ")
+    #exit(1)
+
     return dmet,data_domain,bad_param
 
 
