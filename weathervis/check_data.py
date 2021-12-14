@@ -184,6 +184,8 @@ class check_data():
         logging.info("# check_data() #\n#################")
 
         self.date = str(date) if date != None else None
+        print("tes33")
+        print(model)
         self.model = model
         self.url = url
         self.param = param
@@ -216,11 +218,17 @@ class check_data():
 
         self.check_web_connection()
         filter_function_for_date(self.date)
-
+        print("tes1")
+        print(self.model)
         self.model = filter_function_for_models_ignore_uppercases(self.model) if self.model != None else None
         self.p_level = [p_level] if p_level != None and type(p_level) != list else p_level
         self.m_level = [m_level] if m_level != None and type(m_level) != list else m_level
+        print("tes")
+        print(self.model)
+        print(self.date)
+        print(self.url)
         if (self.model !=None and self.date !=None) or self.url !=None:
+            print("finding")
             all_files = self.check_files(date, model, param,  mbrs, url) #the main outcome
             self.file = self.check_file_info(all_files, param, mbrs)
         ###################################################
@@ -228,6 +236,8 @@ class check_data():
         ###################################################
         #search for parameter for a specific date or url file
         if self.param == None and (self.date != None or self.url != None):
+            #print("eeee")
+            #print(file)
             self.param = self.check_variable(self.file, self.search, self.url)
 
         #search for parameter for a all dates, only possible for not userdefined url.
@@ -431,7 +441,8 @@ class check_data():
     def check_variable(self, file, search, url):
         #url not supported yet in var search
         logging.info("--> check_variable() <---\n")
-
+        print("file")
+        print(file)
         var_dict = file.at[0, "var"]
         param = []
         for n in range(0,len(file)):

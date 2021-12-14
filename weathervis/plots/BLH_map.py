@@ -95,33 +95,21 @@ def BLH(datetime, steps, model, domain_name, domain_lonlat, legend, info, grid, 
 
     param = ["air_pressure_at_sea_level", "surface_geopotential", "atmosphere_boundary_layer_thickness",
              "upward_air_velocity_pl"]
-    #param = ["upward_air_velocity_pl","surface_geopotential"]
 
-    #domain_name = ["Andenes"]  # , "KingsBay_Z0", "Svalbard_z2", "Svalbard_z1"] #args.domain_name
-    #one way of making the process of subdomain faster is handling domain if called once,
-    # url dont need to load for everytime we change domain_name
     domains_with_subdomains = find_subdomains(domain_name=domain_name, datetime=datetime, model=model, domain_lonlat=domain_lonlat,
                                 point_lonlat=point_lonlat, use_latest=use_latest, delta_index=delta_index, url=url)
-    #print(domains_with_subdomains)
-    #print( domains_with_subdomains.index.values)
-    #print(len( domains_with_subdomains.index.values))
+    print(domains_with_subdomains)
+    print( domains_with_subdomains.index.values)
 
     for domain_name in domains_with_subdomains.index.values:
-        dmet, data_domain, bad_param = checkget_data_handler(p_level=[850], date=datetime, domain_name=domain_name,
-                                                             model=model, step=steps, all_param=param, url=url)
-
-        #print(np.shape(dmet.upward_air_velocity_pl))
-        #print(dmet.upward_air_velocity_pl[3,:,:,:])
-
-        #print(np.shape(dmet.air_pressure_at_sea_level))
-        #print(np.shape(dmet.surface_geopotential))
-
-        #exit(1)
+        print(domain_name)
+        #break
+        dmet, data_domain, bad_param = checkget_data_handler(p_level=[850], model=model,step=steps, date=datetime, domain_name=domain_name, all_param=param)
         subdom = domains_with_subdomains.loc[domain_name]
         ii = subdom[subdom == True]
         subdom_list = list(ii.index.values)
-        subdom_list.remove(domain_name)
-        #print(subdom_list)
+        #subdom_list.remove(domain_name)
+        print(subdom_list)
         #exit(1)
         if subdom_list:
             for sub in subdom_list:
@@ -129,10 +117,10 @@ def BLH(datetime, steps, model, domain_name, domain_lonlat, legend, info, grid, 
                 plot_BLH(datetime=datetime, steps=steps, model=model, domain_name=sub, data_domain=data_domain,
                     domain_lonlat=domain_lonlat, legend=legend, info=info, grid=grid, url=url,
                     dmet=dmet)
-        else:
-            plot_BLH(datetime=datetime, steps=steps, model=model, domain_name=domain_name,
-                data_domain=data_domain, dmet=dmet,
-                domain_lonlat=domain_lonlat, legend=legend, info=info, grid=grid, url=url)
+        #else:
+        #    plot_BLH(datetime=datetime, steps=steps, model=model, domain_name=domain_name,
+        #        data_domain=data_domain, dmet=dmet,
+        #        domain_lonlat=domain_lonlat, legend=legend, info=info, grid=grid, url=url)
 
 
 if __name__ == "__main__":

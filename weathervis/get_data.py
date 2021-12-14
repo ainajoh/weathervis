@@ -83,6 +83,7 @@ class get_data():
 
         logging.info("START")
         print("START")
+        print(step)
         # Initialising -- NB! The order matters ###
         self.model = model
         self.mbrs_bool = False if mbrs == None else True
@@ -90,22 +91,27 @@ class get_data():
         self.mbrs = list(mbrs) if type(mbrs)!=list else mbrs
         self.date = str(date)
         self.step = step if step != None else 0
-        if type( self.step[0] ) == str:
-            if len( self.step ) == 1:
-                if ":" in step[0]:
-                    ss = step[0].split(":")
-                    ss = [int(x.strip()) for x in ss]
-                    if len(ss) == 3:
-                        self.step = list(np.arange(ss[0], ss[1], ss[2]))
-                    else:
-                        self.step = list(np.arange(ss[0], ss[1], 1))
-                elif "," in step[0]:
-                    ss = step[0].split(",")
-                    self.step = [int(x.strip()) for x in ss]
-                else:
-                    self.step = [int(x.strip()) for x in step]
-            else:
-                self.step = [int(x.strip()) for x in step]
+
+        #if type(self.step) == list and type( self.step[0] ) == str:
+        #    if len( self.step ) == 1:
+        #        if ":" in step[0]:
+        #            ss = step[0].split(":")
+        #            ss = [int(x.strip()) for x in ss]
+        #            if len(ss) == 3:
+        #                self.step = list(np.arange(ss[0], ss[1], ss[2]))
+        ##            else:
+        #                self.step = list(np.arange(ss[0], ss[1], 1))
+        #        elif "," in step[0]:
+        #            ss = step[0].split(",")
+        #            self.step = [int(x.strip()) for x in ss]
+        #        else:
+        #            self.step = [int(x.strip()) for x in step]
+        #    else:
+        #        self.step = [int(x.strip()) for x in step]
+        print("bef thhh")
+        print(self.step)
+        print("bef thhwwwwwwh")
+
         self.h_level = h_level
         self.p_level = p_level if type(p_level)==list or p_level==None else list(p_level)
         self.m_level = m_level
@@ -129,7 +135,6 @@ class get_data():
         self.FillValue = self.dummyobject()
         self.use_latest=use_latest
         self.indexidct = None #updated later Contains the indexes for the dimentions we want, see adjust_user_url()
-
 
         #Check and filter for valid settings. If any of these result in a error, this script stops
         check_if_thredds_is_down("https://thredds.met.no/thredds/catalog/meps25epsarchive/catalog.html")
@@ -166,9 +171,9 @@ class get_data():
         print("based made")
         print(self.url)
         self.url = self.adjust_user_url()
-
         print("after adj")
         print(self.url)
+
 
 
     def adjust_user_url(self):
@@ -228,6 +233,26 @@ class get_data():
             height_dim = list(filter(re.compile(f'.*height*').match, dimlist))
             other_dim = list(filter(re.compile(f'.*top_of_atmosphere*').match, dimlist))
             ens_mbr_dim = list(filter(re.compile(f'.*ensemble*').match, dimlist))
+            x_dim = list(filter(re.compile(f'x.*?(\d+)/*').match, dimlist))
+            y_dim = list(filter(re.compile(f'y.*?(\d+)/*').match, dimlist))
+
+            print(indexidct)
+            if x_dim:
+                print(x_dim[0])
+                indexidct[x_dim[0]] = indexidct["x"]
+                print(indexidct)
+            print("ttt")
+            print(x_dim)
+
+            if y_dim:
+                print(y_dim[0])
+                indexidct[y_dim[0]] = indexidct["y"]
+                print(indexidct)
+            print("ttt")
+            print(y_dim)
+            #exit(1)
+            #if xy_dim(:)
+
 
             if pressure_dim:
                 print("pressure_dim")
@@ -239,10 +264,10 @@ class get_data():
 
                 idx = np.where(np.array(self.file["p_levels"][pressure_dim[0]])[:, None] == np.array(self.p_level)[None, :])[0]
                 pl_idx = f"[{np.min(idx)}:1:{np.max(idx)}]"
-                indexidct[pressure_dim[0]] = "[0:1:0]"
+                indexidct[pressure_dim[0]] = pl_idx#"[0:1:0]"
 
-            if other_dim:
-                print("other_dim")
+            #if other_dim:
+            #    print("other_dim")
                 #self.p_level = self.file["p_levels"][pressure_dim[0]] if self.p_level is None else self.p_level
                 #is_in_any = np.sum((np.array(self.file["p_levels"][pressure_dim[0]])[:, None] == np.array(self.p_level)[None, :])[:])
                 #if is_in_any == 0:
@@ -251,7 +276,7 @@ class get_data():
 
                 #idx = np.where(np.array(self.file["p_levels"][pressure_dim[0]])[:, None] == np.array(self.p_level)[None, :])[0]
                 #pl_idx = f"[{np.min(idx)}:1:{np.max(idx)}]"
-                indexidct[other_dim[0]] = pl_idx
+                #indexidct[other_dim[0]] = pl_idx
 
 
             extra = []
@@ -276,12 +301,12 @@ class get_data():
                 print(lev_num)
 
                 self.m_level = lev_num if self.m_level is None else self.m_level
+                print(self.m_level)
                 is_in_any = np.sum((np.array(lev_num)[:, None] == np.array(self.m_level)[None, :])[:])
                 print("is_in_any")
                 print(is_in_any)
-
                 if is_in_any == 0:
-                    SomeError(ValueError, f'Please provide valid pressure levels for parameter {prm}. \n'
+                    SomeError(ValueError, f'Please provide valid model levels for parameter {prm}. \n'
                                           f'Options are {self.file["m_levels"][model_dim[0]]}, but you requested {self.m_level}')
                 print("no err")
                 idx = np.where(np.array(lev_num)[:, None] == np.array(self.m_level)[None, :])[0]
@@ -354,11 +379,18 @@ class get_data():
                 print("HE")
                 print(indexidct)
             print(indexidct)
+            print(dimlist)
+
+
             #Convert the dimentional variables to numbers
-            newlist = [indexidct[i] for i in
-                       dimlist]  # convert dependent variable name to our set values. E.g: time = step = [0:1:0]
+            newlist = [indexidct[i] for i in dimlist]  # convert dependent variable name to our set values. E.g: time = step = [0:1:0]
+            print(newlist)
+
+            #exit(1)
             startsub = ''.join(
                 newlist) + ","  # example: ('time', 'pressure','ensemble_member','y','x') = [0:1:0][0:1:1][0:1:10][0:1:798][0:1:978]
+            print(startsub)
+
             aditional = list(file["var"][prm]["dim"])# + list(set(extra))
             for dimen in np.setdiff1d( aditional, self.param ):
                 # includes the dim parameters like, pressure, hybrid, height as long as we havent already gone through them
@@ -370,12 +402,15 @@ class get_data():
             i += 1
 
         print(url)
+
         url = url.rstrip(",")  # if url ends with , it creates error so remove.
         logging.info(url)
         self.indexidct = indexidct
         print("HHHHH")
         print(self.param)
         print(url)
+
+
         return url  # returns the url that will be set to global url.
 
     def make_url(self):
@@ -458,6 +493,10 @@ class get_data():
             startsub = ','.join(newlist1) if newlist1 else ":"
             if pressure_dim:
                 print("press dim")
+                print(self.p_level)
+                if self.p_level is None:
+                    pass
+                    #self.p_level = lev_num
                 idx = np.where(np.array(self.file["p_levels"][pressure_dim[0]])[:,None]==np.array(self.p_level)[None,:])[0]
                 idx = ",".join([str(i) for i in idx -idx[0]])
                 idx = '[{:}]'.format(idx)
@@ -494,7 +533,11 @@ class get_data():
 
             varvar = f"dataset.variables['{prm}'][{startsub}]" ##
             print(varvar)
+            print("EE1")
+
             varvar = eval(varvar)
+            print("EE2")
+            #exit(1)
             dimlist = np.array(list(file["var"][prm]["dim"]))  # ('time', 'pressure', 'ensemble_member', 'y', 'x')
 
             if not self.mbrs_bool and any(np.isin(dimlist, "ensemble_member")):#"ensemble_member" in dimlist:

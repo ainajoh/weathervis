@@ -506,9 +506,12 @@ def find_subdomains(domain_name, datetime=None, model=None, domain_lonlat=None, 
         for v in value:
             dom_frame.loc[k, v] = True
     dom_frame["sum"] = dom_frame.sum(axis=1).astype(int)
-
-    for i in range(dom_frame["sum"].min() - 1, dom_frame["sum"].max()):
+    print(dom_frame)
+    #exit(1)
+    #for i in range(dom_frame["sum"].min()-1, dom_frame["sum"].max()): #1,2,3
+    for i in range(0, dom_frame["sum"].max()): #1,2,3
         i = dom_frame["sum"].max() - i
+        print(i)
         largest_dom = dom_frame[dom_frame["sum"] == i]
         if len(largest_dom) != 0:
             print("largest_dom")
@@ -527,4 +530,5 @@ def find_subdomains(domain_name, datetime=None, model=None, domain_lonlat=None, 
     dom_frame = dom_frame.drop("sum", axis=1)
     print("SONEEEE")
     print(dom_frame)
+    #exit(1)
     return dom_frame
