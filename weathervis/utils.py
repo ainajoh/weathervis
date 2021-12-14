@@ -364,7 +364,7 @@ GpsAlt_m = 'GpsAlt_m'):
 #    data_domain = domain_input_handler(dt=date, model=model, domain_name=domain_name, domain_lonlat=domain_lonlat, file =ourfileobj,point_name=point_name,point_lonlat=point_lonlat, use_latest=use_latest,delta_index=delta_index)#
 
 def domain_input_handler(dt=None, model=None, domain_name=None, domain_lonlat=None, file=None, point_name=None, point_lonlat=None, use_latest=True, delta_index=None, url=None):
-    print("IN DOM")
+    print("######## domain_input_handler in utils.py ################### ")
     if domain_name or domain_lonlat:
         if domain_lonlat:
             print(f"\n####### Setting up domain for coordinates: {domain_lonlat} ##########")
@@ -387,14 +387,9 @@ def domain_input_handler(dt=None, model=None, domain_name=None, domain_lonlat=No
     print(data_domain)
 
     if (point_name !=None and domain_name == None and domain_lonlat == None):
-        print("here")
         data_domain = domain(dt, model, file=file, point_name=point_name,use_latest=use_latest,delta_index=delta_index, url=url)
     if (point_lonlat != None and point_name == None and domain_name == None and domain_lonlat == None):
-        print("here2")
         data_domain = domain(dt, model, file=file, lonlat=point_lonlat,use_latest=use_latest,delta_index=delta_index, url=url)
-    print(data_domain)
-
-    print("DOM DONE")
     return data_domain
 
 def default_map_projection(dmet):
@@ -431,7 +426,6 @@ def nice_legend(dict, ax1):
         legend =  dict[k]["legend"]
         proxy.append(plt.axhline(y=0, xmin=1, xmax=1, color=color, linestyle=linestyle))
         lg.append(legend)
-    print(proxy)
     lg = ax1.legend(proxy, lg)
     frame = lg.get_frame()
     frame.set_facecolor('white')
@@ -454,19 +448,17 @@ def default_arguments():
     parser.add_argument("--url", default=None, help="use url", type=str)
     parser.add_argument("--use_latest", default=False, type=bool)
     parser.add_argument("--delta_index", default=None, type=str)
+    parser.add_argument("--coast_details", default="auto", type=str, help="auto, coarse, low, intermediate, high, or full")
+
     args = parser.parse_args()
 
     #steps = any_int_range(args.steps)
     if args.domain_name == None:
-        print("iiii")
         args.domain_name = [args.model]
-        print(args.domain_name)
-
     return args
 
 def find_subdomains(domain_name, datetime=None, model=None, domain_lonlat=None, file=None, point_name=None, point_lonlat=None, use_latest=None, delta_index=None, url=None):
-    print("########################################################")
-    print(domain_name)
+    print("###################### find_subdomains in utils.py ##################################")
     idx_domain_name = []
     domain_lonlat = None  # args.domain_lonlat
     point_lonlat = None  # args.point_lonlat
@@ -480,7 +472,6 @@ def find_subdomains(domain_name, datetime=None, model=None, domain_lonlat=None, 
         eval(f"dom1.{dom}()")
         idx_domain_name.append(dom1.idx)
     domain_dep = {}
-
     def subsets(idx_A, idx_B):
         is_A_subset_of_B_i = set(idx_A[0]) <= set(idx_B[0])  # is prev a subset of next
         is_A_subset_of_B_j = set(idx_A[1]) <= set(idx_B[1])  # is prev a subset of next
@@ -499,36 +490,21 @@ def find_subdomains(domain_name, datetime=None, model=None, domain_lonlat=None, 
                     domain_dep[dom_B] = [dom_A]
                 else:
                     domain_dep[dom_B].append(dom_A)
-    print(domain_dep)
     dom_frame = pd.DataFrame(False, columns=domain_name, index=domain_name)
     for k in domain_dep.keys():
         value = domain_dep[k]
         for v in value:
             dom_frame.loc[k, v] = True
     dom_frame["sum"] = dom_frame.sum(axis=1).astype(int)
-    print(dom_frame)
-    #exit(1)
-    #for i in range(dom_frame["sum"].min()-1, dom_frame["sum"].max()): #1,2,3
     for i in range(0, dom_frame["sum"].max()): #1,2,3
         i = dom_frame["sum"].max() - i
-        print(i)
         largest_dom = dom_frame[dom_frame["sum"] == i]
         if len(largest_dom) != 0:
-            print("largest_dom")
-            print(largest_dom)
             index_of_largest_dom = largest_dom.index.values[0]
-            print(index_of_largest_dom)
             sub_domains = largest_dom.apply(lambda row: row[row == True].index.tolist(), axis=1)[index_of_largest_dom]
-            print(sub_domains)
             sub_domains.remove(index_of_largest_dom)
-            print(sub_domains)
             if "sum" in sub_domains:
                 sub_domains.remove("sum")
-            print(sub_domains)
-
             dom_frame = dom_frame.drop(sub_domains)  # removes what largest domain have
     dom_frame = dom_frame.drop("sum", axis=1)
-    print("SONEEEE")
-    print(dom_frame)
-    #exit(1)
     return dom_frame

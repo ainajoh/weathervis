@@ -10,17 +10,12 @@ if __name__ == "__main__":
 
 def lonlat2idx(lonlat, lon, lat):
     #Todo: add like, when u have a domain outside region of data then return idx= Only the full data.
-    #print(url)
-    #lon = dataset.variables["longitude"][:]
-    #lat = dataset.variables["latitude"][:]
     # DOMAIN FOR SHOWING GRIDPOINT:: MANUALLY ADJUSTED
     if len(lonlat)>2:
         idx = np.where((lat > lonlat[2]) & (lat < lonlat[3]) & \
                        (lon >= lonlat[0]) & (lon <= lonlat[1]))
     else:
-        print("nearest")
         idx = nearest_neighbour_idx(lonlat[0],lonlat[1],lon,lat)
-
     return idx
 
 def idx2lonlat(idx, url):
@@ -58,8 +53,6 @@ class domain():
         self.delta_index=delta_index
         self.scale = find_scale(self.lonlat) if self.lonlat else 1
 
-        print(file)
-        print(type(file)) #isinstance(x, pd.DataFrame)
         if (file is not None and isinstance(file, pd.DataFrame) ):  #type(file)==pd.core.frame.DataFrame):
             self.url = file.loc[0,'url']
         elif (file is not None):
@@ -69,7 +62,6 @@ class domain():
         else:
             self.url = self.make_url_base()
         self.url = self.url + "?latitude,longitude"
-        print(self.url)
 
         dataset = Dataset(self.url)
         self.lon = dataset.variables["longitude"][:]
@@ -111,12 +103,11 @@ class domain():
         #else:
         #    url = f"https://thredds.met.no/thredds/dodsC/meps25epsarchive/{YYYY}/{MM}/{DD}/meps_det_2_5km_{YYYY}{MM}{DD}T{HH}Z.nc?latitude,longitude"
         #eval()
-    def make_url_base(self):
+    def make_url_base(self): # Todo: Update for more accurate url.
         if self.model == "AromeArctic":
             url = "https://thredds.met.no/thredds/dodsC/aromearcticlatest/arome_arctic_sfx_2_5km_latest.nc"
-
         if self.model == "MEPS":
-            url = "https://thredds.met.no/thredds/dodsC/aromearcticlatest/arome_arctic_sfx_2_5km_latest.nc"
+            url = "https://thredds.met.no/thredds/dodsC/mepslatest/meps_lagged_6_h_latest_2_5km_latest.nc"
 
         return url
 
@@ -132,6 +123,7 @@ class domain():
         self.scale = find_scale(self.lonlat)
 
     def South_Norway(self):
+        self.domain_name = "South_Norway"
         self.lonlat = [4., 9.18, 58.01, 62.2]  # lonmin,lonmax,latmin,latmax,
         self.idx = lonlat2idx(self.lonlat, self.lon, self.lat)
         self.scale = find_scale(self.lonlat)
@@ -188,13 +180,6 @@ class domain():
 
         self.lonlat = [11, 13., 78.73, 79.16]
         self.idx = lonlat2idx(self.lonlat, self.lon, self.lat)  # Rough
-        #self.area = np.shape(self.idx)[1]         #24 vs
-        #di = np.max(self.idx[0]) - np.min(self.idx[0])
-        #dj = np.max(self.idx[1]) - np.min(self.idx[1])
-        #print(di)
-        #print(dj)
-        #print(self.idx)
-        #print(self.area)
         self.scale = find_scale(self.lonlat)
 
     def Test(self):  # map

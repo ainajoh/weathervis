@@ -44,6 +44,7 @@ def SomeError( exception = Exception, message = "Something did not go well" ):
         raise exception(message)
 #@profile
 def find_best_combinationoffiles(all_param, fileobj, m_level=None, p_level=None):    #how many ways ca we split up all the possible balls between these kids?
+    print("###################### find_best_combinationoffiles in checkget_data_handler.py##################################")
     m_level = 60 if m_level is None else max(m_level)
     filenames = []
     tot_param_we_want_that_are_available = []
@@ -76,6 +77,8 @@ def find_best_combinationoffiles(all_param, fileobj, m_level=None, p_level=None)
     config_overrides_r = dict(zip(filenames, tot_param_we_want_that_are_available))
 
     def filer_param_by_modellevels(config_overrides_r,tot_param_we_want_that_are_available):
+        print("################ filer_param_by_modellevels in checkget_data_handler.py #############################")
+
         for i in range(0,len(fileobj)):
             thisfileobj = fileobj.loc[i]
             varname = tot_param_we_want_that_are_available[i]
@@ -126,9 +129,9 @@ def find_best_combinationoffiles(all_param, fileobj, m_level=None, p_level=None)
     return ppd,bad_param
 #@profile
 def retrievenow(our_choice,model,step, date,fileobj,m_level,p_level, domain_name=None, domain_lonlat=None,bad_param=[],bad_param_sfx=[],point_name=None, point_lonlat=None, use_latest=True,delta_index=None):
+    print("################ retrievenow in checkget_data_handler.py #############################")
+
     fixed_var = ["ap", "b", "ap2", "b2", "pressure", "hybrid", "hybrid2","hybrid0"]  # this should be gotten from get_data
-    print(date)
-    print("date")
 
     ourfilename = our_choice.file[0]
     ourfileobj = fileobj[fileobj["File"].isin([ourfilename])]
@@ -139,22 +142,10 @@ def retrievenow(our_choice,model,step, date,fileobj,m_level,p_level, domain_name
     combo = our_choice.combo
 
     ourparam = [k for k, v in combo.items() if v == ourfilename]
-    print("bf get")
-    print(model)
-    print(ourparam)
-    print(ourfileobj)
-    print(date)
-    print(m_level)
-    print(p_level)
-    print(data_domain)
-    print(use_latest)
-    print(step)
 
     dmet = get_data(model=model, param=ourparam, file=ourfileobj, step=step, date=date, m_level=m_level, p_level=p_level, data_domain=data_domain, use_latest=use_latest)
-    print("after get")
 
     dmet.retrieve()
-    print("after retrieve")
 
     for i in range(1,len(our_choice.file)):
         ourfilename = our_choice.file[i]
@@ -190,13 +181,10 @@ def retrievenow(our_choice,model,step, date,fileobj,m_level,p_level, domain_name
     return dmet, data_domain,bad_param
 #@profile
 def checkget_data_handler(all_param, date=None,  model=None, step=None, p_level= None, m_level=None, mbrs=None, domain_name=None, domain_lonlat=None, point_name=None,point_lonlat=None,use_latest=False,delta_index=None, url=None):
-    print("hello")
+    print("################ checkget_data_handler in checkget_data_handler.py #############################")
 
     if url != None:
         fileobj = check_data(url=url, model=model, date=date, step=step, use_latest=use_latest).file
-        print("checc")
-        print(url)
-
         data_domain = domain_input_handler(file = fileobj, url=url, dt=date, model=model, domain_name=domain_name, domain_lonlat=domain_lonlat,
                                            point_name=point_name, point_lonlat=point_lonlat, delta_index=delta_index)
 
@@ -206,14 +194,9 @@ def checkget_data_handler(all_param, date=None,  model=None, step=None, p_level=
         bad_param=None
         return dmet, data_domain, bad_param
 
-
     date=str(date)
-    print("checccgee")
-    print(model)
     fileobj = check_data(model=model, date=date, step=step, use_latest=use_latest).file
     all_choices, bad_param  = find_best_combinationoffiles(all_param=all_param, fileobj=fileobj,m_level=m_level,p_level=p_level)
-    print(all_choices)
-    #print(bad_param)
 
 
     bad_param_sfx=[]
@@ -226,73 +209,61 @@ def checkget_data_handler(all_param, date=None,  model=None, step=None, p_level=
         SomeError(ValueError, f'No matches for your parameter found, try using the check_data search option')
     # RETRIEVE FROM THE BEST COMBINATIONS AND TOWARDS WORSE COMBINATION IF ANY ERROR
 
-    print(len(all_choices))
-
     for i in range(0, len(all_choices)):
         gc.collect()
-        print("YE")
-        print(all_choices.loc[i])
-        print(all_choices.loc[i].combo)
-
         try:
-            print("in try")
-            print(step)
             dmet, data_domain,bad_param = retrievenow(our_choice = all_choices.loc[i],model=model,step=step, date=date,fileobj=fileobj,
                                    m_level=m_level,p_level=p_level,domain_name=domain_name, domain_lonlat=domain_lonlat,
                                     bad_param = bad_param,bad_param_sfx = bad_param_sfx,point_name=point_name,point_lonlat=point_lonlat,use_latest=use_latest,
                                                      delta_index=delta_index)
-            print("after try")
-            print(dmet)
             break
         except:
             print("Oops!", sys.exc_info()[0], "occurred.")
             print("Next entry.")
             print(" ")
-    #exit(1)
-
     return dmet,data_domain,bad_param
 
 
 
-if __name__ == "__main__":
-    import argparse
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--datetime", help="YYYYMMDDHH for modelrun", default=None, nargs="+")
-    parser.add_argument("--steps", default=[0, 10], nargs="+", type=int,
-                        help="forecast times example --steps 0 3 gives time 0 to 3")
-    parser.add_argument("--model", default="AromeArctic", help="MEPS or AromeArctic")
-    parser.add_argument("--domain_name", default=None, help="see domain.py")
-    parser.add_argument("--domain_lonlat", default=None, nargs="+", type=float, help="lonmin lonmax latmin latmax")
-    parser.add_argument("--param_all", default=None, nargs="+", type=str)
-    parser.add_argument("--point_name", default=None, help="see sites.csv")
-    parser.add_argument("--point_lonlat", default=None, nargs="+", type=float, help="lon lat")
-    parser.add_argument("--point_num", default=1, type=int)
-    parser.add_argument("--plot", default="all", help="Display legend")
-    parser.add_argument("--legend", default=False, help="Display legend")
-    parser.add_argument("--info", default=False, help="Display info")
-    args = parser.parse_args()
+#if __name__ == "__main__":
+#    import argparse
+#    parser = argparse.ArgumentParser()
+#    parser.add_argument("--datetime", help="YYYYMMDDHH for modelrun", default=None, nargs="+")
+#    parser.add_argument("--steps", default=[0, 10], nargs="+", type=int,
+#                        help="forecast times example --steps 0 3 gives time 0 to 3")
+#    parser.add_argument("--model", default="AromeArctic", help="MEPS or AromeArctic")
+#    parser.add_argument("--domain_name", default=None, help="see domain.py")
+#    parser.add_argument("--domain_lonlat", default=None, nargs="+", type=float, help="lonmin lonmax latmin latmax")
+#    parser.add_argument("--param_all", default=None, nargs="+", type=str)
+#    parser.add_argument("--point_name", default=None, help="see sites.csv")
+#    parser.add_argument("--point_lonlat", default=None, nargs="+", type=float, help="lon lat")
+#    parser.add_argument("--point_num", default=1, type=int)
+#    parser.add_argument("--plot", default="all", help="Display legend")
+#    parser.add_argument("--legend", default=False, help="Display legend")
+#    parser.add_argument("--info", default=False, help="Display info")
+#    args = parser.parse_args()
 
-    param_pl = []
-    param_ml = ["air_temperature_ml", "specific_humidity_ml"]
-    param_sfc = ["surface_air_pressure", "air_pressure_at_sea_level", "air_temperature_0m", "air_temperature_2m",
-                 "relative_humidity_2m", "x_wind_gust_10m", "y_wind_gust_10m", "x_wind_10m", "y_wind_10m",
-                 "specific_humidity_2m", "precipitation_amount_acc", "convective_cloud_area_fraction",
-                 "cloud_area_fraction", "high_type_cloud_area_fraction", "medium_type_cloud_area_fraction",
-                 "low_type_cloud_area_fraction", "rainfall_amount", "snowfall_amount", "graupelfall_amount",
-                 "land_area_fraction"]
-    param_sfc = ["specific_humidity_2m"]
-    all_param = param_sfc + param_ml + param_pl
+#    param_pl = []
+#    param_ml = ["air_temperature_ml", "specific_humidity_ml"]
+#    param_sfc = ["surface_air_pressure", "air_pressure_at_sea_level", "air_temperature_0m", "air_temperature_2m",
+#                 "relative_humidity_2m", "x_wind_gust_10m", "y_wind_gust_10m", "x_wind_10m", "y_wind_10m",
+#                 "specific_humidity_2m", "precipitation_amount_acc", "convective_cloud_area_fraction",
+#                 "cloud_area_fraction", "high_type_cloud_area_fraction", "medium_type_cloud_area_fraction",
+#                 "low_type_cloud_area_fraction", "rainfall_amount", "snowfall_amount", "graupelfall_amount",
+#                 "land_area_fraction"]
+#    param_sfc = ["specific_humidity_2m"]
+#    all_param = param_sfc + param_ml + param_pl
 
-    fileobj = check_data(args.model, date=str(args.datetime[0]), step=args.steps, use_latest=use_latest).file
-    all_choices, bad_param = find_best_combinationoffiles(all_param, fileobj)
+#    fileobj = check_data(args.model, date=str(args.datetime[0]), step=args.steps, use_latest=use_latest).file
+#    all_choices, bad_param = find_best_combinationoffiles(all_param, fileobj)
 
     #RETRIEVE FROM THE BEST COMBINATIONS AND TOWARDS WORSE COMBINATION IF ANY ERROR
-    for i in range(0, len(all_choices)):
-        try:
-            dmet = retrievenow(all_choices.loc[i],args.model, args.steps, str(args.datetime[0]))
-            break
-        except:
-            #del(dmet)
-            print("Oops!", sys.exc_info()[0], "occurred.")
-            print("Next entry.")
-            print(" ")
+#    for i in range(0, len(all_choices)):
+#        try:
+#            dmet = retrievenow(all_choices.loc[i],args.model, args.steps, str(args.datetime[0]))
+#            break
+#        except:
+#            #del(dmet)
+#            print("Oops!", sys.exc_info()[0], "occurred.")
+#            print("Next entry.")
+#            print(" ")

@@ -34,6 +34,7 @@ source = ["thredds"] # later"netcdf", "grib" 2019120100
 logging.basicConfig(filename="get_data.log", level = logging.INFO, format = '%(levelname)s : %(message)s')
 
 def SomeError( exception = Exception, message = "Something did not go well" ):
+    print("################ SomeError in check_data.py #############################")
     #source: https://softwareengineering.stackexchange.com/questions/222586/how-should-you-cleanly-restrict-object-property-types-and-values-in-python
     logging.error(exception(message))
     if isinstance( exception.args, tuple ):
@@ -44,6 +45,8 @@ def SomeError( exception = Exception, message = "Something did not go well" ):
 def filter_param(file,param):
     """Used by check_data: Remove files not containing a givet set of parameters.
     Returns only files containing all the user defined parameters."""
+    print("################ filter_param in check_data.py #############################")
+
     if param:  #If a user param is given
         for i in range(0, len(file)): # go through all files,
             param_bool = np.array([key in file.loc[i,"var"].keys() for key in param])
@@ -56,6 +59,8 @@ def filter_param(file,param):
 def filter_type(file,mbrs, p_level,m_level):
     """Used by check_data: Remove files not having the userdefined mbrs or levels
     Returns only files containing all the user defined preferences."""
+    print("################ filter_type in check_data.py #############################")
+
     if mbrs != 0 and mbrs != None:
         #file = file[file["mbr_bool"] == True] deprecated
         file = file[~file.mbr_ens.isnull()] #not needed?
@@ -106,6 +111,8 @@ def filter_type(file,mbrs, p_level,m_level):
     return file
 
 def filter_step(file,maxstep):
+    print("################ filter_step in check_data.py #############################")
+
     if maxstep != None:
         for i in range(0, len(file)): # go through all files,
             step_bool = int(file.loc[i,"dim"]["time"]["shape"]) >= maxstep
@@ -115,6 +122,8 @@ def filter_step(file,maxstep):
     return file
 
 def filter_function_for_date(value, check_earliest=False, model = "AromeArctic"):
+    print("################ filter_function_for_date in check_data.py #############################")
+
     if (value != None) and (len(value) == 10) and (int(value[0:4]) in range(2000, 2030)) and (int(value[4:6]) in range(0, 13)) \
             and (int(value[6:8]) in range(1, 32)) and (int(value[9:10]) in range(0, 25)):
         pass
@@ -133,6 +142,8 @@ def filter_function_for_date(value, check_earliest=False, model = "AromeArctic")
 filter_function_for_models = lambda value: value if value.lower() in all_models else SomeError(ValueError, f'Model not found: choices:{all_models}')
 
 def filter_function_for_models_ignore_uppercases(model):
+    print("################ filter_function_for_models_ignore_uppercases in check_data.py #############################")
+
     model_lower = model.lower()
     if model_lower in all_models:
         pass
@@ -147,12 +158,15 @@ def filter_any(file):
     """Used by check_data: Remove random files until only one left
     Returns only one file.
     Todo: find a better way as this might not be what the use expect"""
+    print("################ filter_any in check_data.py #############################")
+
     if len(file) > 1:  # want to end up with only one file.
         file = file[0]
         file.reset_index(inplace=True, drop=True)
     return file
 
 def filter_firstdate(file,date):
+    print("################ filter_firstdate in check_data.py #############################")
     if maxstep != None:
         for i in range(0, len(file)): # go through all files,
             step_bool = int(file.loc[i,"dim"]["time"]["shape"]) >= maxstep
@@ -160,7 +174,6 @@ def filter_firstdate(file,date):
                 file.drop([i], inplace=True)
     file.reset_index(inplace=True, drop=True)
     return file
-
 
 class check_data():
 
@@ -182,10 +195,9 @@ class check_data():
         use_latest: True if you want a recent date, False if u want to get from the archive
         """
         logging.info("# check_data() #\n#################")
+        print("################ __init__ in check_data.py #############################")
 
         self.date = str(date) if date != None else None
-        print("tes33")
-        print(model)
         self.model = model
         self.url = url
         self.param = param
@@ -218,17 +230,10 @@ class check_data():
 
         self.check_web_connection()
         filter_function_for_date(self.date)
-        print("tes1")
-        print(self.model)
         self.model = filter_function_for_models_ignore_uppercases(self.model) if self.model != None else None
         self.p_level = [p_level] if p_level != None and type(p_level) != list else p_level
         self.m_level = [m_level] if m_level != None and type(m_level) != list else m_level
-        print("tes")
-        print(self.model)
-        print(self.date)
-        print(self.url)
         if (self.model !=None and self.date !=None) or self.url !=None:
-            print("finding")
             all_files = self.check_files(date, model, param,  mbrs, url) #the main outcome
             self.file = self.check_file_info(all_files, param, mbrs)
         ###################################################
@@ -257,7 +262,7 @@ class check_data():
         Returns a dataframe containing file name and file url
         """
         logging.info("--> check_files() <---\n")
-
+        print("################ check_files in check_data.py #############################")
         base_url = ""
 
         if self.url != None:
@@ -300,7 +305,7 @@ class check_data():
         Returns a dataframe containing info about file. used in get_data
         """
         logging.info("--> check_file_info() <---\n")
-
+        print("################ check_file_info in check_data.py #############################")
         # df["var"] = None
         # df["dim"] = None
         df["mbr_bool"] = False
@@ -342,8 +347,6 @@ class check_data():
                     dimframe.loc[dim_tmp[0],"value"] = ",".join(str(int(x)) for x in dim_value)
                     #Check if dimention is a  pressure/hybrid/height or member dimention category
                     if dim_tmp[0] in pressure_dim:
-                        print("INF")
-                        print(dim_tmp[0])
                         tt = [int(x) for x in dataset.variables[dim_tmp[0]][:]] if dim_tmp[0] in dimdic and dimdic[
                             dim_tmp[0]] >= 1 else None
                         d_p.update({dim_tmp[0]: tt})
@@ -381,22 +384,10 @@ class check_data():
             i+=1
             dataset.close()
 
-        #while has ended
-        print("HOLa df")
-        print(df)
         file_withparam = filter_param( df.copy(), param)
-        print("HOLa file_withparam")
-        print(file_withparam)
-        print(mbrs)
-        print(self.p_level)
-        print(self.m_level)
         file_corrtype = filter_type( df.copy(), mbrs, self.p_level, self.m_level)
-        print("HOLa fole_corrrtyope")
-        print(file_corrtype)
         file = file_withparam[file_withparam.File.isin(file_corrtype.File)]
-
         file.reset_index(inplace=True, drop = True)
-
         file = filter_step(file,self.maxstep)
 
 
@@ -420,6 +411,8 @@ class check_data():
 
     def check_available_date(self, model, search = None):
         logging.info("--> check_available_date() <---\n")
+        print("################ check_available_date in check_data.py #############################")
+
 
         df = pd.read_csv(f"{package_path}/data/{model}_filesandvar.csv")
         dfc = df.copy()  # df['base_name'] = [re.sub(r'_[0-9]*T[0-9]*Z.nc','', str(x)) for x in df['File']]
@@ -439,10 +432,10 @@ class check_data():
         return dateti
 
     def check_variable(self, file, search, url):
+        print("################ check_variable in check_data.py #############################")
+
         #url not supported yet in var search
         logging.info("--> check_variable() <---\n")
-        print("file")
-        print(file)
         var_dict = file.at[0, "var"]
         param = []
         for n in range(0,len(file)):
@@ -458,6 +451,7 @@ class check_data():
 
     def check_variable_all(self, model, numbervar, search ):
         logging.info("--> check_variable_all <---\n")
+        print("################ check_variable_all in check_data.py #############################")
 
         df = pd.read_csv(f"{package_path}/data/{model}_filesandvar.csv")
         dfc = df.copy()  # df['base_name'] = [re.sub(r'_[0-9]*T[0-9]*Z.nc','', str(x)) for x in df['File']]
@@ -479,6 +473,8 @@ class check_data():
 
     def check_filecontainingvar(self, model, numbervar, search ):
         logging.info("--> check_filecontainingvar <---\n")
+        print("################ check_filecontainingvar in check_data.py #############################")
+
 
         #NOT IN USE
         #Nice to have a list of the files containing that var, but that means scraping the web too often.
@@ -501,6 +497,8 @@ class check_data():
 
     #OTHER FUNC
     def clean_all(self):
+        print("################ clean_all in check_data.py #############################")
+
         del self.model
         del self.url
         del self.mbrs
@@ -512,6 +510,8 @@ class check_data():
         del self.use_latest
         gc.collect()
     def check_web_connection(self, url=None):
+        print("################ check_web_connection in check_data.py #############################")
+
         url_test = "https://thredds.met.no/thredds/catalog/meps25epsarchive/catalog.html"
         try:
             webcheck = requests.head(url_test, timeout=5)

@@ -17,36 +17,24 @@ import gc
 
 warnings.filterwarnings("ignore", category=UserWarning) # suppress matplotlib warning
 
-def plot_BLH(datetime, data_domain, dmet, steps=[0,2], model= None, domain_name = None, domain_lonlat = None, legend=False, info = False, save = True,grid=True, url = None):
-  #RETRIEVE
-  eval(f"data_domain.{domain_name}()")
-
-  print(model)
-  #CALCULATE AND INITIALISE
-  scale = data_domain.scale
+def plot_BLH(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", model= None, domain_name = None, domain_lonlat = None, legend=False, info = False, save = True,grid=True, url = None):
+  eval(f"data_domain.{domain_name}()") # get domain info
+  ## CALCULATE AND INITIALISE ####################
+  scale = data_domain.scale  #scale is larger for smaller domains in order to scale it up.
   dmet.air_pressure_at_sea_level /= 100
   plev = 0 #velocity presuure level at first request
-  coast_details='auto' # ‘auto’, ‘coarse’, ‘low’, ‘intermediate’, ‘high, or ‘full’ (default is ‘auto’).
-  if scale < 8:
-    print(np.shape(dmet.surface_geopotential))
-    print(np.shape(dmet.upward_air_velocity_pl))
-
-    W =  filter_values_over_mountain(dmet.surface_geopotential[:], dmet.upward_air_velocity_pl[:])
-  else:
-    W = dmet.upward_air_velocity_pl[:]#.squeeze()
-
   MSLP = filter_values_over_mountain(dmet.surface_geopotential[:], dmet.air_pressure_at_sea_level[:])
-  BLH = (dmet.atmosphere_boundary_layer_thickness[:, :, :])#.squeeze()
-
-  #PLOT
+  BLH = (dmet.atmosphere_boundary_layer_thickness[:, :, :])
+  # if domain is large then filter noisy W values that often are over mountains.
+  W = filter_values_over_mountain(dmet.surface_geopotential[:], dmet.upward_air_velocity_pl[:]) if scale < 8 else dmet.upward_air_velocity_pl[:]
+  ########################################
+  # PLOTTING ROUTNE ######################
   crs = default_map_projection(dmet)
   fig1, ax1 = plt.subplots(1, 1, figsize=(7, 9), subplot_kw={'projection': crs})
-
   itim = 0
   for leadtime in np.array(steps):
       print('Plotting {0} + {1:02d} UTC'.format(datetime,leadtime))
       ax1 = default_mslp_contour(dmet.x, dmet.y, MSLP[itim,0,:,:], ax1, scale=scale)
-
       # vertical velocity
       C_W = ax1.contour(dmet.x, dmet.y, W[itim,0,:,:], zorder=3, alpha=1.0,
                          levels=np.linspace(0.07,2.0,4*scale), colors="red", linewidths=0.7)
@@ -58,12 +46,9 @@ def plot_BLH(datetime, data_domain, dmet, steps=[0,2], model= None, domain_name 
       #coastline
       ax1.add_feature(cfeature.GSHHSFeature(scale=coast_details))
 
-
       #Done plotting, now adjusting
       ax_cb = adjustable_colorbar_cax(fig1, ax1 )
       fig1.colorbar(CF_BLH, fraction=0.046, pad=0.01,aspect=25,cax = ax_cb, label="Boundary layer thickness [m]", extend="both") ##__N
-      print("HHH##############################################################################")
-      print(model)
       ax1.text(0, 1, "{0}_BLH_{1}+{2:02d}".format(model, datetime, leadtime), ha='left', va='bottom', transform=ax1.transAxes, color='dimgrey')
       if legend:
         pressure_dim = list(filter(re.compile(f'press*').match, dmet.__dict__.keys())) #need to find the correcvt pressure name
@@ -91,48 +76,29 @@ def plot_BLH(datetime, data_domain, dmet, steps=[0,2], model= None, domain_name 
   del crs
   gc.collect()
 
-def BLH(datetime, steps, model, domain_name, domain_lonlat, legend, info, grid, url,point_lonlat,use_latest,delta_index):
-
+def BLH(datetime, steps, model, domain_name, domain_lonlat, legend, info, grid, url,point_lonlat,use_latest,delta_index, coast_details):
     param = ["air_pressure_at_sea_level", "surface_geopotential", "atmosphere_boundary_layer_thickness",
              "upward_air_velocity_pl"]
 
+    # Todo: In the future make this part of the entire checkget_datahandler or someother hidden solution
     domains_with_subdomains = find_subdomains(domain_name=domain_name, datetime=datetime, model=model, domain_lonlat=domain_lonlat,
                                 point_lonlat=point_lonlat, use_latest=use_latest, delta_index=delta_index, url=url)
     print(domains_with_subdomains)
     print( domains_with_subdomains.index.values)
-
     for domain_name in domains_with_subdomains.index.values:
-        print(domain_name)
-        #break
         dmet, data_domain, bad_param = checkget_data_handler(p_level=[850], model=model,step=steps, date=datetime, domain_name=domain_name, all_param=param)
         subdom = domains_with_subdomains.loc[domain_name]
         ii = subdom[subdom == True]
         subdom_list = list(ii.index.values)
-        #subdom_list.remove(domain_name)
-        print(subdom_list)
-        #exit(1)
         if subdom_list:
             for sub in subdom_list:
-                print(sub)
                 plot_BLH(datetime=datetime, steps=steps, model=model, domain_name=sub, data_domain=data_domain,
                     domain_lonlat=domain_lonlat, legend=legend, info=info, grid=grid, url=url,
-                    dmet=dmet)
-        #else:
-        #    plot_BLH(datetime=datetime, steps=steps, model=model, domain_name=domain_name,
-        #        data_domain=data_domain, dmet=dmet,
-        #        domain_lonlat=domain_lonlat, legend=legend, info=info, grid=grid, url=url)
-
+                    dmet=dmet, coast_details=coast_details)
 
 if __name__ == "__main__":
     args = default_arguments()
-
     BLH(datetime=args.datetime, steps=args.steps, model=args.model, domain_name=args.domain_name,
         domain_lonlat=args.domain_lonlat, legend=args.legend, info=args.info, grid=args.grid, url=args.url,
-        point_lonlat =args.point_lonlat,use_latest=args.use_latest,delta_index=args.delta_index)
-
-    #del bad_param
+        point_lonlat =args.point_lonlat,use_latest=args.use_latest,delta_index=args.delta_index, coast_details=args.coast_details)
     gc.collect()
-
-
-def is_box_in_box():
-    pass
