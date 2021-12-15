@@ -89,8 +89,14 @@ def cyclone():
     sys.modules[spec.name] = module
     spec.loader.exec_module(module)
     #OUTPUTPATH = dname+"/../../../../../output/weathervis/"
-    OUTPUTPATH = dname+"/output/"
-    OUTPUTPATH = setup_directory_config(OUTPUTPATH)
+    
+    username= os.environ.get('USER')
+    OUTPUTPATH = "/Data/gfi/projects/isomet/projects/ISLAS/weathervis/output/"+username+"/"
+    #OUTPUTPATH = setup_directory_config(OUTPUTPATH)
+    USER_OUTPUTPATH = "/Data/gfi/projects/isomet/projects/ISLAS/weathervis/output/"+username+"/"
+    
+    #OUTPUTPATH = f"/Data/gfi/projects/isomet/projects/ISLAS/weathervis/output/{username}/"
+    #OUTPUTPATH = setup_directory_config(OUTPUTPATH)
     #OUTPUTPATHLOG = 
     return OUTPUTPATH
 
