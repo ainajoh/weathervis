@@ -1,4 +1,4 @@
-from weathervis.config import *
+#from weathervis.config import *
 
 #global wc
 #global projectpath
