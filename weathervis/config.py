@@ -91,6 +91,7 @@ def cyclone():
     #OUTPUTPATH = dname+"/../../../../../output/weathervis/"
     OUTPUTPATH = dname+"/output/"
     OUTPUTPATH = setup_directory_config(OUTPUTPATH)
+    #OUTPUTPATHLOG = 
     return OUTPUTPATH
 
 def islas_server():

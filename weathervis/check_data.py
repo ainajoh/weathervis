@@ -2,6 +2,7 @@
 # File name: check_data.py
 # This file is part of: weathervis
 ########################################################################
+#from weathervis.config import *
 import requests
 from bs4 import BeautifulSoup
 import re
@@ -30,8 +31,9 @@ all_models = ["aromearctic", "meps"] #ECMWF later
 source = ["thredds"] # later"netcdf", "grib" 2019120100
 
 #use_latest = True
-
-logging.basicConfig(filename="get_data.log", level = logging.INFO, format = '%(levelname)s : %(message)s')
+pathhome= os.environ["HOME"]
+filelog=f"{pathhome}/wv_get_data.log"
+logging.basicConfig(filename=filelog, level = logging.INFO, format = '%(levelname)s : %(message)s')
 
 def SomeError( exception = Exception, message = "Something did not go well" ):
     #source: https://softwareengineering.stackexchange.com/questions/222586/how-should-you-cleanly-restrict-object-property-types-and-values-in-python
