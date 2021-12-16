@@ -53,13 +53,11 @@ def make_data_uptodate():
                 print("NO updates")
 
 def setup_directory_config(OUTPUTPATH):
-
     if not os.path.exists(OUTPUTPATH):
         os.makedirs(OUTPUTPATH)
         print("Directory ", OUTPUTPATH, " Created ")
     else:
         print("Directory ", OUTPUTPATH, " already exists")
-
     return OUTPUTPATH
 
 def cyclone():

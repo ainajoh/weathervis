@@ -436,7 +436,7 @@ def default_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument("--datetime", help="YYYYMMDDHH for modelrun", required=True, type=str)
     parser.add_argument("--steps", default=0, nargs="+", type=int,
-                        help="forecast times example --steps 0 3 gives time 0 to 3")
+                        help="forecast times example --steps 0 3 gives time 0 and 3")
     parser.add_argument("--model", default=None, help="MEPS or AromeArctic")
     parser.add_argument("--domain_name", default=None, nargs="+")
     parser.add_argument("--domain_lonlat", default=None, help="[ lonmin, lonmax, latmin, latmax]")

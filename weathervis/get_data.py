@@ -379,7 +379,7 @@ class get_data():
         """
         logging.info("-------> start retrieve from thredds")
         print("################ thredds in get_data.py #############################")
-
+        print(url)
         dataset = Dataset(url)
         self.indexidct = dict.fromkeys(self.indexidct, ":")  #reset the index dictionary
         for k in dataset.__dict__.keys(): #info of the file
