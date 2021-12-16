@@ -6,14 +6,10 @@ abspath = os.path.abspath(__file__)
 dname = os.path.dirname(abspath)
 import os.path as path
 import pandas as pd
-#from weathervis.checkget_data_handler import * #checkget_data_handler #add_point_on_map
-
-print(dname)
-print(abspath)
-#global projectpath
 global OUTPUTPATH
-#OUTPUTPATH = dname + "/../../../../output/weathervis/"
-OUTPUTPATH = dname + "//output/"
+global LOGFILEPATH
+#LOGFILEPATH =  dname + "/../output/wv_get_data.log"
+OUTPUTPATH = dname + "/../output/"
 
 def make_data_uptodate():
     filepath=f"{dname}/data/"
@@ -56,10 +52,6 @@ def make_data_uptodate():
             elif Question == ("no") or Question == ("n"):
                 print("NO updates")
 
-
-#make_data_uptodate()
-#package_path = os.path.dirname(__file__)
-#os.chdir(dname)
 def setup_directory_config(OUTPUTPATH):
 
     if not os.path.exists(OUTPUTPATH):
@@ -70,18 +62,15 @@ def setup_directory_config(OUTPUTPATH):
 
     return OUTPUTPATH
 
-
-
 def cyclone():
     import importlib
     import sys
     from subprocess import call
     #module load Python/3.7.0-foss-2018b
     #source / Data / gfi / users / local / share / virtualenv / dynpie3 / bin / activate
-    
+
     cyclone_conf = dname + "/data/config/config_cyclone.sh"
     call(f"source {cyclone_conf}", shell=True)
-    print("tee")
     MODULE_PATH = "/shared/apps/Python/3.7.0-foss-2018b/lib/python3.7/site-packages/netCDF4/__init__.py"
     MODULE_NAME = "netCDF4"
     spec = importlib.util.spec_from_file_location(MODULE_NAME, MODULE_PATH)
@@ -89,15 +78,18 @@ def cyclone():
     sys.modules[spec.name] = module
     spec.loader.exec_module(module)
     #OUTPUTPATH = dname+"/../../../../../output/weathervis/"
-    
+
     username= os.environ.get('USER')
     OUTPUTPATH = "/Data/gfi/projects/isomet/projects/ISLAS/weathervis/output/"+username+"/"
     #OUTPUTPATH = setup_directory_config(OUTPUTPATH)
     USER_OUTPUTPATH = "/Data/gfi/projects/isomet/projects/ISLAS/weathervis/output/"+username+"/"
-    
-    #OUTPUTPATH = f"/Data/gfi/projects/isomet/projects/ISLAS/weathervis/output/{username}/"
-    #OUTPUTPATH = setup_directory_config(OUTPUTPATH)
-    #OUTPUTPATHLOG = 
+
+    package_path = os.path.dirname(__file__)
+    # Nice logging info saved to aditional file
+
+    pathhome = os.environ["HOME"]
+    filelog = f"{pathhome}/wv_get_data.log"
+    LOGFILEPATH = filelog
     return OUTPUTPATH
 
 def islas_server():
@@ -112,14 +104,12 @@ def islas_server():
     return OUTPUTPATH
 
 
-print("configure")
 if "cyclone.hpc.uib.no" in platform.node():
     print("detected cyclone")
     OUTPUTPATH = cyclone()
 elif "islas-forecast.novalocal" in platform.node():
     print("detect islas-forecast.novalocal")
     OUTPUTPATH = islas_server()
-
 else:
     print("local host detected")
 
