@@ -12,7 +12,8 @@ print(dname)
 print(abspath)
 #global projectpath
 global OUTPUTPATH
-OUTPUTPATH = dname + "/../../../../output/weathervis/"
+#OUTPUTPATH = dname + "/../../../../output/weathervis/"
+OUTPUTPATH = dname + "//output/"
 
 def make_data_uptodate():
     filepath=f"{dname}/data/"
@@ -77,16 +78,26 @@ def cyclone():
     from subprocess import call
     #module load Python/3.7.0-foss-2018b
     #source / Data / gfi / users / local / share / virtualenv / dynpie3 / bin / activate
+    
     cyclone_conf = dname + "/data/config/config_cyclone.sh"
     call(f"source {cyclone_conf}", shell=True)
+    print("tee")
     MODULE_PATH = "/shared/apps/Python/3.7.0-foss-2018b/lib/python3.7/site-packages/netCDF4/__init__.py"
     MODULE_NAME = "netCDF4"
     spec = importlib.util.spec_from_file_location(MODULE_NAME, MODULE_PATH)
     module = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = module
     spec.loader.exec_module(module)
-    OUTPUTPATH = dname+"/../../../../../output/weathervis/"
-    OUTPUTPATH = setup_directory_config(OUTPUTPATH)
+    #OUTPUTPATH = dname+"/../../../../../output/weathervis/"
+    
+    username= os.environ.get('USER')
+    OUTPUTPATH = "/Data/gfi/projects/isomet/projects/ISLAS/weathervis/output/"+username+"/"
+    #OUTPUTPATH = setup_directory_config(OUTPUTPATH)
+    USER_OUTPUTPATH = "/Data/gfi/projects/isomet/projects/ISLAS/weathervis/output/"+username+"/"
+    
+    #OUTPUTPATH = f"/Data/gfi/projects/isomet/projects/ISLAS/weathervis/output/{username}/"
+    #OUTPUTPATH = setup_directory_config(OUTPUTPATH)
+    #OUTPUTPATHLOG = 
     return OUTPUTPATH
 
 def islas_server():
@@ -96,7 +107,7 @@ def islas_server():
     cyclone_conf = dname + "/data/config/config_islas_server.sh"
     call(f"source {cyclone_conf}", shell=True)
     OUTPUTPATH = dname+"/../../../../output/weathervis/"
-    OUTPUTPATH = setup_directory(OUTPUTPATH)
+    OUTPUTPATH = setup_directory_config(OUTPUTPATH)
     print(OUTPUTPATH)
     return OUTPUTPATH
 

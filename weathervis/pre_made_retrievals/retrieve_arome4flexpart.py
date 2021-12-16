@@ -10,7 +10,10 @@ import platform
 
 if "cyclone.hpc.uib.no" in platform.node():
     print("detected cyclone")
-    outputpath="/Data/gfi/work/cat010/flexpart_arome/input/"
+    #outputpath="/Data/gfi/work/cat010/flexpart_arome/input/"
+    #outputpath="/Data/gfi/work/hso039/flexpart_arome/input/"
+    user = os. environ['USER'];
+    outputpath="/Data/gfi/projects/isomet/projects/ISLAS/flexpart-arome_forecast/data/{0}/input/".format(user)
 else:
     outputpath="./"
     print("LOCAL")
@@ -303,7 +306,7 @@ if __name__ == "__main__":
   args = parser.parse_args()
   #steps=any_int_range(args.steps)
   m_levels = list(np.arange(args.m_levels[0], args.m_levels[-1]+1, 1))
-  steps = list(np.arange(args.steps[0], args.steps[-1] + 1, 1))
+  steps = list(np.arange(args.steps[0], args.steps[-1], 1))
   print(args.m_levels)
   print(m_levels)
   #exit(1)

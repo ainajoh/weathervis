@@ -28,7 +28,9 @@ data Object with properties
 package_path = os.path.dirname(__file__)
 # Nice logging info saved to aditional file
 
-filelog = 'get_data.log'
+pathhome= os.environ["HOME"]
+filelog=f"{pathhome}/wv_get_data.log"
+
 logging.basicConfig(filename=filelog, level = logging.INFO, format = '%(levelname)s : %(message)s')
 if os.path.getsize(filelog) > 100 * 1024:
     os.remove(filelog)
