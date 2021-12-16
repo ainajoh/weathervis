@@ -12,8 +12,8 @@ def lonlat2idx(lonlat, lon, lat):
     #Todo: add like, when u have a domain outside region of data then return idx= Only the full data.
     # DOMAIN FOR SHOWING GRIDPOINT:: MANUALLY ADJUSTED
     if len(lonlat)>2:
-        idx = np.where((lat > lonlat[2]) & (lat < lonlat[3]) & \
-                       (lon >= lonlat[0]) & (lon <= lonlat[1]))
+        idx = np.where((lat > lonlat[2]-0.11) & (lat < lonlat[3]+0.09) & \
+                       (lon >= lonlat[0]-0.32) & (lon <= lonlat[1]+0.28))
     else:
         idx = nearest_neighbour_idx(lonlat[0],lonlat[1],lon,lat)
     return idx

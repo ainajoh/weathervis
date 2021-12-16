@@ -59,6 +59,7 @@ def plot_BLH(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", mod
       if grid:
         nicegrid(ax=ax1)
 
+      print(data_domain.lonlat) #[15.8, 16.4, 69.2, 69.4]
       if domain_name != model and data_domain != None:  #
           ax1.set_extent(data_domain.lonlat)
 
