@@ -180,7 +180,7 @@ def retrievenow(our_choice,model,step, date,fileobj,m_level,p_level, domain_name
 
     return dmet, data_domain,bad_param
 #@profile
-def checkget_data_handler(all_param, date=None,  model=None, step=None, p_level= None, m_level=None, mbrs=None, domain_name=None, domain_lonlat=None, point_name=None,point_lonlat=None,use_latest=False,delta_index=None, url=None):
+def checkget_data_handler(all_param, date=None,  model=None, step=[0], p_level= None, m_level=None, mbrs=None, domain_name=None, domain_lonlat=None, point_name=None,point_lonlat=None,use_latest=False,delta_index=None, url=None):
     print("################ checkget_data_handler in checkget_data_handler.py #############################")
     step = [step] if type(step) == int else step
     if url != None:

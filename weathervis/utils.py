@@ -449,9 +449,8 @@ def default_arguments():
     parser.add_argument("--use_latest", default=False, type=bool)
     parser.add_argument("--delta_index", default=None, type=str)
     parser.add_argument("--coast_details", default="auto", type=str, help="auto, coarse, low, intermediate, high, or full")
-
     args = parser.parse_args()
-
+    args.steps = [args.steps] if type(args.steps) == int else args.steps
     #steps = any_int_range(args.steps)
     if args.domain_name == None:
         args.domain_name = [args.model]

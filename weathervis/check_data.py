@@ -210,22 +210,6 @@ class check_data():
         self.p_level = p_level
         self.m_level = m_level
 
-        if step != None and type(step[0]) == str:
-            if len(step) == 1:
-                if ":" in step[0]:
-                    ss = step[0].split(":")
-                    ss = [int(x.strip()) for x in ss]
-                    if len(ss) == 3:
-                        step = list(np.arange(ss[0], ss[1], ss[2]))
-                    else:
-                        step = list(np.arange(ss[0], ss[1], 1))
-                elif "," in step[0]:
-                    ss = step[0].split(",")
-                    step = [int(x.strip()) for x in ss]
-                else:
-                    step = [int(x.strip()) for x in step]
-            else:
-                step = [int(x.strip()) for x in step]
 
         self.maxstep = np.max(step) if step != None or type(step) != float or type(step) != int else step
         self.use_latest=use_latest
