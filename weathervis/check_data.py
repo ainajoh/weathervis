@@ -125,7 +125,6 @@ def filter_step(file,maxstep):
 
 def filter_function_for_date(value, check_earliest=False, model = "AromeArctic"):
     print("################ filter_function_for_date in check_data.py #############################")
-
     if (value != None) and (len(value) == 10) and (int(value[0:4]) in range(2000, 2030)) and (int(value[4:6]) in range(0, 13)) \
             and (int(value[6:8]) in range(1, 32)) and (int(value[9:10]) in range(0, 25)):
         pass
@@ -134,10 +133,12 @@ def filter_function_for_date(value, check_earliest=False, model = "AromeArctic")
     else:
         SomeError(ValueError, f'Modelrun wrong: Either; "latest or date on the form: YYYYMMDDHH')
 
+    #Todo: CHECK EARLIEST IS NOT DONE: NEED TO BE ADJUSTED
     if check_earliest and value !=None: #deprecated for now as it is a waist of time just to get nice error
-        date_all = check_data.check_available_date(model=model)
+        c = check_data()
+        date_all = c.check_available_date(model=model)
         date_first = pd.to_datetime(date_all.Date[0], format='%Y%m%d')
-        date_req =  pd.to_datetime(date, format='%Y%m%d%H%M')
+        date_req =  pd.to_datetime(value, format='%Y%m%d%H%M')
         if date_req < date_first:
             SomeError(ValueError, f"Your request is for a date earlier than what is available. You requested {date_req}, but the earlies is {date_first}")
 
@@ -210,34 +211,18 @@ class check_data():
         self.p_level = p_level
         self.m_level = m_level
 
-        if step != None and type(step[0]) == str:
-            if len(step) == 1:
-                if ":" in step[0]:
-                    ss = step[0].split(":")
-                    ss = [int(x.strip()) for x in ss]
-                    if len(ss) == 3:
-                        step = list(np.arange(ss[0], ss[1], ss[2]))
-                    else:
-                        step = list(np.arange(ss[0], ss[1], 1))
-                elif "," in step[0]:
-                    ss = step[0].split(",")
-                    step = [int(x.strip()) for x in ss]
-                else:
-                    step = [int(x.strip()) for x in step]
-            else:
-                step = [int(x.strip()) for x in step]
 
         self.maxstep = np.max(step) if step != None or type(step) != float or type(step) != int else step
         self.use_latest=use_latest
-
-        self.check_web_connection()
         filter_function_for_date(self.date)
+        self.check_web_connection()
         self.model = filter_function_for_models_ignore_uppercases(self.model) if self.model != None else None
         self.p_level = [p_level] if p_level != None and type(p_level) != list else p_level
         self.m_level = [m_level] if m_level != None and type(m_level) != list else m_level
         if (self.model !=None and self.date !=None) or self.url !=None:
             all_files = self.check_files(date, model, param,  mbrs, url) #the main outcome
             self.file = self.check_file_info(all_files, param, mbrs)
+
         ###################################################
         # SEARCH OPTIONS UNDER
         ###################################################

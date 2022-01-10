@@ -180,9 +180,9 @@ def retrievenow(our_choice,model,step, date,fileobj,m_level,p_level, domain_name
 
     return dmet, data_domain,bad_param
 #@profile
-def checkget_data_handler(all_param, date=None,  model=None, step=None, p_level= None, m_level=None, mbrs=None, domain_name=None, domain_lonlat=None, point_name=None,point_lonlat=None,use_latest=False,delta_index=None, url=None):
+def checkget_data_handler(all_param, date=None,  model=None, step=[0], p_level= None, m_level=None, mbrs=None, domain_name=None, domain_lonlat=None, point_name=None,point_lonlat=None,use_latest=False,delta_index=None, url=None):
     print("################ checkget_data_handler in checkget_data_handler.py #############################")
-
+    step = [step] if type(step) == int else step
     if url != None:
         fileobj = check_data(url=url, model=model, date=date, step=step, use_latest=use_latest).file
         data_domain = domain_input_handler(file = fileobj, url=url, dt=date, model=model, domain_name=domain_name, domain_lonlat=domain_lonlat,
@@ -225,7 +225,8 @@ def checkget_data_handler(all_param, date=None,  model=None, step=None, p_level=
 
 
 
-#if __name__ == "__main__":
+if __name__ == "__main__": #todo add more for test functionality
+    args = default_arguments()
 #    import argparse
 #    parser = argparse.ArgumentParser()
 #    parser.add_argument("--datetime", help="YYYYMMDDHH for modelrun", default=None, nargs="+")

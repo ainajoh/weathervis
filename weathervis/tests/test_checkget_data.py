@@ -58,6 +58,7 @@ class checkgetdata(unittest.TestCase):
                               step=self.one_step, use_latest=False, url=self.url_base)
 
     def test_date_correct___archive_url(self):
+        #test missing model, date, step, and use_latest
         checkget_data_handler(all_param=self.one_good_param, url=self.url_base)
 
     def test_date_good___latest(self):
@@ -77,7 +78,9 @@ class checkgetdata(unittest.TestCase):
         with self.assertRaises(ValueError) as error:
             checkget_data_handler(model=self.model_aa, date=self.to_old_date, all_param=self.one_good_param,
                                       step=self.one_step, use_latest=False)
-        self.assertIn('request is for a date earlier than what is', str(error.exception))
+        errormsg ='request is for a date earlier than what is' #This is deprecated for now.
+        errormsg="Modelrun wrong: Either;"
+        self.assertIn(errormsg, str(error.exception))
 
     def test_date_bad___to_futuristic_date(self):
         print("########test_date_bad___to_futuristic_date")
