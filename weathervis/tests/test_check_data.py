@@ -3,7 +3,7 @@ from weathervis.checkget_data_handler import *
 import warnings
 import sys, os
 from datetime import datetime, timedelta
-from tests import *
+#from tests import *
 
 #MethodName_StateUnderTest_ExpectedBehavior
 
@@ -72,6 +72,13 @@ class checkgetdata(unittest.TestCase):
         check = check_data(date=self.archive_date, model=self.model_aa, param=self.one_good_param)
         print(check.file)
 
+    def test_find_allfiles_for_date_param_updatedAA(self):
+
+        check = check_data(date=2022030300, model=self.model_aa, param=self.one_good_param)
+        print(check.file)
+        #check = check_data(date=2022030300, model=self.model_meps, param=self.one_good_param)
+        #print(check.file)
+
     def BAD_find_allfiles_for_date_plevel(self):
         check = check_data(date=self.archive_date, model=self.model_aa, p_level=[500])
         print(check.file)
@@ -81,7 +88,7 @@ class checkgetdata(unittest.TestCase):
         print(check.file)
 
     def BAD_find_allfiles_for_date_ens_mbrs(self):
-        check = check_data(date=self.archive_date, model=self.model_aa, mbrs=[1, 5])
+        check = check_data(date=self.archive_date, model=self.model_meps, mbrs=[1, 5])
         print(check.file)
 
 
