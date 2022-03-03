@@ -58,24 +58,33 @@ def filter_param(file,param):
     logging.info(file)
     return file
 
-def filter_type(file,mbrs, p_level,m_level):
+def filter_type(file, mbrs, p_level,m_level):
     """Used by check_data: Remove files not having the userdefined mbrs or levels
     Returns only files containing all the user defined preferences."""
     print("################ filter_type in check_data.py #############################")
+    print(type(file))
+    #print(file) #ensemble_member
+    #print(file[file["File"] == "meps_subset_2_5km_20200101T00Z.nc"]["dim"][0])#.dim)#.to_string()) #meps_subset_2_5km_20200101T00Z.nc
+    #print(type(file[file["File"] == "meps_subset_2_5km_20200101T00Z.nc"]["dim"][0]))#.dim)#.to_string()) #meps_subset_2_5km_20200101T00Z.nc
+    print("INPUT:  ")
+    print(mbrs)   #[1,5]
+    print(file.mbr_ens)
 
     if mbrs != 0 and mbrs != None:
         #file = file[file["mbr_bool"] == True] deprecated
-        file = file[~file.mbr_ens.isnull()] #not needed?
-        file.reset_index(inplace=True)      #not needed?
+        #file = file[~file.mbr_ens.isnull()] #not needed?
+        #file.reset_index(inplace=True)      #not needed?
         def find_mbrs(value):
             df_val = pd.DataFrame(value).isin(mbrs).sum(axis=0)
-            if len(df_val) >= 1:
+            if df_val.values.any() and df_val.values[0] >= len(mbrs):
+                #we are strict here saying it has to include all, but perhaps we allow it to iclude some as together they might  be all members:
+                # IF ANY IS SUFFICIENT, MAKE df_val.values[0] >= 1 instead
                 return True
             else:
                 return False
-        ll = file["mbr_bool"].apply(find_mbrs)
-        file = file[ll]
 
+        ll = file.mbr_ens.apply(find_mbrs)
+        file = file[ll]
 
     if m_level != None:
         print("FILT")

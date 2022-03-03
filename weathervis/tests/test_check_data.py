@@ -87,7 +87,7 @@ class checkgetdata(unittest.TestCase):
         check = check_data(date=self.archive_date, model=self.model_aa, m_level=[5,10])
         print(check.file)
 
-    def BAD_find_allfiles_for_date_ens_mbrs(self):
+    def BAD_find_allfiles_for_date_ens_mbrs(self): #more tests on ens members
         check = check_data(date=self.archive_date, model=self.model_meps, mbrs=[1, 5])
         print(check.file)
 
