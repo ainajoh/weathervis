@@ -1,9 +1,13 @@
+#Log:
+# - 20220303: no error.
+
+
 import unittest
 from weathervis.checkget_data_handler import *
 import warnings
 import sys, os
 from datetime import datetime, timedelta
-from tests import *
+#from tests import *
 
 #MethodName_StateUnderTest_ExpectedBehavior
 
