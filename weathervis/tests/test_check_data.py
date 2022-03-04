@@ -79,17 +79,115 @@ class checkgetdata(unittest.TestCase):
         #check = check_data(date=2022030300, model=self.model_meps, param=self.one_good_param)
         #print(check.file)
 
-    def BAD_find_allfiles_for_date_plevel(self):
-        check = check_data(date=self.archive_date, model=self.model_aa, p_level=[500])
+        #MEPS
+    def find_allfiles_for_date_plevel(self):
+        check = check_data(date=self.archive_date, model=self.model_meps, p_level=[50,100])
+        print(check.file)
+        print(check.file.p_levels)
+
+    def find_allfiles_for_date_mlevel(self):
+        check = check_data(date=self.archive_date, model=self.model_meps, m_level=[1,2, 3, 10])
         print(check.file)
 
-    def BAD_find_allfiles_for_date_mlevel(self):
-        check = check_data(date=self.archive_date, model=self.model_aa, m_level=[5,10])
+    def find_allfiles_for_date_ens_mbrs(self): #more tests on ens members
+        check = check_data(date=self.archive_date, model=self.model_meps, mbrs=[0])
+        print(check.file)
+        print(check.file.mbr_ens)
+        print(check.file.m_levels)
+        print(check.file.p_levels)
+
+    def find_allfiles_for_date_mlevel_plevel(self): #more tests on ens members
+        check = check_data(date=self.archive_date, model=self.model_meps, m_level=[1,2, 3, 10], p_level=[500,100])
+        print(check.file)
+        print(check.file.p_levels)
+        print(check.file.m_levels)
+    def find_allfiles_for_date_mlevel_mbrs(self): #more tests on ens members
+        check = check_data(date=self.archive_date, model=self.model_meps, m_level=[1,2, 3, 10],  mbrs=[0])
+        print(check.file)
+        print(check.file.mbr_ens)
+        print(check.file.m_levels)
+        print(check.file.p_levels)
+
+    def find_allfiles_for_date_plevel_mbrs(self): #more tests on ens members
+        check = check_data(date=self.archive_date, model=self.model_meps, p_level=[500,1000], mbrs=[0,5])
+        print(check.file)
+        print(check.file.mbr_ens)
+        print(check.file.m_levels)
+        print(check.file.p_levels)
+
+    #latest date
+    def find_allfiles_for_latestdate_plevel(self):
+        check = check_data(date=self.latest_date, model=self.model_meps, p_level=[50,100])
+        print(check.file)
+        print(check.file.p_levels)
+
+    def find_allfiles_for_latestdate_mlevel(self):
+        check = check_data(date=self.latest_date, model=self.model_meps, m_level=[1,2, 3, 10])
         print(check.file)
 
-    def BAD_find_allfiles_for_date_ens_mbrs(self): #more tests on ens members
-        check = check_data(date=self.archive_date, model=self.model_meps, mbrs=[1, 5])
+    def find_allfiles_for_latestdate_ens_mbrs(self): #more tests on ens members
+        check = check_data(date=self.latest_date, model=self.model_meps, mbrs=[0])
         print(check.file)
+        print(check.file.mbr_ens)
+        print(check.file.m_levels)
+        print(check.file.p_levels)
+
+    def find_allfiles_for_latestdate_mlevel_plevel(self): #more tests on ens members
+        check = check_data(date=self.latest_date, model=self.model_meps, m_level=[1,2, 3, 10], p_level=[500,100])
+        print(check.file)
+        print(check.file.p_levels)
+        print(check.file.m_levels)
+    def find_allfiles_for_latestdate_mlevel_mbrs(self): #more tests on ens members
+        #will fail so if u want member = 0/ determenitsic, dont specify it
+        check = check_data(date=self.latest_date, model=self.model_meps, m_level=[1,2, 3, 10],  mbrs=[0])
+        print(check.file)
+        print(check.file.mbr_ens)
+        print(check.file.m_levels)
+        print(check.file.p_levels)
+
+    def find_allfiles_for_latestdate_plevel_mbrs(self): #more tests on ens members
+        check = check_data(date=self.latest_date, model=self.model_meps, p_level=[500,1000], mbrs=[0,5])
+        print(check.file)
+        print(check.file.mbr_ens)
+        print(check.file.m_levels)
+        print(check.file.p_levels)
+
+    #Arome Arctic:
+    def find_allfiles_for_latestdate_plevel_aa(self):
+        check = check_data(date=self.latest_date, model=self.model_aa, p_level=[50,100])
+        print(check.file)
+        print(check.file.p_levels)
+
+    def find_allfiles_for_latestdate_mlevel_aa(self):
+        check = check_data(date=self.latest_date, model=self.model_aa, m_level=[1,2, 3, 10])
+        print(check.file)
+
+    def find_allfiles_for_latestdate_ens_mbrs_aa(self): #more tests on ens members
+        check = check_data(date=self.latest_date, model=self.model_aa, mbrs=[0])
+        print(check.file)
+        print(check.file.mbr_ens)
+        print(check.file.m_levels)
+        print(check.file.p_levels)
+
+    def find_allfiles_for_latestdate_mlevel_plevel_aa(self): #more tests on ens members
+        check = check_data(date=self.latest_date, model=self.model_aa, m_level=[1,2, 3, 10], p_level=[500,100])
+        print(check.file)
+        print(check.file.p_levels)
+        print(check.file.m_levels)
+    def find_allfiles_for_latestdate_mlevel_mbrs_aa(self): #more tests on ens members
+        #will fail so if u want member = 0/ determenitsic, dont specify it
+        check = check_data(date=self.latest_date, model=self.model_aa, m_level=[1,2, 3, 10],  mbrs=[0])
+        print(check.file)
+        print(check.file.mbr_ens)
+        print(check.file.m_levels)
+        print(check.file.p_levels)
+
+    def find_allfiles_for_latestdate_plevel_mbrs_aa(self): #more tests on ens members
+        check = check_data(date=self.latest_date, model=self.model_aa, p_level=[500,1000], mbrs=[0,1])
+        print(check.file)
+        print(check.file.mbr_ens)
+        print(check.file.m_levels)
+        print(check.file.p_levels)
 
 
 

@@ -62,62 +62,59 @@ def filter_type(file, mbrs, p_level,m_level):
     """Used by check_data: Remove files not having the userdefined mbrs or levels
     Returns only files containing all the user defined preferences."""
     print("################ filter_type in check_data.py #############################")
-    print(type(file))
-    #print(file) #ensemble_member
-    #print(file[file["File"] == "meps_subset_2_5km_20200101T00Z.nc"]["dim"][0])#.dim)#.to_string()) #meps_subset_2_5km_20200101T00Z.nc
-    #print(type(file[file["File"] == "meps_subset_2_5km_20200101T00Z.nc"]["dim"][0]))#.dim)#.to_string()) #meps_subset_2_5km_20200101T00Z.nc
-    print("INPUT:  ")
-    print(mbrs)   #[1,5]
-    print(file.mbr_ens)
-
     if mbrs != 0 and mbrs != None:
-        #file = file[file["mbr_bool"] == True] deprecated
-        #file = file[~file.mbr_ens.isnull()] #not needed?
-        #file.reset_index(inplace=True)      #not needed?
-        def find_mbrs(value):
-            df_val = pd.DataFrame(value).isin(mbrs).sum(axis=0)
-            if df_val.values.any() and df_val.values[0] >= len(mbrs):
-                #we are strict here saying it has to include all, but perhaps we allow it to iclude some as together they might  be all members:
-                # IF ANY IS SUFFICIENT, MAKE df_val.values[0] >= 1 instead
-                return True
-            else:
-                return False
-
-        ll = file.mbr_ens.apply(find_mbrs)
-        file = file[ll]
-
+        filter = "strict"
+        if filter == "strict":
+            def find_mbrs(value):
+                df_val = pd.DataFrame(value).isin(mbrs).sum(axis=0)
+                if df_val.values.any() and df_val.values[0] >= len(mbrs):
+                    #we are strict here saying it has to include all, but perhaps we allow it to iclude some as together they might  be all members:
+                    # IF ANY IS SUFFICIENT, MAKE df_val.values[0] >= 1 instead
+                    return True
+                else:
+                    return False
+            ll = file.mbr_ens.apply(find_mbrs)
+            file = file[ll]
+        if filter == "light": pass
+        if filter == "medium": pass
     if m_level != None:
-        print("FILT")
+        filter="strict"
+        if filter == "strict": #only those files that has all the wanted model levels (nb might not be for all param)
+            def find_mlevels(value, filter="strict" ):
+                if value:
+                    length_dict = {key: np.arange(1, len(v)+1) for key, v in value.items()}
+                    df_val = pd.DataFrame(length_dict.values()).isin(m_level).sum(axis=1)
+                    boo = df_val>=len(m_level)
+                    if df_val.values.any() and boo.any():
+                        return True
+                    else:
+                        return False
+                else:
+                    return False
+            ll = file.m_levels.apply(find_mlevels)
+            file = file[ll]
+        if filter == "light": #as long as there is some m_levels in it
+            file = file[~file.m_levels.isnull()]  # not needed?
+            file.reset_index(inplace=True)  # not needed?
+            print(file.columns)
+        if filter == "medium": pass # any files containing one or more of desired mlevels
+    if p_level:
+        filter = "strict"
+        if filter == "strict":
+            file = file[~file.p_levels.isnull()]   #not needed?
+            file.reset_index(inplace=True)         #not needed?
+            def find_plevel(value):
+                df_val = pd.DataFrame(value).isin(p_level).sum(axis=0)
+                if df_val.values >= len(p_level):
+                    return True
+                else:
+                    return False
+            ll= file["p_levels"].apply(find_plevel)
+            file = file[ll]
+        if filter == "light": pass
 
-        file = file[~file.m_levels.isnull()] #not needed?
-        file.reset_index(inplace=True)       #not needed?
-        print(file.columns)
-        #file = file[file["ml_bool"] == True]  #deprecated
+        if filter == "medium": pass
 
-
-        #print(file.dim)
-
-        #exit(1)
-        #def find_mlevel(value):
-        #   #print()
-        #
-        #    print("find_mlevel")
-        #    val = value.values() #            df_val = pd.DataFrame(value).isin(p_level).sum(axis=0)
-        #
-        #    dd = pd.DataFrame([val])#.index.values
-        #    print(dd)
-
-    elif p_level:
-        file = file[~file.p_levels.isnull()]   #not needed?
-        file.reset_index(inplace=True)         #not needed?
-        def find_plevel(value):
-            df_val = pd.DataFrame(value).isin(p_level).sum(axis=0)
-            if len(df_val) >=1:
-                return True
-            else:
-                return False
-        ll= file["p_levels"].apply(find_plevel)
-        file = file[ll]
     file.reset_index(inplace=True, drop=True)
     return file
 
@@ -328,6 +325,7 @@ class check_data():
             hybrid_dim = list(filter(re.compile(f'.*hybrid*').match, dimframe.index))
             height_dim = list(filter(re.compile(f'.*height*').match, dimframe.index))
             memb_dim = list(filter(re.compile(f'.*member*').match, dimframe.index))
+            #ap_dim = list(filter(re.compile(f'.*ap*').match, dimframe.index))
 
             #Initiali dict that will be filled with dimention info for every parameter.
             d_p = {}
