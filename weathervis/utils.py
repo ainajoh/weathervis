@@ -435,8 +435,8 @@ def default_arguments():
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument("--datetime", help="YYYYMMDDHH for modelrun", required=True, type=str)
-    parser.add_argument("--steps", default=[0], nargs="+", type=int,
-                        help="forecast times example --steps 0 3 gives time 0 and 3")
+    parser.add_argument("--steps", default=["0"], nargs="+", type=str,
+                        help="forecast times example --steps 0 3 gives time 0 and 3 \n --steps 0:1:3 gives timestep 0, 1, 2")
     parser.add_argument("--model", default=None, help="MEPS or AromeArctic")
     parser.add_argument("--domain_name", default=None, nargs="+")
     parser.add_argument("--domain_lonlat", default=None, help="[ lonmin, lonmax, latmin, latmax]")
@@ -450,8 +450,16 @@ def default_arguments():
     parser.add_argument("--delta_index", default=None, type=str)
     parser.add_argument("--coast_details", default="auto", type=str, help="auto, coarse, low, intermediate, high, or full")
     args = parser.parse_args()
-    args.steps = [args.steps] if type(args.steps) == int else args.steps
-    #steps = any_int_range(args.steps)
+    #splitted_steps = args.steps.resplit
+    step_together = "".join(args.steps[0:])
+    if ":" in step_together:
+        splitted_steps= re.split(":",  "".join(args.steps[0:]))
+        sep = int(splitted_steps[1]) if len(splitted_steps) == 3 else 1
+        args.steps = list(np.arange( int(splitted_steps[0]), int(splitted_steps[-1]), sep ))
+    else:
+        step = [args.steps] if type(args.steps) == int else args.steps
+        args.steps = [int(i) for i in step]
+
     if args.domain_name == None:
         args.domain_name = [args.model]
     return args
