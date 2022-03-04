@@ -1,6 +1,6 @@
 #Log:
 # - 20220303: no error.
-
+# - 20220304: no error.
 
 import unittest
 from weathervis.checkget_data_handler import *
