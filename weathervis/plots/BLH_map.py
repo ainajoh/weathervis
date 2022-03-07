@@ -17,7 +17,7 @@ import gc
 
 warnings.filterwarnings("ignore", category=UserWarning) # suppress matplotlib warning
 
-def BLH_map(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", model= None, domain_name = None, domain_lonlat = None, legend=False, info = False, save = True,grid=True, url = None):
+def plot_BLH(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", model= None, domain_name = None, domain_lonlat = None, legend=False, info = False, save = True,grid=True, url = None):
   eval(f"data_domain.{domain_name}()") # get domain info
   ## CALCULATE AND INITIALISE ####################
   scale = data_domain.scale  #scale is larger for smaller domains in order to scale it up.

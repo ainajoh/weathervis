@@ -192,6 +192,8 @@ class get_data():
         logging.info(file)
         url = f"{self.url}?"
         list_p = list(param)
+
+
         i=0# loop that updates the url to include each parameter with its dimensions
         while i < len(list_p):
             prm = param[i]
@@ -226,19 +228,10 @@ class get_data():
                 pl_idx = f"[{np.min(idx)}:1:{np.max(idx)}]"
                 indexidct[pressure_dim[0]] = pl_idx#"[0:1:0]"
 
-            #if other_dim:
-            #    print("other_dim")
-                #self.p_level = self.file["p_levels"][pressure_dim[0]] if self.p_level is None else self.p_level
-                #is_in_any = np.sum((np.array(self.file["p_levels"][pressure_dim[0]])[:, None] == np.array(self.p_level)[None, :])[:])
-                #if is_in_any == 0:
-                #    SomeError(ValueError, f'Please provide valid pressure levels for parameter {prm}. \n'
-                #                          f'Options are {self.file["p_levels"][pressure_dim[0]]}, but you requested { self.p_level}')
-
-                #idx = np.where(np.array(self.file["p_levels"][pressure_dim[0]])[:, None] == np.array(self.p_level)[None, :])[0]
-                #pl_idx = f"[{np.min(idx)}:1:{np.max(idx)}]"
-                #indexidct[other_dim[0]] = pl_idx
-
-
+            if other_dim:
+                #print("NB!other_dim")
+                o_idx = f"[0:1:0]"
+                indexidct[other_dim[0]] = o_idx
             extra = []
             if model_dim:
                 for m in model_dim:
@@ -262,27 +255,7 @@ class get_data():
 
                 ml_idx = f"[{np.min(idx)}:1:{np.max(idx)}]"
                 indexidct[model_dim[0]] = ml_idx
-
-                #self.param.append(self.param, extra)
-                #for e in extra:
-                #    print("eeeeeeeeeeeeeeee")
-                #    print(e)
-                #    print("press" in e)
-                #    #pressure_dim_extra = list(filter(re.compile(f'*press*').match, [e]))
-                #    if "press" in e:
-                #        #param = np.append(param, e)
-                #        list_p.extend(e)
-                #
-                #    else:
-                #        if e=="p0":
-                #            indexidct[e] = ""
-                #        else:
-                #            indexidct[e] = ml_idx
-
-
                 self.m_level =  m_level
-
-
 
             if height_dim:
                 h_level = self.h_level
@@ -312,9 +285,8 @@ class get_data():
                 mbr_idx = f"[{np.min(idx)}:1:{np.max(idx)}]"
                 indexidct[ens_mbr_dim[0]] = mbr_idx
             #Convert the dimentional variables to numbers
-            newlist = [indexidct[i] for i in dimlist]  # convert dependent variable name to our set values. E.g: time = step = [0:1:0]
 
-            #exit(1)
+            newlist = [indexidct[i] for i in dimlist]  # convert dependent variable name to our set values. E.g: time = step = [0:1:0]
             startsub = ''.join(
                 newlist) + ","  # example: ('time', 'pressure','ensemble_member','y','x') = [0:1:0][0:1:1][0:1:10][0:1:798][0:1:978]
 
@@ -325,10 +297,9 @@ class get_data():
                                        dimen)  # update global param with the var name so that we do not go through it multiple time.
                 startsub += dimen
                 startsub += indexidct[dimen] + ","
+
             url += startsub
             i += 1
-
-
         url = url.rstrip(",")  # if url ends with , it creates error so remove.
         logging.info(url)
         self.indexidct = indexidct
