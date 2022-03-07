@@ -517,15 +517,9 @@ def find_subdomains(domain_name, datetime=None, model=None, domain_lonlat=None, 
 
 
 
-def map_plot(plot_type="BLH_map"):
-    # Todo: A feature idea to make all equal plot map things written only once here: Like calling arguments, and domain handling
-    #import plots as pl
-    help(BLH_map())
-    #help(pl)
-    #help(BLH_map())
-    #from weathervis.plots.BLH_map import *  #from weathervis.config import *
-    exit(1)
-    # Todo: In the future make this part of the entire checkget_datahandler or someother hidden solution
+def plot_by_subdomains(plt_func, checkget_data_handler, datetime, steps, model, domain_name, domain_lonlat, legend, info, grid, url, point_lonlat, use_latest,
+        delta_index, coast_details, param, p_level):
+
     domains_with_subdomains = find_subdomains(domain_name=domain_name, datetime=datetime, model=model,
                                               domain_lonlat=domain_lonlat,
                                               point_lonlat=point_lonlat, use_latest=use_latest, delta_index=delta_index,
@@ -540,7 +534,7 @@ def map_plot(plot_type="BLH_map"):
         subdom_list = list(ii.index.values)
         if subdom_list:
             for sub in subdom_list:
-                plot_BLH(datetime=datetime, steps=steps, model=model, domain_name=sub, data_domain=data_domain,
+                plt_func(datetime=datetime, steps=steps, model=model, domain_name=sub, data_domain=data_domain,
                          domain_lonlat=domain_lonlat, legend=legend, info=info, grid=grid, url=url,
                          dmet=dmet, coast_details=coast_details)
 

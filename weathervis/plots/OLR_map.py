@@ -2,7 +2,7 @@
 #python OLR_sat.py --datetime 2022030400 --steps 0 3 --model AromeArctic --domain_name Svalbard North_Norway --use_latest 0
 #
 from weathervis.config import *
-from weathervis.utils import *
+from weathervis.utils import filter_values_over_mountain, default_map_projection, default_mslp_contour, plot_by_subdomains
 import cartopy.crs as ccrs
 from weathervis.domain import *  # require netcdf4
 from weathervis.check_data import *
@@ -23,7 +23,6 @@ def plot_OLR(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", mod
   scale = data_domain.scale  #scale is larger for smaller domains in order to scale it up.
   dmet.air_pressure_at_sea_level /= 100
   MSLP = filter_values_over_mountain(dmet.surface_geopotential[:], dmet.air_pressure_at_sea_level[:])
-  ########################################
   # PLOTTING ROUTNE ######################
   crs = default_map_projection(dmet) #change if u want another projection
   fig1, ax1 = plt.subplots(1, 1, figsize=(7, 9), subplot_kw={'projection': crs})
@@ -69,29 +68,11 @@ def plot_OLR(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", mod
 
 def OLR(datetime, steps, model, domain_name, domain_lonlat, legend, info, grid, url, point_lonlat, use_latest,
         delta_index, coast_details):
-  param = ["air_pressure_at_sea_level","surface_geopotential", "toa_outgoing_longwave_flux"]
+    param = ["air_pressure_at_sea_level", "surface_geopotential", "toa_outgoing_longwave_flux"]
+    p_level = None
+    plot_by_subdomains( plot_OLR, checkget_data_handler, datetime, steps, model, domain_name, domain_lonlat, legend, info, grid, url, point_lonlat, use_latest,
+        delta_index, coast_details, param, p_level )
 
-  p_level = None
-  # Todo: In the future make this part of the entire checkget_datahandler or someother hidden solution
-  print("bef subdom")
-  domains_with_subdomains = find_subdomains(domain_name=domain_name, datetime=datetime, model=model,
-                                            domain_lonlat=domain_lonlat,
-                                            point_lonlat=point_lonlat, use_latest=use_latest, delta_index=delta_index,
-                                            url=url)
-  print(domains_with_subdomains)
-  print(domains_with_subdomains.index.values)
-  print("subdom")
-  for domain_name in domains_with_subdomains.index.values:
-    dmet, data_domain, bad_param = checkget_data_handler(model=model, step=steps, date=datetime,
-                                                         domain_name=domain_name, all_param=param)
-    subdom = domains_with_subdomains.loc[domain_name]
-    ii = subdom[subdom == True]
-    subdom_list = list(ii.index.values)
-    if subdom_list:
-      for sub in subdom_list:
-        plot_OLR(datetime=datetime, steps=steps, model=model, domain_name=sub, data_domain=data_domain,
-                 domain_lonlat=domain_lonlat, legend=legend, info=info, grid=grid, url=url,
-                 dmet=dmet, coast_details=coast_details)
 
 if __name__ == "__main__":
     args = default_arguments()
