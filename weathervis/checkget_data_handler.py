@@ -134,8 +134,6 @@ def retrievenow(our_choice,model,step, date,fileobj,m_level,p_level, domain_name
     fixed_var = ["ap", "b", "ap2", "b2", "pressure", "hybrid", "hybrid2","hybrid0"]  # this should be gotten from get_data
 
     ourfilename = our_choice.file[0]
-    print("*****************333333333")
-    print(ourfilename)
     ourfileobj = fileobj[fileobj["File"].isin([ourfilename])]
 
     ourfileobj.reset_index(inplace=True, drop=True)
