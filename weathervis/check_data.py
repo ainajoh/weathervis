@@ -248,7 +248,7 @@ class check_data():
         ##################################################
         ###################################################
 
-        self.clean_all()
+        #self.clean_all()
 
     def check_files(self, date, model, param, mbrs, url=None):
         """

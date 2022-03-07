@@ -3,7 +3,9 @@ import numpy as np
 from netCDF4 import Dataset
 import pandas as pd
 from weathervis.calculation import *
-
+from weathervis.check_data import *  # require netcdf4
+import re
+import requests
 #Preset domain.
 if __name__ == "__main__":
     print("Run by itself")
@@ -103,12 +105,36 @@ class domain():
         #else:
         #    url = f"https://thredds.met.no/thredds/dodsC/meps25epsarchive/{YYYY}/{MM}/{DD}/meps_det_2_5km_{YYYY}{MM}{DD}T{HH}Z.nc?latitude,longitude"
         #eval()
-    def make_url_base(self): # Todo: Update for more accurate url.
-        if self.model == "AromeArctic":
-            url = "https://thredds.met.no/thredds/dodsC/aromearcticlatest/arome_arctic_sfx_2_5km_latest.nc"
-        if self.model == "MEPS":
-            url = "https://thredds.met.no/thredds/dodsC/mepslatest/meps_lagged_6_h_latest_2_5km_latest.nc"
+    def make_url_base(self): # Todo: Update for more accurate url. avoid if filename is given as input
+        print("############### make_url_bas in domain.py#######################")
+        date = str(self.date)
+        YYYY = date[0:4]; MM = date[4:6]; DD = date[6:8] #HH = date[8:10]
+        archive_url = "latest" if self.use_latest else f"archive/{YYYY}/{MM}/{DD}/"
+        if self.model.lower() == "aromearctic":
+            base_url = "https://thredds.met.no/thredds/catalog/aromearctic{0}/".format(archive_url)
+            base_urlfile = "https://thredds.met.no/thredds/dodsC/aromearctic{0}/".format(archive_url)
+        elif self.model.lower() == "meps":
+            base_url = "https://thredds.met.no/thredds/catalog/meps25eps{0}/".format(archive_url)
+            base_urlfile = "https://thredds.met.no/thredds/dodsC/meps25eps{0}/".format(archive_url)
+        else:
+            base_url = self.url
 
+        page = requests.get(base_url + "catalog.html")
+        soup = BeautifulSoup(page.text, 'html.parser')
+        rawfiles = soup.table.find_all("a")
+        ff = [str(i.text) for i in rawfiles]
+        ff = pd.DataFrame(data=list(filter(re.compile(f'.*.nc$|.*.ncml$').match, ff)), columns=["File"])
+        drop_files = ["_vc_", "thunder", "_kf_", "_ppalgs_", "_pp_", "t2myr", "wbkz", "vtk", "_preop_"]
+        df = ff.copy()[~ff["File"].str.contains('|'.join(drop_files))]  # (drop_files)])
+        df.reset_index(inplace=True, drop=True)
+        df["url"] = base_urlfile + df['File']# if self.use_latest else f"{base_urlfile}/{YYYY}/{MM}/{DD}/" + df['File']
+        del ff
+        del rawfiles
+        soup.decompose()
+        page.close()
+        gc.collect()
+
+        url= df.url[0] #just random pick the first one
         return url
 
 
@@ -162,7 +188,7 @@ class domain():
         self.scale = find_scale(self.lonlat)
 
     def North_Norway(self):  # data
-        url = "https://thredds.met.no/thredds/dodsC/aromearcticlatest/arome_arctic_sfx_2_5km_latest.nc?latitude,longitude"
+        #url = "https://thredds.met.no/thredds/dodsC/aromearcticlatest/arome_arctic_sfx_2_5km_latest.nc?latitude,longitude"
         self.domain_name = "North_Norway"
         self.lonlat = [5, 20, 66.5, 76.2]  #
         self.idx = lonlat2idx(self.lonlat, self.lon, self.lat)  # RIUGHNone#[0, -1, 0, -1]  # Index; y_min,y_max,x_min,x_max such that lat[y_min] = latmin

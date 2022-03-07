@@ -435,8 +435,8 @@ def default_arguments():
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument("--datetime", help="YYYYMMDDHH for modelrun", required=True, type=str)
-    parser.add_argument("--steps", default=[0], nargs="+", type=int,
-                        help="forecast times example --steps 0 3 gives time 0 and 3")
+    parser.add_argument("--steps", default=["0"], nargs="+", type=str,
+                        help="forecast times example --steps 0 3 gives time 0 and 3 \n --steps 0:1:3 gives timestep 0, 1, 2")
     parser.add_argument("--model", default=None, help="MEPS or AromeArctic")
     parser.add_argument("--domain_name", default=None, nargs="+")
     parser.add_argument("--domain_lonlat", default=None, help="[ lonmin, lonmax, latmin, latmax]")
@@ -450,8 +450,15 @@ def default_arguments():
     parser.add_argument("--delta_index", default=None, type=str)
     parser.add_argument("--coast_details", default="auto", type=str, help="auto, coarse, low, intermediate, high, or full")
     args = parser.parse_args()
-    args.steps = [args.steps] if type(args.steps) == int else args.steps
-    #steps = any_int_range(args.steps)
+    step_together = "".join(args.steps[0:])
+    if ":" in step_together:
+        splitted_steps= re.split(":",  "".join(args.steps[0:]))
+        sep = int(splitted_steps[1]) if len(splitted_steps) == 3 else 1
+        args.steps = list(np.arange( int(splitted_steps[0]), int(splitted_steps[-1]), sep ))
+    else:
+        step = [args.steps] if type(args.steps) == int else args.steps
+        args.steps = [int(i) for i in step]
+
     if args.domain_name == None:
         args.domain_name = [args.model]
     return args
@@ -507,3 +514,34 @@ def find_subdomains(domain_name, datetime=None, model=None, domain_lonlat=None, 
             dom_frame = dom_frame.drop(sub_domains)  # removes what largest domain have
     dom_frame = dom_frame.drop("sum", axis=1)
     return dom_frame
+
+
+
+def map_plot(plot_type="BLH_map"):
+    # Todo: A feature idea to make all equal plot map things written only once here: Like calling arguments, and domain handling
+    #import plots as pl
+    help(BLH_map())
+    #help(pl)
+    #help(BLH_map())
+    #from weathervis.plots.BLH_map import *  #from weathervis.config import *
+    exit(1)
+    # Todo: In the future make this part of the entire checkget_datahandler or someother hidden solution
+    domains_with_subdomains = find_subdomains(domain_name=domain_name, datetime=datetime, model=model,
+                                              domain_lonlat=domain_lonlat,
+                                              point_lonlat=point_lonlat, use_latest=use_latest, delta_index=delta_index,
+                                              url=url)
+    print(domains_with_subdomains)
+    print(domains_with_subdomains.index.values)
+    for domain_name in domains_with_subdomains.index.values:
+        dmet, data_domain, bad_param = checkget_data_handler(p_level=p_level, model=model, step=steps, date=datetime,
+                                                             domain_name=domain_name, all_param=param)
+        subdom = domains_with_subdomains.loc[domain_name]
+        ii = subdom[subdom == True]
+        subdom_list = list(ii.index.values)
+        if subdom_list:
+            for sub in subdom_list:
+                plot_BLH(datetime=datetime, steps=steps, model=model, domain_name=sub, data_domain=data_domain,
+                         domain_lonlat=domain_lonlat, legend=legend, info=info, grid=grid, url=url,
+                         dmet=dmet, coast_details=coast_details)
+
+#map_plot()
