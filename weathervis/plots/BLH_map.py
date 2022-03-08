@@ -17,7 +17,8 @@ import gc
 
 warnings.filterwarnings("ignore", category=UserWarning) # suppress matplotlib warning
 
-def plot_BLH(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", model= None, domain_name = None, domain_lonlat = None, legend=False, info = False, save = True,grid=True, url = None):
+def plot_BLH(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", model= None, domain_name = None,
+             domain_lonlat = None, legend=False, info = False, save = True,grid=True, url = None, overlays=None, runid=None):
   eval(f"data_domain.{domain_name}()") # get domain info
   ## CALCULATE AND INITIALISE ####################
   scale = data_domain.scale  #scale is larger for smaller domains in order to scale it up.
@@ -27,7 +28,6 @@ def plot_BLH(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", mod
   BLH = (dmet.atmosphere_boundary_layer_thickness[:, :, :])
   # if domain is large then filter noisy W values that often are over mountains.
   W = filter_values_over_mountain(dmet.surface_geopotential[:], dmet.upward_air_velocity_pl[:]) if scale < 8 else dmet.upward_air_velocity_pl[:]
-  ########################################
   # PLOTTING ROUTNE ######################
   crs = default_map_projection(dmet)
   fig1, ax1 = plt.subplots(1, 1, figsize=(7, 9), subplot_kw={'projection': crs})
@@ -36,9 +36,9 @@ def plot_BLH(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", mod
       print('Plotting {0} + {1:02d} UTC'.format(datetime,leadtime))
       ax1 = default_mslp_contour(dmet.x, dmet.y, MSLP[itim,0,:,:], ax1, scale=scale)
       # vertical velocity
-      C_W = ax1.contour(dmet.x, dmet.y, W[itim,0,:,:], zorder=3, alpha=1.0,
+      ax1.contour(dmet.x, dmet.y, W[itim,0,:,:], zorder=3, alpha=1.0,
                          levels=np.linspace(0.07,2.0,4*scale), colors="red", linewidths=0.7)
-      C_W = ax1.contour(dmet.x, dmet.y, W[itim,0,:,:], zorder=3, alpha=1.0,
+      ax1.contour(dmet.x, dmet.y, W[itim,0,:,:], zorder=3, alpha=1.0,
                         levels=np.linspace(-2.0,-0.07,4*scale ), colors="blue", linewidths=0.7)
       # boundary layer thickness
       CF_BLH = ax1.contourf(dmet.x, dmet.y, BLH[itim,0,:,:], zorder=1, alpha=0.5,
@@ -63,6 +63,9 @@ def plot_BLH(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", mod
       if domain_name != model and data_domain != None:  #
           ax1.set_extent(data_domain.lonlat)
 
+      #runid == "" if runid == None else runid
+      #make_modelrun_folder = setup_directory(OUTPUTPATH, "{0}-{1}".format(dt, runid))
+
       make_modelrun_folder = setup_directory(OUTPUTPATH, "{0}".format(datetime))
       file_path="{0}/{1}_{2}_{3}_{4}+{5:02d}.png".format(make_modelrun_folder, model, domain_name, "BLH", datetime, leadtime)
 
@@ -72,22 +75,28 @@ def plot_BLH(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", mod
       itim +=1
   plt.close(fig1)
   plt.close("all")
-  del dmet
-  del data_domain
-  del crs
+  del MSLP, scale, itim, legend, grid, overlays, domain_name,ax_cb,W, BLH
+  del dmet, data_domain
+  del fig1, ax1, crs, CF_BLH
+  del make_modelrun_folder, file_path
   gc.collect()
 
-def BLH(datetime, steps, model, domain_name, domain_lonlat, legend, info, grid, url,point_lonlat,use_latest,delta_index, coast_details):
+def BLH(datetime, steps, model, domain_name, domain_lonlat, legend, info, grid, url,point_lonlat,
+        use_latest,delta_index, coast_details, overlays, runid, outpath):
     param = ["air_pressure_at_sea_level", "surface_geopotential", "atmosphere_boundary_layer_thickness",
              "upward_air_velocity_pl"]
     p_level = [850]
     plot_by_subdomains(plot_BLH, checkget_data_handler, datetime, steps, model, domain_name, domain_lonlat, legend,
-                        info, grid, url, point_lonlat, use_latest,
-                        delta_index, coast_details, param, p_level)
+                       info, grid, url, point_lonlat, use_latest,
+                       delta_index, coast_details, param, p_level, overlays, runid)
 
 if __name__ == "__main__":
     args = default_arguments()
-    BLH(datetime=args.datetime, steps=args.steps, model=args.model, domain_name=args.domain_name,
-        domain_lonlat=args.domain_lonlat, legend=args.legend, info=args.info, grid=args.grid, url=args.url,
-        point_lonlat =args.point_lonlat,use_latest=args.use_latest,delta_index=args.delta_index, coast_details=args.coast_details)
-    gc.collect()
+
+    chunck_func_call(func=BLH, chunktype=args.chunktype, chunk=args.chunks, datetime=args.datetime, steps=args.steps,
+                     model=args.model,
+                     domain_name=args.domain_name, domain_lonlat=args.domain_lonlat, legend=args.legend, info=args.info,
+                     grid=args.grid, runid=args.id,
+                     outpath=args.outpath, use_latest=args.use_latest, delta_index=args.delta_index,
+                     coast_details=args.coast_details, url=args.url,
+                     point_lonlat=args.point_lonlat, overlays=args.overlays)

@@ -438,7 +438,7 @@ def default_arguments():
     parser.add_argument("--steps", default=["0"], nargs="+", type=str,
                         help="forecast times example --steps 0 3 gives time 0 and 3 \n --steps 0:1:3 gives timestep 0, 1, 2")
     parser.add_argument("--model", default=None, help="MEPS or AromeArctic")
-    parser.add_argument("--domain_name", default=None, nargs="+")
+    parser.add_argument("--domain_name", default=None, nargs="+", type= none_or_str)
     parser.add_argument("--domain_lonlat", default=None, help="[ lonmin, lonmax, latmin, latmax]")
     parser.add_argument("--point_name", default=None, nargs="+")
     parser.add_argument("--point_lonlat", default=None, help="[ lonmin, lonmax, latmin, latmax]")
@@ -449,12 +449,23 @@ def default_arguments():
     parser.add_argument("--use_latest", default=False, type=bool)
     parser.add_argument("--delta_index", default=None, type=str)
     parser.add_argument("--coast_details", default="auto", type=str, help="auto, coarse, low, intermediate, high, or full")
+    parser.add_argument("--id", default=None, help="Display legend", type=str)
+    parser.add_argument("--outpath", default=None, help="Display legend", type=str)
+    parser.add_argument("--overlays", default=None, nargs="+", help="Display legend", type=str)
+    parser.add_argument("--chunktype", default=None,  help="eg steps", type=str)
+    parser.add_argument("--chunks", default=6,  help="Display legend", type=int)
+
     args = parser.parse_args()
+
+    global OUTPUTPATH
+    if args.outpath != None:
+        OUTPUTPATH = args.outpath
+
     step_together = "".join(args.steps[0:])
     if ":" in step_together:
         splitted_steps= re.split(":",  "".join(args.steps[0:]))
-        sep = int(splitted_steps[1]) if len(splitted_steps) == 3 else 1
-        args.steps = list(np.arange( int(splitted_steps[0]), int(splitted_steps[-1]), sep ))
+        sep = int(splitted_steps[2]) if len(splitted_steps) == 3 else 1
+        args.steps = list(np.arange( int(splitted_steps[0]), int(splitted_steps[1]), int(sep) ))
     else:
         step = [args.steps] if type(args.steps) == int else args.steps
         args.steps = [int(i) for i in step]
@@ -518,7 +529,7 @@ def find_subdomains(domain_name, datetime=None, model=None, domain_lonlat=None, 
 
 
 def plot_by_subdomains(plt_func, checkget_data_handler, datetime, steps, model, domain_name, domain_lonlat, legend, info, grid, url, point_lonlat, use_latest,
-        delta_index, coast_details, param, p_level):
+        delta_index, coast_details, param, p_level, overlays=None, runid=None):
 
     domains_with_subdomains = find_subdomains(domain_name=domain_name, datetime=datetime, model=model,
                                               domain_lonlat=domain_lonlat,
@@ -536,6 +547,25 @@ def plot_by_subdomains(plt_func, checkget_data_handler, datetime, steps, model, 
             for sub in subdom_list:
                 plt_func(datetime=datetime, steps=steps, model=model, domain_name=sub, data_domain=data_domain,
                          domain_lonlat=domain_lonlat, legend=legend, info=info, grid=grid, url=url,
-                         dmet=dmet, coast_details=coast_details)
+                         dmet=dmet, coast_details=coast_details, overlays=overlays)
 
-#map_plot()
+def none_or_str(value):
+    if value == 'None':
+        return None
+    return value
+
+
+def chunck_func_call(func= None, chunktype="steps", chunk=6, **kwargs):
+    if chunktype==None: # do not split
+        print(kwargs)
+        func(**kwargs)
+    elif chunktype=="steps":
+        cn = np.int(len(kwargs["steps"]) // chunk)
+        if cn == 0:  # length of chunk size not exceeded; do not have to split
+            func(**kwargs)
+        else:  # lenght of chunk size is exceeded, split in chunks, set by cn+1
+            print(f"\n####### request exceeds {chunk} timesteps, will be chunked to smaller bits due to request limit ##########")
+            chunks = np.array_split(kwargs["steps"], cn + 1)
+            for c in chunks:
+                kwargs["steps"] = list(c)
+                func(**kwargs)

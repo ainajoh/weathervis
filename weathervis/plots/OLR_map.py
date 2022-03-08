@@ -17,7 +17,7 @@ import gc
 
 warnings.filterwarnings("ignore", category=UserWarning) # suppress matplotlib warning
 
-def plot_OLR(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", model= None, domain_name = None, domain_lonlat = None, legend=False, info = False, save = True,grid=True, url = None):
+def plot_OLR(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", model= None, domain_name = None, domain_lonlat = None, legend=False, info = False, save = True,grid=True, url = None, overlays=None, runid=None):
   eval(f"data_domain.{domain_name}()")  # get domain info
   ## CALCULATE AND INITIALISE ####################
   scale = data_domain.scale  #scale is larger for smaller domains in order to scale it up.
@@ -61,22 +61,29 @@ def plot_OLR(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", mod
       itim += 1
   plt.close(fig1)
   plt.close("all")
-  del dmet
-  del data_domain
-  del crs
+  del MSLP, scale, itim, legend, grid, overlays, domain_name, data, mask, x, y,nx,ny
+  del dmet, data_domain
+  del fig1, ax1, crs
+  del make_modelrun_folder, file_path
   gc.collect()
 
-def OLR(datetime, steps, model, domain_name, domain_lonlat, legend, info, grid, url, point_lonlat, use_latest,
-        delta_index, coast_details):
+def OLR(datetime, steps, model, domain_name, domain_lonlat, legend, info, grid, url,point_lonlat,
+        use_latest,delta_index, coast_details, overlays, runid, outpath):
     param = ["air_pressure_at_sea_level", "surface_geopotential", "toa_outgoing_longwave_flux"]
     p_level = None
-    plot_by_subdomains( plot_OLR, checkget_data_handler, datetime, steps, model, domain_name, domain_lonlat, legend, info, grid, url, point_lonlat, use_latest,
-        delta_index, coast_details, param, p_level )
+    plot_by_subdomains( plot_OLR, checkget_data_handler, datetime, steps, model, domain_name, domain_lonlat, legend,
+                       info, grid, url, point_lonlat, use_latest,
+                       delta_index, coast_details, param, p_level, overlays, runid)
 
 
 if __name__ == "__main__":
     args = default_arguments()
-    OLR(datetime=args.datetime, steps=args.steps, model=args.model, domain_name=args.domain_name,
-        domain_lonlat=args.domain_lonlat, legend=args.legend, info=args.info, grid=args.grid, url=args.url,
-        point_lonlat =args.point_lonlat,use_latest=args.use_latest,delta_index=args.delta_index, coast_details=args.coast_details)
+
+    chunck_func_call(func=OLR, chunktype=args.chunktype, chunk=args.chunks, datetime=args.datetime, steps=args.steps,
+                     model=args.model,
+                     domain_name=args.domain_name, domain_lonlat=args.domain_lonlat, legend=args.legend, info=args.info,
+                     grid=args.grid, runid=args.id,
+                     outpath=args.outpath, use_latest=args.use_latest, delta_index=args.delta_index,
+                     coast_details=args.coast_details, url=args.url,
+                     point_lonlat=args.point_lonlat, overlays=args.overlays)
     gc.collect()

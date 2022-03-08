@@ -117,10 +117,12 @@ def nearest_neighbour(plon,plat, longitudes, latitudes, nmin=1):
 
     return point
 def CAO_index(air_temperature_pl, pressure,SST,air_pressure_at_sea_level, p_level=850):
+    #pressure in pa
+    pt = potential_temperatur(air_temperature_pl, pressure)
+    pt_sst = potential_temperatur(SST, air_pressure_at_sea_level)
 
-    pt = potential_temperatur(air_temperature_pl, pressure * 100.)
-    pt_sst = potential_temperatur(SST, air_pressure_at_sea_level[:, 0, :, :])
-    dpt_sst = pt_sst[:, :, :] - pt[:, np.where(pressure == p_level)[0], :, :].squeeze(axis=1)
+    dpt_sst = pt_sst[:, :, :] - pt[:, np.where(pressure == p_level)[0], :, :].squeeze()
+
     return dpt_sst
 
 def get_samplesize(q, rho, a=0.5, b = 0.95, acc = 3):
