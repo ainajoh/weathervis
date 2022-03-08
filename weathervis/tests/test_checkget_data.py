@@ -143,7 +143,7 @@ class checkgetdata(unittest.TestCase):
     def test_parameter_good___pl_ml_sfx_sfc_specificlevels(self):
         print("#####################################################################################")
         print("test_parameter_good___pl_ml_sfx_sfc_specificlevels")
-        print("problem")
+        print(self.latest_date)
         #this is something i moght want to change, from and to VS values specific i belive abouut this centos might be different. should check
         dmet, data_domain, bad_param = checkget_data_handler(model=self.model_aa, date=self.latest_date, all_param=self.multiple_good_param_pl_ml_sfx_sfc,
                                   step=self.one_step, use_latest=False, m_level=[1,2,5], p_level=[1000,500])

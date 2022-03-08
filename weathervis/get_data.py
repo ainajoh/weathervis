@@ -197,18 +197,20 @@ class get_data():
         i=0# loop that updates the url to include each parameter with its dimensions
         while i < len(list_p):
             prm = param[i]
+            print(prm)
             url += f"{prm}"  # example:  url =url+x_wind_pl
             dimlist = list( file["var"][prm]["dim"] )  # List of the variables the param depends on ('time', 'pressure', 'ensemble_member', 'y', 'x')
-
+            print(dimlist)
             #########################
             # Find different dimention related to either pressure, model levels, height levels or ens members.
             # Then adjust retrieve url to only include upper and lower limit of these variables.
             #########################
             # Find different dimention related to either pressure, model levels, height levels or ens members.
+            #todo: Must be a better way than guessing and checking name of every dimention when we do have it stored in file
             pressure_dim = list(filter(re.compile(f'press*').match, dimlist))
             model_dim = list(filter(re.compile(f'.*hybrid*').match, dimlist))
             height_dim = list(filter(re.compile(f'.*height*').match, dimlist))
-            other_dim = list(filter(re.compile(f'.*top_of_atmosphere*').match, dimlist))
+            other_dim = list(filter(re.compile(f'.*top_of_atmosphere*|.*mean_sea_level*').match, dimlist))
             ens_mbr_dim = list(filter(re.compile(f'.*ensemble*').match, dimlist))
             x_dim = list(filter(re.compile(f'x.*?(\d+)/*').match, dimlist))
             y_dim = list(filter(re.compile(f'y.*?(\d+)/*').match, dimlist))
