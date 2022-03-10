@@ -188,9 +188,6 @@ class get_data():
 
         # keep only the fixed variables that are actually available in the file.
         fixed_var = fixed_var[np.isin(fixed_var, list(self.file["var"].keys()))]
-
-        #print(fixed_var)
-        #exit(1) #adjust_user_url in get_data.py
         # update global variable to include fixed var
         self.param = np.array(list(set(np.append(self.param, fixed_var)) ) )# Contains absolutely all variables we want
         file = self.file.copy()
@@ -203,11 +200,9 @@ class get_data():
         i=0# loop that updates the url to include each parameter with its dimensions
         while i < len(list_p):
             prm = param[i]
-            print(prm)
+            #print(prm)
             url += f"{prm}"  # example:  url =url+x_wind_pl
             dimlist = list( file["var"][prm]["dim"] )  # List of the variables the param depends on ('time', 'pressure', 'ensemble_member', 'y', 'x')
-            print(dimlist)
-            print("**************************here it sucks?")
             #########################
             # Find different dimention related to either pressure, model levels, height levels or ens members.
             # Then adjust retrieve url to only include upper and lower limit of these variables.
@@ -239,16 +234,12 @@ class get_data():
                 indexidct[pressure_dim[0]] = pl_idx#"[0:1:0]"
 
             if other_dim:
-                #print("NB!other_dim")
                 o_idx = f"[0:1:0]"
                 indexidct[other_dim[0]] = o_idx
             extra = []
 
             if model_dim:
-                print("**************************What about now?")
-                print(model_dim)
                 for m in model_dim:
-                    print(m)
                     dinfo = Dataset(self.url)
                     hyp = dinfo.variables[m]
                     terms = hyp.getncattr("formula_terms")
@@ -256,9 +247,6 @@ class get_data():
                     terms = re.sub(r'(\w+)', r'"\1"', terms)
                     terms = ast.literal_eval("{" + terms + "}")
                     extra = np.append(extra, list(terms.values()))
-
-                print("************************** And What about now?")
-
                 m_level = self.m_level
                 lev_num = np.arange(0,len(self.file["m_levels"][model_dim[0]]))
 
@@ -281,9 +269,7 @@ class get_data():
                     #Please provide valid model levels for parameter ap.
                     #Options are [0], but you requested [64]
 
-
                 idx = np.where(np.array(lev_num)[:, None] == np.array(self.m_level)[None, :])[0]
-                print("************************** Really here as well?????")
 
                 ml_idx = f"[{np.min(idx)}:1:{np.max(idx)}]"
                 indexidct[model_dim[0]] = ml_idx
@@ -384,7 +370,7 @@ class get_data():
         logging.info("-------> start retrieve from thredds")
         print("################ thredds in get_data.py #############################")
         print(url)
-        print(file) #arome_arctic_sfx_2_5km_20220301T00Z.nc?
+        #print(file) #arome_arctic_sfx_2_5km_20220301T00Z.nc?
         #exit(1)
         dataset = Dataset(url)
         self.indexidct = dict.fromkeys(self.indexidct, ":")  #reset the index dictionary

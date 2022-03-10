@@ -216,11 +216,8 @@ def checkget_data_handler(all_param, date=None,  model=None, step=[0], p_level= 
     if len(all_choices)==0:
         SomeError(ValueError, f'No matches for your parameter found, try using the check_data search option')
     # RETRIEVE FROM THE BEST COMBINATIONS AND TOWARDS WORSE COMBINATION IF ANY ERROR
-    print(point_name)
     for i in range(0, len(all_choices)):
         gc.collect()
-        #print("in *****************")
-        #exit(1)
         try:
             dmet, data_domain,bad_param = retrievenow(our_choice = all_choices.loc[i],model=model,step=step, date=date,fileobj=fileobj,
                                    m_level=m_level,p_level=p_level,domain_name=domain_name, domain_lonlat=domain_lonlat,

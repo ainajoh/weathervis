@@ -386,29 +386,16 @@ def domain_input_handler(dt=None, model=None, domain_name=None, domain_lonlat=No
             print(data_domain)
             data_domain.Tromso()
             eval(func)
-            print("func done eval")
         else:
             print(f"No domain found with that name; {domain_name}")
     else:
         data_domain=None
-    print(data_domain)
-    print(domain_name)
-    print(point_name)
-    print(domain_lonlat)
 
     if (point_name !=None and domain_name == None and domain_lonlat == None):
-        print("in") #takes ridicilous amount of rime...
         data_domain = domain(dt, model, file=file, point_name=point_name,use_latest=use_latest,delta_index=delta_index, url=url)
-        print("after")
-        print(data_domain)
-        #exit(1)
     if (point_lonlat != None and point_name == None and domain_name == None and domain_lonlat == None):
-        print("in2")
 
         data_domain = domain(dt, model, file=file, lonlat=point_lonlat,use_latest=use_latest,delta_index=delta_index, url=url)
-    print(data_domain)
-    print(domain_name)
-    #exit(1)
     return data_domain
 
 def default_map_projection(dmet):
@@ -594,6 +581,7 @@ def chunck_func_call(func= None, chunktype="steps", chunk=6, **kwargs):
 
 def cartesian(arrays, out=None):
     """
+    COULD BE A POSSIBILITY INSTEAD OF ITERTOOLS; BUT FOR NOW NOT USED.
     Generate a cartesian product of input arrays.
 
     Parameters
@@ -628,12 +616,10 @@ def cartesian(arrays, out=None):
     """
 
     arrays = [np.asarray(x) for x in arrays]
-    print(arrays[0].size)
     dtype = arrays[0].dtype
 
     n = np.prod([x.size for x in arrays])
     n=10
-    print(n)
     if out is None:
         out = np.zeros([10, len(arrays)], dtype=dtype)
         #out = np.zeros([n[:10], 10], dtype=dtype)

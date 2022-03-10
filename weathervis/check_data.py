@@ -243,8 +243,6 @@ class check_data():
         ###################################################
         #search for parameter for a specific date or url file
         if self.param == None and (self.date != None or self.url != None):
-            print("eeee")
-            print(self.file)
             self.param = self.check_variable(self.file, self.search, self.url)
 
         #search for parameter for a all dates, only possible for not userdefined url.
@@ -388,9 +386,7 @@ class check_data():
             dataset.close()
 
         file_withparam = filter_param( df.copy(), param)
-        #print("test")
         file_corrtype = filter_type( df.copy(), mbrs, self.p_level, self.m_level)
-        #exit(1)
         file = file_withparam[file_withparam.File.isin(file_corrtype.File)]
         file.reset_index(inplace=True, drop = True)
         file = filter_step(file,self.maxstep)

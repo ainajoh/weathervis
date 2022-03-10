@@ -74,15 +74,9 @@ class domain():
             self.idx = lonlat2idx(self.lonlat, self.lon, self.lat)
 
         #Todo: define domain based on retrieving only from one point or some distance from point.
-        print(self.domain_name)
-        print(self.point_name)
-        #exit(1)
         if self.point_name != None and self.domain_name == None:  #If we are doing point location
-            print("start here")
             package_path = os.path.dirname(__file__)
-            print(package_path)
             sites = pd.read_csv(package_path + "/data/sites.csv", sep=";", header=0, index_col=0)
-            print(sites)
             #sites = pd.read_csv("./data/sites.csv", sep=";", header=0, index_col=0)
             plon = float(sites.loc[self.point_name].lon)
             plat = float(sites.loc[self.point_name].lat)
@@ -296,13 +290,9 @@ class domain():
     def Tromso(self):
         point_name = "Tromso"
         #domain_name = "Tromso"
-        print("test troms")
         package_path = os.path.dirname(__file__)
-        print(package_path)
         sites = pd.read_csv(package_path+"/data/sites.csv", sep=";", header=0, index_col=0)
         #sites = pd.read_csv("./data/sites.csv", sep=";", header=0, index_col=0)
-
-        print("test sites")
 
         plon = float(sites.loc[point_name].lon)
         plat = float(sites.loc[point_name].lat)
@@ -313,7 +303,6 @@ class domain():
         self.lonlat = [minlon, maxlon, minlat, maxlat]
         self.idx = lonlat2idx(self.lonlat, self.lon, self.lat)
         self.scale = find_scale(self.lonlat)
-        print("Troms done")
 
     def Bjornoya(self):
         point_name = "Bjornoya"
