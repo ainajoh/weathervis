@@ -101,6 +101,11 @@ def nearest_neighbour(plon,plat, longitudes, latitudes, nmin=1):
     """
     #source https://github.com/metno/NWPdocs/wiki/From-x-y-wind-to-wind-direction
     R = 6371.0 #model has 6371000.0
+    print(np.shape(latitudes))
+    print(np.shape(plat))
+    print(type(plat))
+    print(plat)
+    #exit(1)
     dlat = np.radians(latitudes - plat) ##lat2 - lat1
     dlon = np.radians(longitudes - plon) #lon2 - lon1
     platm = np.full(np.shape(latitudes), plat)
@@ -863,8 +868,8 @@ def xwind2uwind( xwind, ywind, alpha=None ):
     # u,v = xwind2uwind( data.xwind, data.ywind, data.alpha )
     #source: https://www-k12.atmos.washington.edu/~ovens/wrfwinds.html
     #source: https://github.com/metno/NWPdocs/wiki/From-x-y-wind-to-wind-direction
-
-    if alpha==None:
+    print(type(alpha))
+    if type(alpha)!=np.ma.core.MaskedArray:
         os.system('python wind2alpha.py')
 
 

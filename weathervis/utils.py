@@ -14,6 +14,8 @@ from weathervis.domain import *
 import matplotlib.offsetbox as offsetbox  #add_point_on_map
 import re
 import cartopy.crs as ccrs
+import itertools
+
 
 
 def to_bool(value):
@@ -365,6 +367,8 @@ GpsAlt_m = 'GpsAlt_m'):
 
 def domain_input_handler(dt=None, model=None, domain_name=None, domain_lonlat=None, file=None, point_name=None, point_lonlat=None, use_latest=True, delta_index=None, url=None):
     print("######## domain_input_handler in utils.py ################### ")
+    domain_name = domain_name[0] if type(domain_name) == list else domain_name
+
     if domain_name or domain_lonlat:
         if domain_lonlat:
             print(f"\n####### Setting up domain for coordinates: {domain_lonlat} ##########")
@@ -379,17 +383,32 @@ def domain_input_handler(dt=None, model=None, domain_name=None, domain_lonlat=No
                 func = f"data_domain.{domain_name}"
             else:
                 func = f"data_domain.{domain_name}()"
+            print(data_domain)
+            data_domain.Tromso()
             eval(func)
+            print("func done eval")
         else:
             print(f"No domain found with that name; {domain_name}")
     else:
         data_domain=None
     print(data_domain)
+    print(domain_name)
+    print(point_name)
+    print(domain_lonlat)
 
     if (point_name !=None and domain_name == None and domain_lonlat == None):
+        print("in") #takes ridicilous amount of rime...
         data_domain = domain(dt, model, file=file, point_name=point_name,use_latest=use_latest,delta_index=delta_index, url=url)
+        print("after")
+        print(data_domain)
+        #exit(1)
     if (point_lonlat != None and point_name == None and domain_name == None and domain_lonlat == None):
+        print("in2")
+
         data_domain = domain(dt, model, file=file, lonlat=point_lonlat,use_latest=use_latest,delta_index=delta_index, url=url)
+    print(data_domain)
+    print(domain_name)
+    #exit(1)
     return data_domain
 
 def default_map_projection(dmet):
@@ -438,7 +457,7 @@ def default_arguments():
     parser.add_argument("--steps", default=["0"], nargs="+", type=str,
                         help="forecast times example --steps 0 3 gives time 0 and 3 \n --steps 0:1:3 gives timestep 0, 1, 2")
     parser.add_argument("--model", default=None, help="MEPS or AromeArctic")
-    parser.add_argument("--domain_name", default=None, nargs="+", type= none_or_str)
+    parser.add_argument("--domain_name", default=[None], nargs="+", type= none_or_str)
     parser.add_argument("--domain_lonlat", default=None, help="[ lonmin, lonmax, latmin, latmax]")
     parser.add_argument("--point_name", default=None, nargs="+")
     parser.add_argument("--point_lonlat", default=None, help="[ lonmin, lonmax, latmin, latmax]")
@@ -454,6 +473,8 @@ def default_arguments():
     parser.add_argument("--overlays", default=None, nargs="+", help="Display legend", type=str)
     parser.add_argument("--chunktype", default=None,  help="eg steps", type=str)
     parser.add_argument("--chunks", default=6,  help="Display legend", type=int)
+    parser.add_argument("--point_num", default=1, type=int)
+    #parser.add_argument("--plot", default="all", help="Display legend") from meteograms
 
     args = parser.parse_args()
 
@@ -470,8 +491,8 @@ def default_arguments():
         step = [args.steps] if type(args.steps) == int else args.steps
         args.steps = [int(i) for i in step]
 
-    if args.domain_name == None:
-        args.domain_name = [args.model]
+    #if args.domain_name == None:
+    #    args.domain_name = [args.model]
     return args
 
 def find_subdomains(domain_name, datetime=None, model=None, domain_lonlat=None, file=None, point_name=None, point_lonlat=None, use_latest=None, delta_index=None, url=None):
@@ -569,3 +590,81 @@ def chunck_func_call(func= None, chunktype="steps", chunk=6, **kwargs):
             for c in chunks:
                 kwargs["steps"] = list(c)
                 func(**kwargs)
+
+
+def cartesian(arrays, out=None):
+    """
+    Generate a cartesian product of input arrays.
+
+    Parameters
+    ----------
+    arrays : list of array-like
+        1-D arrays to form the cartesian product of.
+    out : ndarray
+        Array to place the cartesian product in.
+
+    Returns
+    -------
+    out : ndarray
+        2-D array of shape (M, len(arrays)) containing cartesian products
+        formed of input arrays.
+
+    Examples
+    --------
+    >>> cartesian(([1, 2, 3], [4, 5], [6, 7]))
+    array([[1, 4, 6],
+           [1, 4, 7],
+           [1, 5, 6],
+           [1, 5, 7],
+           [2, 4, 6],
+           [2, 4, 7],
+           [2, 5, 6],
+           [2, 5, 7],
+           [3, 4, 6],
+           [3, 4, 7],
+           [3, 5, 6],
+           [3, 5, 7]])
+
+    """
+
+    arrays = [np.asarray(x) for x in arrays]
+    print(arrays[0].size)
+    dtype = arrays[0].dtype
+
+    n = np.prod([x.size for x in arrays])
+    n=10
+    print(n)
+    if out is None:
+        out = np.zeros([10, len(arrays)], dtype=dtype)
+        #out = np.zeros([n[:10], 10], dtype=dtype)
+
+
+    #m = n / arrays[0].size
+    m = int(n / arrays[0].size)
+    out[:,0] = np.repeat(arrays[0], m)
+
+
+    if arrays[1:]:
+        cartesian(arrays[1:], out=out[0:m, 1:])
+        #exit(1)
+
+        for j in range(1, arrays[0].size):
+        #for j in xrange(1, arrays[0].size):
+            out[j*m:(j+1)*m, 1:] = out[0:m, 1:]
+    return out
+
+
+
+def all_combinations(config_overrides, num_comb=10):
+    keys, values = zip(*config_overrides.items())
+    v_all = []
+    i = 0
+    for v in itertools.product(*values):
+        if i >= num_comb:
+            break
+        tt = dict(zip(keys, v))
+        v_all.append(tt)
+        i += 1
+
+    return v_all
+

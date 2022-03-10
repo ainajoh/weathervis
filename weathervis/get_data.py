@@ -181,10 +181,16 @@ class get_data():
         non = f"[0:1:0]"
 
         indexidct = {"time": step, "y": y, "x": x}
+        #fixed_var = np.array( NOT NEEDED ap, b etc as it is now in checkget data as this created some errors.
+        #    ["latitude", "longitude", "forecast_reference_time", "projection_lambert", "surface_air_pressure", "ap", "b", "ap2", "b2","ap0", "b0","ap1", "b1"])
         fixed_var = np.array(
-            ["latitude", "longitude", "forecast_reference_time", "projection_lambert", "surface_air_pressure", "ap", "b", "ap2", "b2","ap0", "b0","ap1", "b1"])
+            ["latitude", "longitude", "forecast_reference_time", "projection_lambert", "surface_air_pressure"])
+
         # keep only the fixed variables that are actually available in the file.
         fixed_var = fixed_var[np.isin(fixed_var, list(self.file["var"].keys()))]
+
+        #print(fixed_var)
+        #exit(1) #adjust_user_url in get_data.py
         # update global variable to include fixed var
         self.param = np.array(list(set(np.append(self.param, fixed_var)) ) )# Contains absolutely all variables we want
         file = self.file.copy()
@@ -201,6 +207,7 @@ class get_data():
             url += f"{prm}"  # example:  url =url+x_wind_pl
             dimlist = list( file["var"][prm]["dim"] )  # List of the variables the param depends on ('time', 'pressure', 'ensemble_member', 'y', 'x')
             print(dimlist)
+            print("**************************here it sucks?")
             #########################
             # Find different dimention related to either pressure, model levels, height levels or ens members.
             # Then adjust retrieve url to only include upper and lower limit of these variables.
@@ -214,6 +221,7 @@ class get_data():
             ens_mbr_dim = list(filter(re.compile(f'.*ensemble*').match, dimlist))
             x_dim = list(filter(re.compile(f'x.*?(\d+)/*').match, dimlist))
             y_dim = list(filter(re.compile(f'y.*?(\d+)/*').match, dimlist))
+
             if x_dim:
                 indexidct[x_dim[0]] = indexidct["x"]
             if y_dim:
@@ -235,8 +243,12 @@ class get_data():
                 o_idx = f"[0:1:0]"
                 indexidct[other_dim[0]] = o_idx
             extra = []
+
             if model_dim:
+                print("**************************What about now?")
+                print(model_dim)
                 for m in model_dim:
+                    print(m)
                     dinfo = Dataset(self.url)
                     hyp = dinfo.variables[m]
                     terms = hyp.getncattr("formula_terms")
@@ -245,19 +257,38 @@ class get_data():
                     terms = ast.literal_eval("{" + terms + "}")
                     extra = np.append(extra, list(terms.values()))
 
+                print("************************** And What about now?")
+
                 m_level = self.m_level
                 lev_num = np.arange(0,len(self.file["m_levels"][model_dim[0]]))
 
                 self.m_level = lev_num if self.m_level is None else self.m_level
                 is_in_any = np.sum((np.array(lev_num)[:, None] == np.array(self.m_level)[None, :])[:])
                 if is_in_any == 0:
+                    print("ERROR")
+                    print(model_dim)
+                    print(self.file)
+                    print(f'Please provide valid model levels for parameter {prm}. \n'
+                          f'Options are {self.file["m_levels"][model_dim[0]]}, but you requested {self.m_level}')
+                    import sys
+                    sys.exit(0)
+                    raise SystemExit(0)
+                    exit(1)
+
                     SomeError(ValueError, f'Please provide valid model levels for parameter {prm}. \n'
                                           f'Options are {self.file["m_levels"][model_dim[0]]}, but you requested {self.m_level}')
+
+                    #Please provide valid model levels for parameter ap.
+                    #Options are [0], but you requested [64]
+
+
                 idx = np.where(np.array(lev_num)[:, None] == np.array(self.m_level)[None, :])[0]
+                print("************************** Really here as well?????")
 
                 ml_idx = f"[{np.min(idx)}:1:{np.max(idx)}]"
                 indexidct[model_dim[0]] = ml_idx
                 self.m_level =  m_level
+
 
             if height_dim:
                 h_level = self.h_level
@@ -353,6 +384,8 @@ class get_data():
         logging.info("-------> start retrieve from thredds")
         print("################ thredds in get_data.py #############################")
         print(url)
+        print(file) #arome_arctic_sfx_2_5km_20220301T00Z.nc?
+        #exit(1)
         dataset = Dataset(url)
         self.indexidct = dict.fromkeys(self.indexidct, ":")  #reset the index dictionary
         for k in dataset.__dict__.keys(): #info of the file
@@ -422,8 +455,23 @@ class get_data():
         dataset.close()
         iteration += 1
 
+    def windcorr(self):
+        jindx = self.idx[0]
+        iindx = self.idx[1]
+        if self.model == "AromeArctic":
+            infile = package_path + "/data/alpha_full_AA.nc"
+        elif self.model == "MEPS":
+            infile = package_path + "/data/alpha_full_MEPS.nc"
+        alphadata = Dataset(infile)
+        alpha = alphadata["alpha"][:]
+        print(infile)
+        self.__dict__["alpha"] = alpha[jindx.min():jindx.max()+1,iindx.min():iindx.max()+1]
+
+        alphadata.close()
+
     def retrieve(self):
         #self.url = self.make_url()
         self.thredds(self.url, self.file)
+        self.windcorr()
 
     class dummyobject(object):pass

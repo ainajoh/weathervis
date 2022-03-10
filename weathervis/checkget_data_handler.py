@@ -76,9 +76,8 @@ def find_best_combinationoffiles(all_param, fileobj, m_level=None, p_level=None)
     #    raise ValueError #what if we set these variables to None such that no error eill occur with plotting, only blanks
     config_overrides_r = dict(zip(filenames, tot_param_we_want_that_are_available))
 
-    def filer_param_by_modellevels(config_overrides_r,tot_param_we_want_that_are_available):
+    def filer_param_by_modellevels(config_overrides_r,tot_param_we_want_that_are_available, m_level):
         print("################ filer_param_by_modellevels in checkget_data_handler.py #############################")
-
         for i in range(0,len(fileobj)):
             thisfileobj = fileobj.loc[i]
             varname = tot_param_we_want_that_are_available[i]
@@ -89,29 +88,32 @@ def find_best_combinationoffiles(all_param, fileobj, m_level=None, p_level=None)
             pandas_df = var.loc[varname]
             f = pandas_df[pandas_df.dim.astype(str).str.contains("hybrid")] #keep only ml variables.
             if len(f) != 0: #if var depends on hybrid.
+                fixed_var = ["ap","b", "ap2", "b2", "ap0", "b0", "ap1", "b1"] #hybrid dependent var need included if we keep hybrid var from this file
                 dimen = [f.apply(lambda row: dict(zip(row['dim'],row['shape'])), axis=1)][0]#.loc["dim"]
                 dimofmodellevel = [dimen.apply(lambda row: [value for key, value in row.items() if 'hybrid' in key.lower()])][0]#.loc["dim
                 removethese = dimofmodellevel[dimofmodellevel.apply(lambda row: row[0]<m_level)]#.loc["dim"]
                 val = [*removethese.index]
                 key = thisfileobj["File"] #arome_arctic_extracted_2_5km_20200221T00Z.nc
+                if len(val) >0:#removes some hybrid dependent var if we remove the param
+                    config_overrides_r[key] += fixed_var
+                    val += fixed_var
                 config_overrides_r[key] = [x for x in config_overrides_r[key] if x not in val]
+
         return config_overrides_r #indent of this is impotant. resulted in error before when indent wrong
 
-    config_overrides_r = filer_param_by_modellevels(config_overrides_r,tot_param_we_want_that_are_available)
+    config_overrides_r = filer_param_by_modellevels(config_overrides_r,tot_param_we_want_that_are_available, m_level)
     #flip it
     config_overrides = {}
     for key, value in config_overrides_r.items():
          for prm in value:
              config_overrides.setdefault(prm, []).append(key)
-
     if len(config_overrides) > 0:
-        keys, values = zip(*config_overrides.items())
-        possible_combinations = [dict(zip(keys, v)) for v in itertools.product(*values)][:10]
+        possible_combinations = all_combinations(config_overrides)
+
         ppd = pd.DataFrame([], columns=["file", "keys", "len", "combo"])
         ppd.sort_values(by='len', inplace=True)
-
         iii = 0
-        #This for loop takes time if it is many combinations, therefore reduces combinations.
+        #This for loop takes time if it is many combinations, therefore reduces combinations. DONE
         # bUT IT CAN BLE glitchy because I CAN NOT sort it based on how many files, but seems python might do this automatically..
         for combination in possible_combinations:
             filesincombination = [*combination.values()]
@@ -126,6 +128,8 @@ def find_best_combinationoffiles(all_param, fileobj, m_level=None, p_level=None)
         our_choice = ppd.loc[0] #The best combination retrieving from least amount of files.
     else:
         ppd = pd.DataFrame([])
+
+    print(ppd)
     return ppd,bad_param
 #@profile
 def retrievenow(our_choice,model,step, date,fileobj,m_level,p_level, domain_name=None, domain_lonlat=None,bad_param=[],bad_param_sfx=[],point_name=None, point_lonlat=None, use_latest=True,delta_index=None):
@@ -137,6 +141,7 @@ def retrievenow(our_choice,model,step, date,fileobj,m_level,p_level, domain_name
     ourfileobj = fileobj[fileobj["File"].isin([ourfilename])]
 
     ourfileobj.reset_index(inplace=True, drop=True)
+    print(point_name)
     data_domain = domain_input_handler(dt=date, model=model, domain_name=domain_name, domain_lonlat=domain_lonlat, file =ourfileobj,point_name=point_name,point_lonlat=point_lonlat, use_latest=use_latest,delta_index=delta_index)#
 
     combo = our_choice.combo
@@ -182,6 +187,7 @@ def retrievenow(our_choice,model,step, date,fileobj,m_level,p_level, domain_name
 #@profile
 def checkget_data_handler(all_param, date=None,  model=None, step=[0], p_level= None, m_level=None, mbrs=None, domain_name=None, domain_lonlat=None, point_name=None,point_lonlat=None,use_latest=False,delta_index=None, url=None):
     print("################ checkget_data_handler in checkget_data_handler.py #############################")
+
     step = [step] if type(step) == int else step
     if url != None:
         fileobj = check_data(url=url, model=model, date=date, step=step, use_latest=use_latest).file
@@ -195,7 +201,9 @@ def checkget_data_handler(all_param, date=None,  model=None, step=[0], p_level= 
         return dmet, data_domain, bad_param
 
     date=str(date)
-    fileobj = check_data(model=model, date=date, step=step, use_latest=use_latest).file
+    #fileobj = check_data(model=model, date=date, step=step, use_latest=use_latest,m_level=m_level ).file
+    fileobj = check_data(model=model, date=date, step=step, use_latest=use_latest ).file #todo: why no m_level initiatlly? we do filter here aswell so..
+
     all_choices, bad_param  = find_best_combinationoffiles(all_param=all_param, fileobj=fileobj,m_level=m_level,p_level=p_level)
 
 
@@ -208,19 +216,25 @@ def checkget_data_handler(all_param, date=None,  model=None, step=[0], p_level= 
     if len(all_choices)==0:
         SomeError(ValueError, f'No matches for your parameter found, try using the check_data search option')
     # RETRIEVE FROM THE BEST COMBINATIONS AND TOWARDS WORSE COMBINATION IF ANY ERROR
-
+    print(point_name)
     for i in range(0, len(all_choices)):
         gc.collect()
+        #print("in *****************")
+        #exit(1)
         try:
             dmet, data_domain,bad_param = retrievenow(our_choice = all_choices.loc[i],model=model,step=step, date=date,fileobj=fileobj,
                                    m_level=m_level,p_level=p_level,domain_name=domain_name, domain_lonlat=domain_lonlat,
                                     bad_param = bad_param,bad_param_sfx = bad_param_sfx,point_name=point_name,point_lonlat=point_lonlat,use_latest=use_latest,
                                                      delta_index=delta_index)
             break
-        except:
+        except (ValueError, NameError):
             print("Oops!", sys.exc_info()[0], "occurred.")
             print("Next entry.")
             print(" ")
+        except:
+            print("find error")
+            raise SystemExit(0)
+            #break
     return dmet,data_domain,bad_param
 
 

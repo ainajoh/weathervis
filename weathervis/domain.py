@@ -73,8 +73,17 @@ class domain():
         if self.lonlat and not self.idx:
             self.idx = lonlat2idx(self.lonlat, self.lon, self.lat)
 
-        if self.point_name != None and self.domain_name == None:
-            sites = pd.read_csv("../../data/sites.csv", sep=";", header=0, index_col=0)
+        #Todo: define domain based on retrieving only from one point or some distance from point.
+        print(self.domain_name)
+        print(self.point_name)
+        #exit(1)
+        if self.point_name != None and self.domain_name == None:  #If we are doing point location
+            print("start here")
+            package_path = os.path.dirname(__file__)
+            print(package_path)
+            sites = pd.read_csv(package_path + "/data/sites.csv", sep=";", header=0, index_col=0)
+            print(sites)
+            #sites = pd.read_csv("./data/sites.csv", sep=";", header=0, index_col=0)
             plon = float(sites.loc[self.point_name].lon)
             plat = float(sites.loc[self.point_name].lat)
             self.lonlat = [plon,plat]
@@ -90,22 +99,7 @@ class domain():
                 #self.lonlat=idx2lonlat(self.idx, url)
 
 
-
-        #if self.idx:
-        #    self.lonlat = idx2lonlat(self.idx, url)  # rough
-
-        #url = ""#((YYYY==2018 and MM>=9) or (YYYY>2018)) and not (YYYY>=2020 and MM>=2 and DD>=4)
-        #if self.model == "MEPS" and ( (int(YYYY)==2018 and int(MM)<9) or ( int(YYYY)<2018 ) ):
-        #    url = f"https://thredds.met.no/thredds/dodsC/meps25epsarchive/{YYYY}/{MM}/{DD}/meps_mbr0_extracted_backup_2_5km_{YYYY}{MM}{DD}T{HH}Z.nc?latitude,longitude"
-        #
-        #elif self.model == "MEPS"
-        #
-        # and ( (int(YYYY)==2018 and int(MM)>=9) or (int(YYYY)>2018 )) and ((int(YYYY)==2020 and int(MM)<=2 and int(DD)<4)):
-        #    url = f"https://thredds.met.no/thredds/dodsC/meps25epsarchive/{YYYY}/{MM}/{DD}/meps_mbr0_extracted_2_5km_{YYYY}{MM}{DD}T{HH}Z.nc?latitude,longitude"
-        #else:
-        #    url = f"https://thredds.met.no/thredds/dodsC/meps25epsarchive/{YYYY}/{MM}/{DD}/meps_det_2_5km_{YYYY}{MM}{DD}T{HH}Z.nc?latitude,longitude"
-        #eval()
-    def make_url_base(self): # Todo: Update for more accurate url. avoid if filename is given as input
+    def make_url_base(self):
         print("############### make_url_bas in domain.py#######################")
         date = str(self.date)
         YYYY = date[0:4]; MM = date[4:6]; DD = date[6:8] #HH = date[8:10]
@@ -136,7 +130,6 @@ class domain():
 
         url= df.url[0] #just random pick the first one
         return url
-
 
 
     def MEPS(self):
@@ -302,7 +295,15 @@ class domain():
 
     def Tromso(self):
         point_name = "Tromso"
-        sites = pd.read_csv("./data/sites.csv", sep=";", header=0, index_col=0)
+        #domain_name = "Tromso"
+        print("test troms")
+        package_path = os.path.dirname(__file__)
+        print(package_path)
+        sites = pd.read_csv(package_path+"/data/sites.csv", sep=";", header=0, index_col=0)
+        #sites = pd.read_csv("./data/sites.csv", sep=";", header=0, index_col=0)
+
+        print("test sites")
+
         plon = float(sites.loc[point_name].lon)
         plat = float(sites.loc[point_name].lat)
         minlon = float(plon - 0.32)
@@ -312,9 +313,11 @@ class domain():
         self.lonlat = [minlon, maxlon, minlat, maxlat]
         self.idx = lonlat2idx(self.lonlat, self.lon, self.lat)
         self.scale = find_scale(self.lonlat)
+        print("Troms done")
 
     def Bjornoya(self):
         point_name = "Bjornoya"
+
         sites = pd.read_csv("./data/sites.csv", sep=";", header=0, index_col=0)
         plon = float(sites.loc[point_name].lon)
         plat = float(sites.loc[point_name].lat)

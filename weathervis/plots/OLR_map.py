@@ -14,6 +14,8 @@ import cartopy.feature as cfeature
 from mpl_toolkits.axes_grid1 import make_axes_locatable ##__N
 from weathervis.checkget_data_handler import *
 import gc
+from weathervis.plots.add_overlays import add_overlay
+
 
 warnings.filterwarnings("ignore", category=UserWarning) # suppress matplotlib warning
 
@@ -48,8 +50,8 @@ def plot_OLR(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", mod
       ax1.text(0, 1, "{0}_OLR_{1}+{2:02d}".format(model, datetime, leadtime), ha='left', va='bottom', transform=ax1.transAxes,color='dimgrey')
       if grid:
           nicegrid(ax=ax1,color="orange")
-
-      print(data_domain.lonlat)  # [15.8, 16.4, 69.2, 69.4]
+      if overlays:
+          add_overlay(overlays, ax=ax1)
       if domain_name != model and data_domain != None:
           ax1.set_extent(data_domain.lonlat)
 

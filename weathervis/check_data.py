@@ -62,6 +62,7 @@ def filter_type(file, mbrs, p_level,m_level):
     """Used by check_data: Remove files not having the userdefined mbrs or levels
     Returns only files containing all the user defined preferences."""
     print("################ filter_type in check_data.py #############################")
+
     if mbrs != 0 and mbrs != None:
         filter = "strict"
         if filter == "strict":
@@ -77,10 +78,18 @@ def filter_type(file, mbrs, p_level,m_level):
             file = file[ll]
         if filter == "light": pass
         if filter == "medium": pass
+    #print("bf mlevel")
+    #print(m_level)
+
+    #exit(1)
     if m_level != None:
+        #print("af mlevel")
+        #exit(1)
         filter="strict"
         if filter == "strict": #only those files that has all the wanted model levels (nb might not be for all param)
             def find_mlevels(value, filter="strict" ):
+                #print(value)
+                #exit(1)
                 if value:
                     length_dict = {key: np.arange(1, len(v)+1) for key, v in value.items()}
                     df_val = pd.DataFrame(length_dict.values()).isin(m_level).sum(axis=1)
@@ -234,8 +243,8 @@ class check_data():
         ###################################################
         #search for parameter for a specific date or url file
         if self.param == None and (self.date != None or self.url != None):
-            #print("eeee")
-            #print(file)
+            print("eeee")
+            print(self.file)
             self.param = self.check_variable(self.file, self.search, self.url)
 
         #search for parameter for a all dates, only possible for not userdefined url.
@@ -282,7 +291,7 @@ class check_data():
             rawfiles = soup.table.find_all("a")
             ff =[str(i.text) for i in rawfiles]
             ff= pd.DataFrame( data = list(filter(re.compile(f'.*{YYYY}{MM}{DD}T{HH}Z.nc').match, ff )), columns=["File"])
-            drop_files = ["_vc_", "thunder", "_kf_", "_ppalgs_", "_pp_", "t2myr", "wbkz", "vtk","_preop_"]
+            drop_files = ["_vc_", "thunder", "_kf_", "_ppalgs_", "_pp_", "t2myr", "wbkz", "vtk","_preop_", "_tracking_"] #arctic_lagged_12_h
             df = ff.copy()[~ff["File"].str.contains('|'.join(drop_files))] #(drop_files)])
             df.reset_index(inplace=True, drop=True)
             df["url"] = base_urlfile + df['File'] if self.use_latest else f"{base_urlfile}/{YYYY}/{MM}/{DD}/" + df['File']
@@ -379,7 +388,9 @@ class check_data():
             dataset.close()
 
         file_withparam = filter_param( df.copy(), param)
+        #print("test")
         file_corrtype = filter_type( df.copy(), mbrs, self.p_level, self.m_level)
+        #exit(1)
         file = file_withparam[file_withparam.File.isin(file_corrtype.File)]
         file.reset_index(inplace=True, drop = True)
         file = filter_step(file,self.maxstep)
@@ -433,7 +444,7 @@ class check_data():
         var_dict = file.at[0, "var"]
         param = []
         for n in range(0,len(file)):
-            filename =  file.at[n, "File"]
+            filename = file.at[n, "File"]
             var = file.at[n, "var"].keys()
             param.append( pd.DataFrame([x for x in var], columns=[filename]))
 
