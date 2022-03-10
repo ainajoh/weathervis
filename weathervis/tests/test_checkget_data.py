@@ -2,6 +2,7 @@
 # - 20220303: no error.
 # - 20220304: no error.
 # - 20220307: no error.
+# - 20220310:
 import unittest
 from weathervis.checkget_data_handler import *
 import warnings
@@ -62,7 +63,7 @@ class checkgetdata(unittest.TestCase):
                               step=self.one_step, use_latest=False, url=self.url_base)
 
     def test_date_correct___archive_url(self):
-        #test missing model, date, step, and use_latest
+        #test missing model, date, step, and use_latest. Not sure what to expect and why it should be something? aah marvins thing.. hmm..
         checkget_data_handler(all_param=self.one_good_param, url=self.url_base)
 
     def test_date_good___latest(self):
@@ -99,8 +100,9 @@ class checkgetdata(unittest.TestCase):
                                   step=self.one_step, use_latest=False)
         self.assertIn('latest or date on the form: YYYYMMDDHH', str(error.exception)) # does not match format '%Y%m%d%H%M'
 
-    #MODELS
+    #MODELS UnboundLocalError
     def test_model_good___anyformat_aromearctic(self):
+        #print(self.model_aa_anyformat)
         checkget_data_handler(model=self.model_aa_anyformat, date=self.archive_date, all_param=self.one_good_param,
                               step=self.one_step, use_latest=False)
     def test_model_bad(self):

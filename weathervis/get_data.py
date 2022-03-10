@@ -380,12 +380,13 @@ class get_data():
         logging.info("-------> Getting variable: ")
         iteration =-1
         for prm in self.param:
+            #print(prm)
             iteration += 1
             logging.info(prm)
             dimlist = list(file["var"][prm]["dim"])  # List of the variables the param depends on ('time', 'pressure', 'ensemble_member', 'y', 'x')
             pressure_dim = list(filter(re.compile(f'press*').match, dimlist))
             model_dim = list(filter(re.compile(f'.*hybrid*').match, dimlist))
-            #height_dim = list(filter(re.compile(f'.*height*').match, dimlist))
+            height_dim = list(filter(re.compile(f'.*height*').match, dimlist))
             #mbrs_dim = list(filter(re.compile(f'.*ensemble*').match, dimlist))
 
             startsub = ":" #retrieve everything if startsub = :
@@ -428,7 +429,6 @@ class get_data():
                 for k in dataset.variables[prm].__dict__.keys():
                     ss = f"{k}_{prm}"
                     self.__dict__[ss] = dataset.variables[prm].__dict__[k]
-
             varvar = f"dataset.variables['{prm}'][{startsub}]" ##
             varvar = eval(varvar)
             dimlist = np.array(list(file["var"][prm]["dim"]))  # ('time', 'pressure', 'ensemble_member', 'y', 'x')
@@ -438,26 +438,38 @@ class get_data():
                 varvar = dataset.variables[prm][:].squeeze(axis=indxmember)
 
             self.__dict__[prm] = varvar
+
         dataset.close()
         iteration += 1
+
 
     def windcorr(self):
         jindx = self.idx[0]
         iindx = self.idx[1]
-        if self.model == "AromeArctic":
+        #print("*******************")
+        #todo: remember model can be any type.
+        if self.model !=None and self.model.lower() =="aromearctic":
             infile = package_path + "/data/alpha_full_AA.nc"
-        elif self.model == "MEPS":
+            alphadata = Dataset(infile)
+            alpha = alphadata["alpha"][:]
+            self.__dict__["alpha"] = alpha[jindx.min():jindx.max()+1,iindx.min():iindx.max()+1]
+            alphadata.close()
+        elif self.model != None and self.model.lower() == "meps":
             infile = package_path + "/data/alpha_full_MEPS.nc"
-        alphadata = Dataset(infile)
-        alpha = alphadata["alpha"][:]
-        print(infile)
-        self.__dict__["alpha"] = alpha[jindx.min():jindx.max()+1,iindx.min():iindx.max()+1]
+            alphadata = Dataset(infile)
+            alpha = alphadata["alpha"][:]
+            self.__dict__["alpha"] = alpha[jindx.min():jindx.max() + 1, iindx.min():iindx.max() + 1]
+            alphadata.close()
+        else:
+            print("call wind2alpha in order to correct wind. Skipped so fae.")
+            infile = None
+            alpha = [np.nan]
+            self.__dict__["alpha"] = alpha
 
-        alphadata.close()
 
     def retrieve(self):
         #self.url = self.make_url()
         self.thredds(self.url, self.file)
-        self.windcorr()
+        self.windcorr() #this is error prone FIX
 
     class dummyobject(object):pass

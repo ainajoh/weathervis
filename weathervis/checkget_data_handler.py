@@ -141,7 +141,6 @@ def retrievenow(our_choice,model,step, date,fileobj,m_level,p_level, domain_name
     ourfileobj = fileobj[fileobj["File"].isin([ourfilename])]
 
     ourfileobj.reset_index(inplace=True, drop=True)
-    print(point_name)
     data_domain = domain_input_handler(dt=date, model=model, domain_name=domain_name, domain_lonlat=domain_lonlat, file =ourfileobj,point_name=point_name,point_lonlat=point_lonlat, use_latest=use_latest,delta_index=delta_index)#
 
     combo = our_choice.combo
@@ -224,7 +223,7 @@ def checkget_data_handler(all_param, date=None,  model=None, step=[0], p_level= 
                                     bad_param = bad_param,bad_param_sfx = bad_param_sfx,point_name=point_name,point_lonlat=point_lonlat,use_latest=use_latest,
                                                      delta_index=delta_index)
             break
-        except (ValueError, NameError):
+        except (ValueError, NameError, UnboundLocalError):
             print("Oops!", sys.exc_info()[0], "occurred.")
             print("Next entry.")
             print(" ")
