@@ -295,17 +295,17 @@ def fix(outputpath, modelruntime, steps=[0,64], lvl=[0,64], archive=1):
     #lvl = [0,1]  # 64   #64 #  49..#
     #modelruntime = "2020031100"  # Camp start 20.feb - 14.march..
     
-    if "cyclone.hpc.uib.no" in platform.node() and outputpath == None :
-	print("detected cyclone")
-	#outputpath="/Data/gfi/work/cat010/flexpart_arome/input/"
-	#outputpath="/Data/gfi/work/hso039/flexpart_arome/input/"
-	user = os. environ['USER'];
-	outputpath="/Data/gfi/projects/isomet/projects/ISLAS/flexpart-arome_forecast/data/{0}/input/".format(user)
-    elif: outputpath != None :
-	outputpath=outputpath
+    if "cyclone.hpc.uib.no" in platform.node() and outputpath == None:
+        print("detected cyclone")
+        #outputpath="/Data/gfi/work/cat010/flexpart_arome/input/"
+        #outputpath="/Data/gfi/work/hso039/flexpart_arome/input/"
+        user = os. environ['USER']
+        outputpath="/Data/gfi/projects/isomet/projects/ISLAS/flexpart-arome_forecast/data/{0}/input/".format(user)
+    elif outputpath != None :
+        outputpath=outputpath
     else:
-	outputpath="./"
-	print("LOCAL")
+        outputpath="./"
+        print("LOCAL")
     
     
     model = "AromeArctic"
