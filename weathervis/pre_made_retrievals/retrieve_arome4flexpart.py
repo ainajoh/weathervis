@@ -18,7 +18,7 @@ else:
     outputpath="./"
     print("LOCAL")
 
-def retrieve_arome4flexpart(modelruntime,steps,lvl,xres,yres,model, use_latest):
+def retrieve_arome4flexpart(outputpath, modelruntime,steps,lvl,xres,yres,model, use_latest):
     """
 Retrieves arome model data to be used as inputs for flexpart-arome
 --------------------------------------------------------------------
@@ -78,28 +78,33 @@ from arome, but in flexpart it is called "SP". So "SP" is important to keep like
     variable2d_arome['integral_of_surface_downward_sensible_heat_flux_wrt_time']['description'] = 'Cum.Sensible heat flux'
     variable2d_arome['integral_of_surface_downward_sensible_heat_flux_wrt_time']['precision'] = resol
 
-    variable2d_sfx['FMU'] = {}
-    variable2d_sfx['FMU']['name'] = 'USTRESS'
-    variable2d_sfx['FMU']['units'] = 'Kg.m-1.s-1'
-    variable2d_sfx['FMU']['description'] = 'Surface wind stress (u)'
-    variable2d_sfx['FMU']['precision'] = resol
-    variable2d_sfx['FMV'] = {}
-    variable2d_sfx['FMV']['name'] = 'VSTRESS'
-    variable2d_sfx['FMV']['units'] = 'Kg.m-1.s-1'
-    variable2d_sfx['FMV']['description'] = 'Surface wind stress (v)'
-    variable2d_sfx['FMV']['precision'] = resol
+    variable2d_sfx['SFX_FMU'] = {}
+    variable2d_sfx['SFX_FMU']['name'] = 'USTRESS'
+    variable2d_sfx['SFX_FMU']['units'] = 'Kg.m-1.s-2'
+    variable2d_sfx['SFX_FMU']['description'] = 'Averaged screen level zonal wind stress (u)'
+    variable2d_sfx['SFX_FMU']['precision'] = resol
+    variable2d_sfx['SFX_FMV'] = {}
+    variable2d_sfx['SFX_FMV']['name'] = 'VSTRESS'
+    variable2d_sfx['SFX_FMV']['units'] = 'Kg.m-1.s-2'
+    variable2d_sfx['SFX_FMV']['description'] = 'Averaged screen level meridional wind stress (v)'
+    variable2d_sfx['SFX_FMV']['precision'] = resol
 
     variable3d_arome['air_temperature_ml'] = {}
     variable3d_arome['air_temperature_ml']['name'] = 'T'
     variable3d_arome['air_temperature_ml']['units'] = 'K'
     variable3d_arome['air_temperature_ml']['description'] = 'temperature on pressure sigmal levels'
     variable3d_arome['air_temperature_ml']['precision'] = resol  # digit precision
-    variable3d_arome['divergence_vertical'] = {}
-    variable3d_arome['divergence_vertical']['name'] = 'NH_dW'
-    variable3d_arome['divergence_vertical']['units'] = 'm/s * g'
-    variable3d_arome['divergence_vertical'][
-        'description'] = 'Non Hydrostatic divergence of vertical velocity: D = -g(w(i) -w(i-1))'
-    variable3d_arome['divergence_vertical']['precision'] = resol
+    #variable3d_arome['divergence_vertical'] = {}
+    #variable3d_arome['divergence_vertical']['name'] = 'NH_dW'
+    #variable3d_arome['divergence_vertical']['units'] = 'm/s * g'
+    #variable3d_arome['divergence_vertical'][
+    #    'description'] = 'Non Hydrostatic divergence of vertical velocity: D = -g(w(i) -w(i-1))'
+    #variable3d_arome['divergence_vertical']['precision'] = resol
+    variable3d_arome['upward_air_velocity_ml'] = {}
+    variable3d_arome['upward_air_velocity_ml']['name'] = 'W'
+    variable3d_arome['upward_air_velocity_ml']['units'] = 'm/s'
+    variable3d_arome['upward_air_velocity_ml']['description'] = 'Vertical vind model levels'
+    variable3d_arome['upward_air_velocity_ml']['precision'] = resol
     variable3d_arome['x_wind_ml'] = {}
     variable3d_arome['x_wind_ml']['name'] = 'U_X'
     variable3d_arome['x_wind_ml']['units'] = 'm/s'
@@ -164,6 +169,7 @@ from arome, but in flexpart it is called "SP". So "SP" is important to keep like
                         date=modelruntime,  m_level=lvl, use_latest=use_latest)
     print(dmap_arome3d.url)
     dmap_arome3d.retrieve()
+    # TODO: fix vertical velocity to divergence by multipying with g
     print(dmap_arome3d.__dir__)
     print("retrive sfxarome")
     #2dsfx
@@ -283,16 +289,30 @@ from arome, but in flexpart it is called "SP". So "SP" is important to keep like
             vid[:] = data
         ncid.close()
     #return variable2d_arome
-def fix(modelruntime, steps=[0,64], lvl=[0,64], archive=1):
+def fix(outputpath, modelruntime, steps=[0,64], lvl=[0,64], archive=1):
     print(modelruntime)
     #lt = 7
     #lvl = [0,1]  # 64   #64 #  49..#
     #modelruntime = "2020031100"  # Camp start 20.feb - 14.march..
+    
+    if "cyclone.hpc.uib.no" in platform.node() and outputpath == None :
+	print("detected cyclone")
+	#outputpath="/Data/gfi/work/cat010/flexpart_arome/input/"
+	#outputpath="/Data/gfi/work/hso039/flexpart_arome/input/"
+	user = os. environ['USER'];
+	outputpath="/Data/gfi/projects/isomet/projects/ISLAS/flexpart-arome_forecast/data/{0}/input/".format(user)
+    elif: outputpath != None :
+	outputpath=outputpath
+    else:
+	outputpath="./"
+	print("LOCAL")
+    
+    
     model = "AromeArctic"
     xres = 1
     yres = 1
     use_latest = False if archive==1 else True
-    variable2d = retrieve_arome4flexpart(modelruntime,steps,lvl,xres,yres,model, use_latest)
+    variable2d = retrieve_arome4flexpart(outputpath, modelruntime,steps,lvl,xres,yres,model, use_latest)
 
 if __name__ == "__main__":
   import argparse
@@ -302,6 +322,7 @@ if __name__ == "__main__":
   #parser.add_argument("--steps", default= any_int_range(["0:64:1"]), nargs="+", type=str,help=" j")
   parser.add_argument("--m_levels", default=[0,64], nargs="+", type=int,help="model level, 64 is lowest")
   parser.add_argument("--archive", default=1, type=int,help="fetch from archive if 1")
+  parser.add_argument("--outputpath", default=None, type=str,help="where to save")
 
   args = parser.parse_args()
   #steps=any_int_range(args.steps)
@@ -310,7 +331,7 @@ if __name__ == "__main__":
   print(args.m_levels)
   print(m_levels)
   #exit(1)
-  fix(args.datetime, steps, m_levels, args.archive)
+  fix(args.outputpath, args.datetime, steps, m_levels, args.archive)
 
   #datetime, step=4, model= "MEPS", domain = None
   #retrieve_arome4flexpart
