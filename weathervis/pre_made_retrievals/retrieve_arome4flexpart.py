@@ -184,10 +184,10 @@ from arome, but in flexpart it is called "SP". So "SP" is important to keep like
     print(param2d_sfx)
     dmap_sfx2d, data_domain, bad_param = checkget_data_handler(date=modelruntime, use_latest=use_latest,
 		                                                             model=model, step=steps, all_param=param2d_sfx)
-    
+    print("badparam") 
     print(bad_param)
-    for bp in bad_param:
-	    param2d_sfx.remove(bp)
+    #for bp in bad_param:
+    #	    param2d_sfx.remove(bp)
     #sfx2d = check_data(date=modelruntime, model=model, param=param2d_sfx, use_latest=use_latest)
     #file_sfx2d=sfx2d.file
     #dmap_sfx2d = get_data(model=model, file=file_sfx2d, param=param2d_sfx, step=steps, date=modelruntime, use_latest=use_latest)
@@ -302,16 +302,19 @@ from arome, but in flexpart it is called "SP". So "SP" is important to keep like
             vid.units = variable2d_arome[param]['units']
             vid.description = variable2d_arome[param]['description']
             expressiondata = f"dmap_arome2d.{param}[{tidx},0,::{xres},::{yres}]"
+            print(expressiondata)
             data = eval(expressiondata)
             if param =="surface_air_pressure":
                 print(param)
                 data = np.log(data)
             vid[:] = data
+        print(param2d_sfx)
         for param in param2d_sfx:
             vid = ncid.createVariable(variable2d_sfx[param]['name'], 'f4', ('Y', 'X'), zlib=True)
             vid.units = variable2d_sfx[param]['units']
             vid.description = variable2d_sfx[param]['description']
             expressiondata = f"dmap_sfx2d.{param}[{tidx},::{xres},::{yres}]"
+            print(expressiondata)
             data = eval(expressiondata)
             vid[:] = data
 
