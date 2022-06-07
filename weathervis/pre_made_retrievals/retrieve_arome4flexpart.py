@@ -9,17 +9,8 @@ import datetime
 import platform
 from weathervis.checkget_data_handler import *
 
-if "cyclone.hpc.uib.no" in platform.node():
-    print("detected cyclone")
-    #outputpath="/Data/gfi/work/cat010/flexpart_arome/input/"
-    #outputpath="/Data/gfi/work/hso039/flexpart_arome/input/"
-    user = os. environ['USER'];
-    outputpath="/Data/gfi/projects/isomet/projects/ISLAS/flexpart-arome_forecast/data/{0}/input/".format(user)
-else:
-    outputpath="./"
-    print("LOCAL")
 
-def retrieve_arome4flexpart(modelruntime,steps,lvl,xres,yres,model, use_latest):
+def retrieve_arome4flexpart(outputpath, modelruntime,steps,lvl,xres,yres,model, use_latest):
     """
 Retrieves arome model data to be used as inputs for flexpart-arome
 --------------------------------------------------------------------
@@ -312,16 +303,31 @@ from arome, but in flexpart it is called "SP". So "SP" is important to keep like
 
         ncid.close()
     #return variable2d_arome
-def fix(modelruntime, steps=[0,64], lvl=[0,64], archive=1):
+
+
+def fix(outputpath, modelruntime, steps=[0, 64], lvl=[0, 64], archive=1):
     print(modelruntime)
-    #lt = 7
-    #lvl = [0,1]  # 64   #64 #  49..#
-    #modelruntime = "2020031100"  # Camp start 20.feb - 14.march..
+    # lt = 7
+    # lvl = [0,1]  # 64   #64 #  49..#
+    # modelruntime = "2020031100"  # Camp start 20.feb - 14.march..
+
+    if "cyclone.hpc.uib.no" in platform.node() and outputpath == None:
+        print("detected cyclone")
+        # outputpath="/Data/gfi/work/cat010/flexpart_arome/input/"
+        # outputpath="/Data/gfi/work/hso039/flexpart_arome/input/"
+        user = os.environ['USER']
+        outputpath = "/Data/gfi/projects/isomet/projects/ISLAS/flexpart-arome_forecast/data/{0}/input/".format(user)
+    elif outputpath != None:
+        outputpath = outputpath
+    else:
+        outputpath = "./"
+        print("LOCAL")
+
     model = "AromeArctic"
     xres = 1
     yres = 1
-    use_latest = False if archive==1 else True
-    variable2d = retrieve_arome4flexpart(modelruntime,steps,lvl,xres,yres,model, use_latest)
+    use_latest = False if archive == 1 else True
+    variable2d = retrieve_arome4flexpart(outputpath, modelruntime, steps, lvl, xres, yres, model, use_latest)
 
 if __name__ == "__main__":
   import argparse
@@ -331,6 +337,7 @@ if __name__ == "__main__":
   #parser.add_argument("--steps", default= any_int_range(["0:64:1"]), nargs="+", type=str,help=" j")
   parser.add_argument("--m_levels", default=[0,64], nargs="+", type=int,help="model level, 64 is lowest")
   parser.add_argument("--archive", default=1, type=int,help="fetch from archive if 1")
+  parser.add_argument("--outputpath", default=None, type=str,help="where to save")
 
   args = parser.parse_args()
   #steps=any_int_range(args.steps)
@@ -339,7 +346,7 @@ if __name__ == "__main__":
   print(args.m_levels)
   print(m_levels)
   #exit(1)
-  fix(args.datetime, steps, m_levels, args.archive)
+  fix(args.outputpath, args.datetime, steps, m_levels, args.archive)
 
   #datetime, step=4, model= "MEPS", domain = None
   #retrieve_arome4flexpart
