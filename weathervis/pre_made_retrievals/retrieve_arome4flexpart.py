@@ -7,6 +7,7 @@ from netCDF4 import Dataset
 import os
 import datetime
 import platform
+from weathervis.checkget_data_handler import *
 
 if "cyclone.hpc.uib.no" in platform.node():
     print("detected cyclone")
@@ -33,7 +34,7 @@ from arome, but in flexpart it is called "SP". So "SP" is important to keep like
     variable2d_arome = {}  # dictionary containing 2dimentional variables
     variable3d_arome = {}  # dictionary containing 3dimentional variables
     variable2d_sfx = {}    # dictionary containing specific surfex variables
-    resol = 7              # precision of number
+    resol = 7              # precision of number in decimal
 
     #INITIATING PARAMETER (e.g air_temperature_2m) INFO.
     # Check that unit and description is correct with your data
@@ -110,11 +111,13 @@ from arome, but in flexpart it is called "SP". So "SP" is important to keep like
     variable3d_arome['y_wind_ml']['units'] = 'm/s'
     variable3d_arome['y_wind_ml']['description'] = 'V wind along y axis on pressure sigmal levels'
     variable3d_arome['y_wind_ml']['precision'] = resol
-    # variable3d_arome['PRESS.DEPART']={}
-    # variable3d_arome['PRESS.DEPART']['name'] = 'NH_dP'
-    # variable3d_arome['PRESS.DEPART']['units'] = 'Pa'
-    # variable3d_arome['PRESS.DEPART']['description'] = 'NH departure from pressure'
-    # variable3d_arome['PRESS.DEPART']['precision'] = 1
+    ############
+    ## variable3d_arome['PRESS.DEPART']={}
+    ## variable3d_arome['PRESS.DEPART']['name'] = 'NH_dP'
+    ## variable3d_arome['PRESS.DEPART']['units'] = 'Pa'
+    ## variable3d_arome['PRESS.DEPART']['description'] = 'NH departure from pressure'
+    ## variable3d_arome['PRESS.DEPART']['precision'] = 1
+    ##############
     variable3d_arome['specific_humidity_ml'] = {}
     variable3d_arome['specific_humidity_ml']['name'] = 'Q'
     variable3d_arome['specific_humidity_ml']['units'] = 'kg/kg'
@@ -131,39 +134,50 @@ from arome, but in flexpart it is called "SP". So "SP" is important to keep like
     variable3d_arome['cloud_area_fraction_ml']['description'] = 'cloud fraction'
     variable3d_arome['cloud_area_fraction_ml']['precision'] = 1
 
+    #varables_arome = {**variable3d_arome, **variable2d_sfx, **variable2d_arome}
+    #print(varables_arome.keys()); exit(1)
+    #all_param = [*variable2d_sfx.keys(), *variable3d_arome.keys(), *variable2d_arome.keys()]
+    #dmap_all, data_domain, bad_param = checkget_data_handler(date=modelruntime, m_level=lvl, use_latest=use_latest,
+    #                                                             model=model, step=steps, all_param=all_param)
+    #print(all_param)
+    #param3d_arome = [*variable3d_arome.keys()]
+    #arome3d = check_data(date=modelruntime, model=model, param=param3d_arome, m_level=lvl, use_latest=use_latest)
+    #print("ye"); exit(1)
     #START RETRIEVING MODEL DATA
     #2dArome
-    print("retrive 2darome")
+    #print("retrive 2darome")
     param2d_arome = [*variable2d_arome.keys()]
-    print(param2d_arome)
-    print("check 2d arome")
+    #print(param2d_arome)
+    #print("check 2d arome")
     arome2d = check_data(date=modelruntime, model=model, param=param2d_arome, use_latest=use_latest)
     #
-    print(arome2d)
+    #print(arome2d)
     file_arome2d= arome2d.file
-    print(arome2d.file)
-    print(arome2d.file.loc[0,"var"])
-    print("befor retrieve arome")
+    #print(arome2d.file)
+    #print(arome2d.file.loc[0,"var"])
+    #print("befor retrieve arome")
 
     dmap_arome2d = get_data(model=model, file=file_arome2d, param=param2d_arome, step=steps,date=modelruntime, use_latest=use_latest)
-    print("########AFT retrieve arome")
+    #print("########AFT retrieve arome")
 
-    print(dmap_arome2d.url)
-    dmap_arome2d.retrieve()
-    print(dmap_arome2d.__dir__)
+    #print(dmap_arome2d.url)
+    dmap_arome2d.retrieve() #AINA unhash
+    #print(dmap_arome2d.__dir__)
     print("check 3darome")
     # 3dArome This can be included in 2darome for timeefficency
     param3d_arome = [*variable3d_arome.keys()]
-    arome3d = check_data(date=modelruntime, model=model, param=param3d_arome, m_level=lvl, use_latest=use_latest)
-    file_arome3d = arome3d.file
-    print("done check 3darome")
+    print("var")
+    print(param3d_arome)
 
-    print(file_arome3d)
-    print("get 3darome")
-    dmap_arome3d = get_data(model=model, file=file_arome3d, param=param3d_arome, step=steps,
-                        date=modelruntime,  m_level=lvl, use_latest=use_latest)
-    print(dmap_arome3d.url)
-    dmap_arome3d.retrieve()
+    dmap_arome3d, data_domain, bad_param = checkget_data_handler(date=modelruntime, m_level=lvl, use_latest=use_latest,
+                                                         model=model, step=steps, all_param=param3d_arome)
+    print("DONE")
+    #arome3d = check_data(date=modelruntime, model=model, param=param3d_arome, m_level=lvl, use_latest=use_latest)
+    #file_arome3d = arome3d.file
+    #dmap_arome3d = get_data(model=model, file=file_arome3d, param=param3d_arome, step=steps,
+    #                    date=modelruntime,  m_level=lvl, use_latest=use_latest)
+    #dmap_arome3d.retrieve()
+
     print(dmap_arome3d.__dir__)
     print("retrive sfxarome")
     #2dsfx
@@ -178,8 +192,11 @@ from arome, but in flexpart it is called "SP". So "SP" is important to keep like
     dataset = Dataset(url)
     attr = {}
     proj = dataset.variables["projection_lambert"]
-    #proj=dmap_arome2d.projection_lambert
-
+    #future todo: all parameter, not split up.
+    #########
+    #all_param = [*variable2d_sfx.keys(), *variable3d_arome.keys(), *variable2d_arome.keys()]
+    #all_dmap =
+    #########
     #for t in range( 0, len(dmap_arome2d.time )):
     #for t in np.arange(np.min(steps), np.max(steps) + 1, 1):
     for tidx in np.arange(0, len(steps), 1):
@@ -254,11 +271,21 @@ from arome, but in flexpart it is called "SP". So "SP" is important to keep like
         vid.description = 'latitude of the center grid'
         vid[:] = dmap_arome2d.latitude[::xres,::yres]
         print(param3d_arome)
+
+        #for param in all_param:
+        #    vid = ncid.createVariable(variable3d_arome[param]['name'], 'f4',('level','Y','X'),zlib=True)
+        #    vid.units = varables_arome[param]['units']
+        #    vid.description = varables_arome[param]['description']
+        #    expressiondata = f"dmap_arome.{param}[{tidx},:,::{xres},::{yres}]"
+        #    print(expressiondata)
+        #    data = eval(expressiondata)
+        #    vid[:] = data
+
         for param in param3d_arome:
             vid = ncid.createVariable(variable3d_arome[param]['name'], 'f4',('level','Y','X'),zlib=True)
             vid.units = variable3d_arome[param]['units']
             vid.description = variable3d_arome[param]['description']
-            expressiondata = f"dmap_arome3d.{param}[{tidx},:,::{xres},::{yres}]"
+            expressiondata = f"dmap_arome3d.{param}[:]"
             print(expressiondata)
             data = eval(expressiondata)
             vid[:] = data
@@ -281,6 +308,8 @@ from arome, but in flexpart it is called "SP". So "SP" is important to keep like
             expressiondata = f"dmap_sfx2d.{param}[{tidx},::{xres},::{yres}]"
             data = eval(expressiondata)
             vid[:] = data
+
+
         ncid.close()
     #return variable2d_arome
 def fix(modelruntime, steps=[0,64], lvl=[0,64], archive=1):
