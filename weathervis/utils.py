@@ -365,6 +365,11 @@ GpsAlt_m = 'GpsAlt_m'):
 
 def domain_input_handler(dt=None, model=None, domain_name=None, domain_lonlat=None, file=None, point_name=None, point_lonlat=None, use_latest=True, delta_index=None, url=None):
     print("######## domain_input_handler in utils.py ################### ")
+    print(domain_name)
+    print(domain_lonlat)
+    print(point_name)
+    #import os
+    #os._exit(0)
     if domain_name or domain_lonlat:
         if domain_lonlat:
             print(f"\n####### Setting up domain for coordinates: {domain_lonlat} ##########")
@@ -387,9 +392,23 @@ def domain_input_handler(dt=None, model=None, domain_name=None, domain_lonlat=No
     print(data_domain)
 
     if (point_name !=None and domain_name == None and domain_lonlat == None):
+        print("here")
+
         data_domain = domain(dt, model, file=file, point_name=point_name,use_latest=use_latest,delta_index=delta_index, url=url)
-    if (point_lonlat != None and point_name == None and domain_name == None and domain_lonlat == None):
-        data_domain = domain(dt, model, file=file, lonlat=point_lonlat,use_latest=use_latest,delta_index=delta_index, url=url)
+        print("here2")
+
+    if (point_lonlat != None and domain_name == None and domain_lonlat == None):
+        print("here")
+        data_domain = domain(dt, model, file=file, point_lonlat= point_lonlat, use_latest=use_latest,
+                                delta_index=delta_index, url=url)
+
+        #import os
+        #os._exit(0)
+
+    #if (point_lonlat != None and point_name == None and domain_name == None and domain_lonlat == None):
+    #    data_domain = domain(dt, model, file=file, lonlat=point_lonlat,use_latest=use_latest,delta_index=delta_index, url=url)
+
+
     return data_domain
 
 def default_map_projection(dmet):
@@ -529,7 +548,7 @@ def find_subdomains(domain_name, datetime=None, model=None, domain_lonlat=None, 
 
 
 def plot_by_subdomains(plt_func, checkget_data_handler, datetime, steps, model, domain_name, domain_lonlat, legend, info, grid, url, point_lonlat, use_latest,
-        delta_index, coast_details, param, p_level, overlays=None, runid=None):
+        delta_index, coast_details=None, param=None, p_level=None, overlays=None, runid=None):
 
     domains_with_subdomains = find_subdomains(domain_name=domain_name, datetime=datetime, model=model,
                                               domain_lonlat=domain_lonlat,

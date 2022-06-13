@@ -97,8 +97,24 @@ def filter_type(file, mbrs, p_level,m_level):
             file = file[~file.m_levels.isnull()]  # not needed?
             file.reset_index(inplace=True)  # not needed?
             print(file.columns)
-        if filter == "medium": pass # any files containing one or more of desired mlevels
+        if filter \
+                == "medium": pass # any files containing one or more of desired mlevels
+    print("stop1")
+    print(p_level)
+    #exit()
+    #raise SystemExit
+    ##import sys
+    #sys.exit()
+    #import os
+    #os._exit(0)
     if p_level:
+        print("stop")
+        #exit()
+        #raise SystemExit
+        #import sys
+        #sys.exit()
+        #import os
+        #os._exit(0)
         filter = "strict"
         if filter == "strict":
             file = file[~file.p_levels.isnull()]   #not needed?
@@ -223,7 +239,12 @@ class check_data():
         filter_function_for_date(self.date)
         self.check_web_connection()
         self.model = filter_function_for_models_ignore_uppercases(self.model) if self.model != None else None
-        self.p_level = [p_level] if p_level != None and type(p_level) != list else p_level
+        print("aina rmv")
+        print(p_level)
+        #exit()
+        self.p_level = list(p_level) if p_level != None else p_level #and type(p_level) != list else p_level
+
+        #self.p_level = [p_level] if p_level != None and type(p_level) != list else p_level
         self.m_level = [m_level] if m_level != None and type(m_level) != list else m_level
         if (self.model !=None and self.date !=None) or self.url !=None:
             all_files = self.check_files(date, model, param,  mbrs, url) #the main outcome
@@ -379,6 +400,8 @@ class check_data():
             dataset.close()
 
         file_withparam = filter_param( df.copy(), param)
+        print("AINA rmv2")
+        print( self.p_level)
         file_corrtype = filter_type( df.copy(), mbrs, self.p_level, self.m_level)
         file = file_withparam[file_withparam.File.isin(file_corrtype.File)]
         file.reset_index(inplace=True, drop = True)
@@ -410,7 +433,7 @@ class check_data():
 
         df = pd.read_csv(f"{package_path}/data/{model}_filesandvar.csv")
         dfc = df.copy()  # df['base_name'] = [re.sub(r'_[0-9]*T[0-9]*Z.nc','', str(x)) for x in df['File']]
-        drop_files = ["_vc_", "thunder", "_kf_", "_ppalgs_", "_pp_", "t2myr", "wbkz", "vtk","_preop_", "lagged"]
+        drop_files = ["_vc_", "thunder", "_kf_", "_ppalgs_", "_pp_", "t2myr", "wbkz", "vtk","_preop_", "_lagged_"]
         df_base = pd.DataFrame([re.sub(r'_[0-9]*T[0-9]*Z.nc', '', str(x)) for x in df['File']], columns=["base_name"])
         dfc["base_name"] = df_base["base_name"]
 

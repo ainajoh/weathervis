@@ -184,7 +184,8 @@ def checkget_data_handler(all_param, date=None,  model=None, step=[0], p_level= 
     print("################ checkget_data_handler in checkget_data_handler.py #############################")
     step = [step] if type(step) == int else step
     if url != None:
-        fileobj = check_data(url=url, model=model, date=date, step=step, use_latest=use_latest).file
+        print("AINA rmv")
+        fileobj = check_data(url=url, model=model, date=date, step=step, use_latest=use_latest,p_level=p_level, m_level=m_level).file
         data_domain = domain_input_handler(file = fileobj, url=url, dt=date, model=model, domain_name=domain_name, domain_lonlat=domain_lonlat,
                                            point_name=point_name, point_lonlat=point_lonlat, delta_index=delta_index)
 
@@ -195,7 +196,7 @@ def checkget_data_handler(all_param, date=None,  model=None, step=[0], p_level= 
         return dmet, data_domain, bad_param
 
     date=str(date)
-    fileobj = check_data(model=model, date=date, step=step, use_latest=use_latest).file
+    fileobj = check_data(model=model, date=date, step=step, use_latest=use_latest,p_level=p_level, m_level=m_level).file
     all_choices, bad_param  = find_best_combinationoffiles(all_param=all_param, fileobj=fileobj,m_level=m_level,p_level=p_level)
 
 
