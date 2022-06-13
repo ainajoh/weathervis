@@ -453,7 +453,7 @@ def nice_legend(dict, ax1):
 def default_arguments():
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument("--datetime", help="YYYYMMDDHH for modelrun", required=True, type=str)
+    parser.add_argument("--datetime", help="YYYYMMDDHH for modelrun", default=None,  type=str)
     parser.add_argument("--steps", default=["0"], nargs="+", type=str,
                         help="forecast times example --steps 0 3 gives time 0 and 3 \n --steps 0:1:3 gives timestep 0, 1, 2")
     parser.add_argument("--model", default=None, help="MEPS or AromeArctic")

@@ -41,15 +41,14 @@ def VC_plot(model_data, adj_obs_data, raw_obs_data):
     mi = np.min((raw_obs_data['RH[%]'][:num_p].values.min(), model_data.relative_humidity_pl.min()))
     ma = np.max((raw_obs_data['RH[%]'][:num_p].values.max(), model_data.relative_humidity_pl.max()))
     norm = matplotlib.colors.Normalize(vmin=mi, vmax=ma)
+    norm = matplotlib.colors.Normalize(vmin=10, vmax=100)
+
     colormap = "cividis_r"
     #norm = matplotlib.colors.Normalize(vmin=0, vmax=100) for a fixed value between plots
     obs_datetime = adj_obs_data.index[:num_p]
-    levels = range(len(model_data.pressure))
     lx, tx = np.meshgrid(model_data.pressure, obs_datetime)
-    fig, ax = plt.subplots(figsize=(12, 4))
+    fig, ax = plt.subplots(figsize=(12, 3))
     pp = model_data.pressure
-    print(model_data.relative_humidity_pl)
-    print(np.shape(model_data.relative_humidity_pl))
     cf = ax.pcolormesh(tx, lx, model_data.relative_humidity_pl * 100, norm=norm, cmap=colormap, shading='nearest', zorder=1)
     fig.colorbar(cf, ax=ax)
 
@@ -57,7 +56,6 @@ def VC_plot(model_data, adj_obs_data, raw_obs_data):
     print("CMET")
     pres_cmet = adj_obs_data['P[Pa]'][:num_p].values / 100.
     rh_cmet = adj_obs_data['RH[%]'][:num_p].values
-    print(obs_datetime)
     cmetf = ax.scatter(obs_datetime, pres_cmet, c=rh_cmet, marker="8", s=250, norm=norm, cmap=colormap, edgecolor="k",
                        zorder=3)
     raw_obs_data = raw_obs_data[raw_obs_data.index <= adj_obs_data.index[:num_p].values[-1]]
@@ -65,6 +63,7 @@ def VC_plot(model_data, adj_obs_data, raw_obs_data):
     rh_cmet = raw_obs_data['RH[%]'].values  # [:num_p].values
     obs_datetime = raw_obs_data.index  # [:num_p]
     cmetf = ax.scatter(obs_datetime, pres_cmet, c=rh_cmet, s=100, norm=norm, cmap=colormap, zorder=2)  # , edgecolor="k")
+    cmetf = ax.scatter(obs_datetime, pres_cmet, color="white", zorder=3, marker=".", s= 0.1)  # , edgecolor="k")
 
     # plt.gca()
     ax.invert_yaxis()
@@ -76,21 +75,34 @@ def VC_plot(model_data, adj_obs_data, raw_obs_data):
     plt.show()
 
 
-def VC_getcmet(filename, lonname, latname):
-    lon_name = lonname
-    lat_name = latname
+def VC_getcmet(filename,julianday_adjustment, possible_lonlatname):
+    #lon_name = lonname
+    #lat_name = latname
     #####################################
     # READ AND ADJUST CMET BALOON DATA:
     #####################################
     raw_obs_data = pd.read_csv(filename, sep=r'\s*[,]\s*',  header=0, index_col=0) #sep="\s*[,]\s*"
     raw_obs_data.columns = raw_obs_data.columns.str.replace(' ', '')  # removes any aditional spaces
-    raw_obs_data["lon"] = raw_obs_data[lon_name]
-    raw_obs_data["lat"] = raw_obs_data[lat_name]
+
+    #raw_obs_data["lon"] = raw_obs_data[lon_name]
+    #raw_obs_data["lat"] = raw_obs_data[lat_name]
+    for lonlatnames in possible_lonlatname:
+        if lonlatnames[0] in raw_obs_data.columns:
+            print(lonlatnames)
+            raw_obs_data["lon"] = raw_obs_data[lonlatnames[0]]
+            raw_obs_data["lat"] = raw_obs_data[lonlatnames[1]]
+            break
+    for lonlatnames in possible_lonlatname:
+        if lonlatnames[0] in raw_obs_data.columns:
+            print(lonlatnames)
+            raw_obs_data["lon"].fillna(raw_obs_data[lonlatnames[0]], inplace=True)
+            raw_obs_data["lat"].fillna(raw_obs_data[lonlatnames[1]], inplace=True)
+
     # cmet = cmet[cmet['LonMsg[d]'].notna()].reset_index() #removes all missing lonlat positions
     raw_obs_data = raw_obs_data[raw_obs_data["lon"].notna()].reset_index()  # removes all missing lonlat positions
     print(raw_obs_data)
     raw_obs_data["datetime"] = pd.to_datetime("2022", format='%Y') + \
-                       pd.to_timedelta(raw_obs_data.JulianDay + 7,
+                       pd.to_timedelta(raw_obs_data.JulianDay + julianday_adjustment,
                                        unit='d')  # convert Julianday to datetime- 7 days offset in dataset
 
     raw_obs_data.index = raw_obs_data["datetime"]  # makes new index a datetime index
@@ -101,7 +113,7 @@ def VC_getcmet(filename, lonname, latname):
     idx = (raw_obs_data["datetime"].dt.round("H").sub(raw_obs_data["datetime"]).abs().groupby(raw_obs_data["datetime"].dt.round("H"),
                                                                               sort=False).idxmin())
     adj_obs_data = raw_obs_data.loc[idx]
-    adj_obs_data = adj_obs_data[adj_obs_data[lon_name].notna()]
+    adj_obs_data = adj_obs_data[adj_obs_data["lon"].notna()]
 
     return adj_obs_data, raw_obs_data
 
@@ -111,6 +123,19 @@ def VC_get_model_data(obs_data, datetime, model):
     #####################################
     # READ AND ADJUST AROME ARCTIC MODEL DATA
     #####################################
+    if datetime==None:
+        firsthour = int(obs_data["datetime"].dt.strftime("%H").values[0])
+        if firsthour >= 18:
+            hour = "18"
+        elif firsthour>= 12:
+            hour = "12"
+        elif firsthour >= 6:
+            hour = "06"
+        else:
+            hour = "00"
+        dd = obs_data["datetime"].dt.strftime("%Y%m%d").values[0]
+        datetime = dd + hour
+        print(datetime)
     param = ["air_pressure_at_sea_level", "surface_geopotential", "relative_humidity_pl"] #parameters we want
     p_level =  [500, 700, 800, 850, 925, 1000] # pressure levels we want
     # Possible pressure levels in model [50, 100 , 150, 200, 250, 300, 400, 500, 700, 800, 850, 925, 1000]
@@ -132,22 +157,44 @@ def VC_get_model_data(obs_data, datetime, model):
                     setattr(dmet, prm,  np.array(np.append( np.array([getattr(dmet, prm)]), np.array([getattr(dmet_old, prm)])))   )
         dmet_old = deepcopy(dmet)
     setattr(dmet, "relative_humidity_pl", getattr(dmet, "relative_humidity_pl").reshape(num_p, len(dmet.pressure)))
-    print(np.shape(dmet.relative_humidity_pl))
-    #os._exit(1)
     dmet.steps=steps
     return dmet, data_domain
 
 
 
 if __name__ == "__main__":
-    args = default_arguments()
-    filename=f"{package_path}/data/cmet1.csv"
-    lonname="Lon[deg]"
-    latname="Lat[deg]"
+    ##############################################################################################
+    # step 1: Makesure your cmet files is in weathervis/data/islas2022/ with names of as used bellow
+    # (cmet1.csv, cmet2.csv et)
+    # step 2: run from terminal:
+    #        $ python Vertical_cross_section_withcmet.py --cmet cmet2
+    ##############################################################################################
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--model", default="AromeArctic", help="MEPS or AromeArctic")
+    parser.add_argument("--domain_name", default="Svalbard", nargs="+", type= none_or_str)
+    parser.add_argument("--datetime", help="YYYYMMDDHH for modelrun", default=None,  type=str)
+    parser.add_argument("--cmet", help="cmet1, cmet2.. etc", default="cmet1",  type=str)
 
-    adj_obs_data, raw_obs_data  = VC_getcmet(filename=filename, lonname=lonname, latname=latname)
+    args = parser.parse_args()
+
+
+    filename=f"{package_path}/data/islas2022/{args.cmet}.csv"   #write the path to your cmet data files
+    #NB adjust lat and lon name in priority order or only one name.
+    possible_lonlatname= np.array([["Lon[d]","Lat[d]"], ["Lon[deg]","Lat[deg]"],["LonMsg[d]","LatMsg[d]"]])
+    error_julianday = {"cmet1":6, "cmet2":7, "cmet3":-1, "cmet4":12, "cmet5":17, "cmet6":17}
+    #NB! DATE NEED ADJUSTMENTS
+    for nom in error_julianday.keys():
+        if nom in filename:
+            julianday_adjustment= error_julianday[nom]
+            break
+    print(julianday_adjustment)
+
+
+    ##############################################################################################
+    adj_obs_data, raw_obs_data  = VC_getcmet(filename=filename,
+                                             julianday_adjustment=julianday_adjustment,
+                                             possible_lonlatname=possible_lonlatname)
     model_data, data_domain = VC_get_model_data(adj_obs_data, args.datetime, args.model)
     VC_plot(model_data=model_data, adj_obs_data=adj_obs_data, raw_obs_data=raw_obs_data )
-    #lonname2 = "Lon[deg]"
-    #latname2 = "Lat[deg]"
     map_plot(model_data=model_data, adj_obs_data=adj_obs_data, raw_obs_data=raw_obs_data, domain_name=args.domain_name[0], data_domain=data_domain)
