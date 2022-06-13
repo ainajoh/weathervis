@@ -7,6 +7,9 @@ from weathervis.check_data import *  # require netcdf4
 import re
 import requests
 #Preset domain.
+
+package_path = os.path.dirname(__file__)
+
 if __name__ == "__main__":
     print("Run by itself")
 
@@ -44,13 +47,15 @@ def find_scale(lonlat):
     return scale
 
 class domain():
-    def __init__(self, date=None, model=None, file=None, lonlat=None, idx=None,domain_name=None, point_name=None, use_latest=True,delta_index=None, url=None):
+    def __init__(self, date=None, model=None, point_lonlat=None, file=None, lonlat=None, idx=None,domain_name=None, point_name=None, use_latest=True,delta_index=None, url=None):
         self.date = date
         self.model = model
         self.lonlat = lonlat
         self.idx = idx
         self.domain_name = domain_name
         self.point_name=point_name
+        self.point_lonlat=point_lonlat
+
         self.use_latest = use_latest
         self.delta_index=delta_index
         self.scale = find_scale(self.lonlat) if self.lonlat else 1
@@ -74,7 +79,7 @@ class domain():
             self.idx = lonlat2idx(self.lonlat, self.lon, self.lat)
 
         if self.point_name != None and self.domain_name == None:
-            sites = pd.read_csv("../../data/sites.csv", sep=";", header=0, index_col=0)
+            sites = pd.read_csv(f"{package_path}/data/sites.csv", sep=";", header=0, index_col=0)
             plon = float(sites.loc[self.point_name].lon)
             plat = float(sites.loc[self.point_name].lat)
             self.lonlat = [plon,plat]
@@ -87,7 +92,26 @@ class domain():
                 ii=np.arange(ii_min,ii_max,1)
                 jj=np.arange(jj_min,jj_max,1)
                 self.idx = (ii,jj)
-                #self.lonlat=idx2lonlat(self.idx, url)
+            print("aaaa")
+            print(self.idx)
+
+        if self.point_lonlat != None and self.domain_name == None:
+            plon = float(point_lonlat[0])
+            plat = float(point_lonlat[1])
+            self.lonlat = [plon, plat]
+            self.idx = lonlat2idx(self.lonlat, self.lon, self.lat)
+            if self.delta_index != None:
+                ii_max = int(self.idx[0] + self.delta_index[0] / 2)
+                ii_min = int(self.idx[0] - self.delta_index[0] / 2)
+                jj_max = int(self.idx[1] + self.delta_index[1] / 2)
+                jj_min = int(self.idx[1] - self.delta_index[1] / 2)
+                ii = np.arange(ii_min, ii_max, 1)
+                jj = np.arange(jj_min, jj_max, 1)
+                self.idx = (ii, jj)
+            print("aaaa")
+            print(self.idx)
+
+
 
 
 
@@ -250,7 +274,7 @@ class domain():
 
     def Varlegenhuken(self):
         point_name = "Varlegenhuken"
-        sites = pd.read_csv("./data/sites.csv", sep=";", header=0, index_col=0)
+        sites = pd.read_csv(f"{package_path}/data/sites.csv", sep=";", header=0, index_col=0)
         plon = float(sites.loc[point_name].lon)
         plat = float(sites.loc[point_name].lat)
         minlon = float(plon - 0.32)
@@ -263,7 +287,7 @@ class domain():
 
     def Longyearbyen(self):
         point_name = "Longyearbyen"
-        sites = pd.read_csv("./data/sites.csv", sep=";", header=0, index_col=0)
+        sites = pd.read_csv(f"{package_path}/data/sites.csv", sep=";", header=0, index_col=0)
         plon = float(sites.loc[point_name].lon)
         plat = float(sites.loc[point_name].lat)
         minlon = float(plon - 0.32)
@@ -276,7 +300,7 @@ class domain():
 
     def Hopen(self):
         point_name = "Hopen"
-        sites = pd.read_csv("./data/sites.csv", sep=";", header=0, index_col=0)
+        sites = pd.read_csv(f"{package_path}/data/sites.csv", sep=";", header=0, index_col=0)
         plon = float(sites.loc[point_name].lon)
         plat = float(sites.loc[point_name].lat)
         minlon = float(plon - 0.32)
@@ -289,7 +313,7 @@ class domain():
 
     def Bodo(self):
         point_name = "Bodo"
-        sites = pd.read_csv("./data/sites.csv", sep=";", header=0, index_col=0)
+        sites = pd.read_csv(f"{package_path}/data/sites.csv", sep=";", header=0, index_col=0)
         plon = float(sites.loc[point_name].lon)
         plat = float(sites.loc[point_name].lat)
         minlon = float(plon - 0.32)
@@ -302,7 +326,7 @@ class domain():
 
     def Tromso(self):
         point_name = "Tromso"
-        sites = pd.read_csv("./data/sites.csv", sep=";", header=0, index_col=0)
+        sites = pd.read_csv(f"{package_path}/data/sites.csv", sep=";", header=0, index_col=0)
         plon = float(sites.loc[point_name].lon)
         plat = float(sites.loc[point_name].lat)
         minlon = float(plon - 0.32)
@@ -315,7 +339,7 @@ class domain():
 
     def Bjornoya(self):
         point_name = "Bjornoya"
-        sites = pd.read_csv("./data/sites.csv", sep=";", header=0, index_col=0)
+        sites = pd.read_csv(f"{package_path}/data/sites.csv", sep=";", header=0, index_col=0)
         plon = float(sites.loc[point_name].lon)
         plat = float(sites.loc[point_name].lat)
         minlon = float(plon - 0.32)
@@ -328,7 +352,7 @@ class domain():
 
     def NyAlesund(self):
         point_name = "NyAlesund"
-        sites = pd.read_csv("./data/sites.csv", sep=";", header=0, index_col=0)
+        sites = pd.read_csv(f"{package_path}/data/sites.csv", sep=";", header=0, index_col=0)
         plon = float(sites.loc[point_name].lon)
         plat = float(sites.loc[point_name].lat)
         minlon = float(plon - 0.32)
@@ -344,7 +368,7 @@ class domain():
         #import os
         #abspath = os.path.abspath(__file__)
         #dname = os.path.dirname(abspath)
-        sites = pd.read_csv("./data/sites.csv", sep=";", header=0, index_col=0)
+        sites = pd.read_csv(f"{package_path}/data/sites.csv", sep=";", header=0, index_col=0)
 
         #sites = pd.read_csv("./data/sites.csv", sep=";", header=0, index_col=0)
         plon = float(sites.loc[point_name].lon)
@@ -359,7 +383,7 @@ class domain():
 
     def Osteroy(self):
         point_name = "Osteroy"
-        sites = pd.read_csv("./data/sites.csv", sep=";", header=0, index_col=0)
+        sites = pd.read_csv(f"{package_path}/data/sites.csv", sep=";", header=0, index_col=0)
         plon = float(sites.loc[point_name].lon)
         plat = float(sites.loc[point_name].lat)
         minlon = float(plon - 1.70)
@@ -372,7 +396,7 @@ class domain():
 
     def Olsnesnipa(self):  # PAraglidingstart
         point_name = "Olsnesnipa"
-        sites = pd.read_csv("./data/sites.csv", sep=";", header=0, index_col=0)
+        sites = pd.read_csv(f"{package_path}/data/sites.csv", sep=";", header=0, index_col=0)
         plon = float(sites.loc[point_name].lon)
         plat = float(sites.loc[point_name].lat)
         minlon = float(plon - 0.22)
@@ -385,7 +409,7 @@ class domain():
 
     def JanMayen(self):  # PAraglidingstart
         point_name = "JanMayen"
-        sites = pd.read_csv("./data/sites.csv", sep=";", header=0, index_col=0)
+        sites = pd.read_csv(f"{package_path}/data/sites.csv", sep=";", header=0, index_col=0)
         plon = float(sites.loc[point_name].lon)
         plat = float(sites.loc[point_name].lat)
         minlon = float(plon - 0.22)
@@ -398,7 +422,7 @@ class domain():
 
     def CAO(self):  # PAraglidingstart
         point_name = "JanMayen"
-        sites = pd.read_csv("./data/sites.csv", sep=";", header=0, index_col=0)
+        sites = pd.read_csv(f"{package_path}/data/sites.csv", sep=";", header=0, index_col=0)
         plon = float(sites.loc[point_name].lon)
         plat = float(sites.loc[point_name].lat)
         minlon = float(plon - 0.22)
@@ -411,7 +435,7 @@ class domain():
 
     def NorwegianSea(self):  # PAraglidingstart
         point_name = "NorwegianSea"
-        sites = pd.read_csv("./data/sites.csv", sep=";", header=0, index_col=0)
+        sites = pd.read_csv(f"{package_path}/data/sites.csv", sep=";", header=0, index_col=0)
         plon = float(sites.loc[point_name].lon)
         plat = float(sites.loc[point_name].lat)
         minlon = float(plon - 0.22)
@@ -423,7 +447,7 @@ class domain():
         self.scale = find_scale(self.lonlat)
 
     def NorwegianSea_area(self):  # PAraglidingstart
-        url = "https://thredds.met.no/thredds/dodsC/aromearcticlatest/arome_arctic_sfx_2_5km_latest.nc?latitude,longitude"
+        #url = "https://thredds.met.no/thredds/dodsC/aromearcticlatest/arome_arctic_sfx_2_5km_latest.nc?latitude,longitude"
         self.domain_name = "NorwegianSea_area"
         self.lonlat = [-7, 16, 69.0, 77.2]  #
         self.idx = lonlat2idx(self.lonlat, self.lon, self.lat)
@@ -431,7 +455,7 @@ class domain():
 
     def GEOF322(self):  # PAraglidingstart
         point_name = "GEOF322"
-        sites = pd.read_csv("./data/sites.csv", sep=";", header=0, index_col=0)
+        sites = pd.read_csv(f"{package_path}/data/sites.csv", sep=";", header=0, index_col=0)
         plon = float(sites.loc[point_name].lon)
         plat = float(sites.loc[point_name].lat)
         minlon = float(plon - 0.22)
@@ -455,7 +479,7 @@ class domain():
 
     def pcmet1(self):
         point_name = "pcmet1"
-        sites = pd.read_csv("./data/sites.csv", sep=";", header=0, index_col=0)
+        sites = pd.read_csv(f"{package_path}/data/sites.csv", sep=";", header=0, index_col=0)
         plon = float(sites.loc[point_name].lon)
         plat = float(sites.loc[point_name].lat)
         minlon = float(plon - 0.22)
@@ -468,7 +492,7 @@ class domain():
 
     def pcmet2(self):
         point_name = "pcmet2"
-        sites = pd.read_csv("./data/sites.csv", sep=";", header=0, index_col=0)
+        sites = pd.read_csv(f"{package_path}/data/sites.csv", sep=";", header=0, index_col=0)
         plon = float(sites.loc[point_name].lon)
         plat = float(sites.loc[point_name].lat)
         minlon = float(plon - 0.22)
@@ -481,7 +505,7 @@ class domain():
 
     def pcmet3(self):
         point_name = "pcmet3"
-        sites = pd.read_csv("./data/sites.csv", sep=";", header=0, index_col=0)
+        sites = pd.read_csv(f"{package_path}/data/sites.csv", sep=";", header=0, index_col=0)
         plon = float(sites.loc[point_name].lon)
         plat = float(sites.loc[point_name].lat)
         minlon = float(plon - 0.22)
