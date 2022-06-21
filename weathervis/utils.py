@@ -13,7 +13,7 @@ from weathervis.domain import *
 #from weathervis.checkget_data_handler import * #checkget_data_handler #add_point_on_map did not like this call..
 import matplotlib.offsetbox as offsetbox  #add_point_on_map
 import re
-import cartopy.crs as ccrs
+import cartopy.crs as ccrs  #add_point_on_map, default_map_projection
 
 
 def to_bool(value):
