@@ -940,3 +940,37 @@ def wind_dir(xwind,ywind, alpha=None):
                     #wdir[t,k,:,:] = np.subtract(c%360, alpha%360)
                 wdir = wdir % 360  # making sure is between 0 and 360 with Modulo
     return wdir
+
+
+def add_radiuskm2latlon(lat1_deg,lon1_deg, distancekm=15 , R = 6371.0 ):
+    #R = 6378.1 #Radius of the Earth #model has 6371000.0
+    d = distancekm #Distance in km
+    brng = math.radians(45) #upper right corner
+
+    lat1 = math.radians(lat1_deg) #Current lat point converted to radians
+    lon1 = math.radians(lon1_deg) #Current long point converted to radians
+
+    lat2 = math.asin( math.sin(lat1)*math.cos(d/R) +
+        math.cos(lat1)*math.sin(d/R)*math.cos(brng))
+
+    lon2 = lon1 + math.atan2(math.sin(brng)*math.sin(d/R)*math.cos(lat1),
+                math.cos(d/R)-math.sin(lat1)*math.sin(lat2))
+
+    lat2 = math.degrees(lat2)
+    lon2 = math.degrees(lon2)
+
+    lonlat2 = [lon2,lat2]
+
+    brng = math.radians(225) #lower left  corner
+
+    lat3 = math.asin( math.sin(lat1)*math.cos(d/R) +
+        math.cos(lat1)*math.sin(d/R)*math.cos(brng))
+
+    lon3 = lon1 + math.atan2(math.sin(brng)*math.sin(d/R)*math.cos(lat1),
+                math.cos(d/R)-math.sin(lat1)*math.sin(lat3))
+
+    lat3 = math.degrees(lat3)
+    lon3 = math.degrees(lon3)
+    lonlat3 = [lon3,lat3]
+
+    return lonlat2, lonlat3
