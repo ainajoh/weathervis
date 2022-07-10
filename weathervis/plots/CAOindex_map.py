@@ -2,6 +2,8 @@
 # python CAO.py --datetime 2020091000 --steps 0 1 --model MEPS --domain_name West_Norway
 
 from weathervis.config import *
+from weathervis.plots.add_overlays import add_overlay
+
 from weathervis.utils import filter_values_over_mountain, default_map_projection, default_mslp_contour, plot_by_subdomains
 import cartopy.crs as ccrs
 from weathervis.domain import *  # require netcdf4
