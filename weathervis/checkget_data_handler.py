@@ -196,7 +196,7 @@ def checkget_data_handler(all_param, date=None,  model=None, step=[0], p_level= 
         return dmet, data_domain, bad_param
 
     date=str(date)
-    fileobj = check_data(model=model, date=date, step=step, use_latest=use_latest,p_level=p_level, m_level=m_level).file
+    fileobj = check_data(model=model, date=date, step=step, use_latest=use_latest).file
     all_choices, bad_param  = find_best_combinationoffiles(all_param=all_param, fileobj=fileobj,m_level=m_level,p_level=p_level)
 
 

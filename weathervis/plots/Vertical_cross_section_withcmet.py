@@ -1,5 +1,5 @@
 # %%
-#python Vertical_cross_section_withcmet.py - -datetime 2022032500 - -model AromeArctic#
+#python Vertical_cross_section_withcmet.py --datetime 2022032500 --model AromeArctic#
 from weathervis.config import *
 from weathervis.utils import filter_values_over_mountain, default_map_projection, default_mslp_contour, plot_by_subdomains
 import cartopy.crs as ccrs
@@ -172,7 +172,7 @@ if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", default="AromeArctic", help="MEPS or AromeArctic")
-    parser.add_argument("--domain_name", default="Svalbard", nargs="+", type= none_or_str)
+    parser.add_argument("--domain_name", default=["Svalbard"], nargs="+", type= none_or_str)
     parser.add_argument("--datetime", help="YYYYMMDDHH for modelrun", default=None,  type=str)
     parser.add_argument("--cmet", help="cmet1, cmet2.. etc", default="cmet1",  type=str)
 
