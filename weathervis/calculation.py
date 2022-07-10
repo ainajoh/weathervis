@@ -118,9 +118,12 @@ def nearest_neighbour(plon,plat, longitudes, latitudes, nmin=1):
     return point
 def CAO_index(air_temperature_pl, pressure,SST,air_pressure_at_sea_level, p_level=850):
     #pressure in pa
-    pt = potential_temperatur(air_temperature_pl, pressure)
-    pt_sst = potential_temperatur(SST, air_pressure_at_sea_level)
-
+    #pt = potential_temperatur(air_temperature_pl, pressure)
+    pt_sst = potential_temperatur(SST, air_pressure_at_sea_level)    
+    print(SST)
+    print(pt_sst)
+    exit()
+    print(np.shape(pt_sst))
     dpt_sst = pt_sst[:, :, :] - pt[:, np.where(pressure == p_level)[0], :, :].squeeze()
 
     return dpt_sst
@@ -198,14 +201,16 @@ def potential_temperatur(temperature, pressure):
     Rd = 287.05  #[J/kg K] Gas constant for dry air
     cp = 1004.  #[J/kg] specific heat for dry air (WH)
     theta = np.full(np.shape(temperature), np.nan)
-    #print(np.shape(theta))
-    #print(len(np.shape(theta)))
+    print("shape")
+    print(len(np.shape(theta)))
+    print("temp")
+    print(temperature)
     if len(np.shape(theta)) ==4:
         if len(np.shape(pressure)) ==1:
             for i in range(0,len(pressure)):
                 theta[:,i,:,:] = temperature[:,i,:,:]  * (p0 / pressure[i]) ** (Rd/cp) #[K]
         else:
-            for i in range(0,np.shape(pressure)[1]):
+            for i in range(0,np.shape(pressure)[1]): #0 to 2
                 theta[:,i,:,:] = temperature[:,i,:,:]  * (p0 / pressure[:,i,:,:]) ** (Rd/cp) #[K]
 
 
@@ -217,8 +222,7 @@ def potential_temperatur(temperature, pressure):
         #print(np.shape(temperature))
         theta = temperature  * (p0 / pressure) ** (Rd/cp) #[K]
 
-
-    #print(theta)
+  
     return theta
 def density(Tv, p):
     """
@@ -940,3 +944,37 @@ def wind_dir(xwind,ywind, alpha=None):
                     #wdir[t,k,:,:] = np.subtract(c%360, alpha%360)
                 wdir = wdir % 360  # making sure is between 0 and 360 with Modulo
     return wdir
+
+
+def add_radiuskm2latlon(lat1_deg,lon1_deg, distancekm=15 , R = 6371.0 ):
+    #R = 6378.1 #Radius of the Earth #model has 6371000.0
+    d = distancekm #Distance in km
+    brng = math.radians(45) #upper right corner
+
+    lat1 = math.radians(lat1_deg) #Current lat point converted to radians
+    lon1 = math.radians(lon1_deg) #Current long point converted to radians
+
+    lat2 = math.asin( math.sin(lat1)*math.cos(d/R) +
+        math.cos(lat1)*math.sin(d/R)*math.cos(brng))
+
+    lon2 = lon1 + math.atan2(math.sin(brng)*math.sin(d/R)*math.cos(lat1),
+                math.cos(d/R)-math.sin(lat1)*math.sin(lat2))
+
+    lat2 = math.degrees(lat2)
+    lon2 = math.degrees(lon2)
+
+    lonlat2 = [lon2,lat2]
+
+    brng = math.radians(225) #lower left  corner
+
+    lat3 = math.asin( math.sin(lat1)*math.cos(d/R) +
+        math.cos(lat1)*math.sin(d/R)*math.cos(brng))
+
+    lon3 = lon1 + math.atan2(math.sin(brng)*math.sin(d/R)*math.cos(lat1),
+                math.cos(d/R)-math.sin(lat1)*math.sin(lat3))
+
+    lat3 = math.degrees(lat3)
+    lon3 = math.degrees(lon3)
+    lonlat3 = [lon3,lat3]
+
+    return lonlat2, lonlat3

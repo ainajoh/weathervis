@@ -14,7 +14,7 @@ import cartopy.feature as cfeature
 #from mpl_toolkits.axes_grid1 import make_axes_locatable ##__N
 from weathervis.checkget_data_handler import *
 import gc
-from weathervis.plots.add_overlays import add_overlay
+#from weathervis.plots.add_overlays import add_overlay
 
 # suppress matplotlib warning
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -26,9 +26,16 @@ def plot_CAO(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", mod
     ## CALCULATE AND INITIALISE ####################
     scale = data_domain.scale  # scale is larger for smaller domains in order to scale it up.
     MSLP = filter_values_over_mountain(dmet.surface_geopotential[:], dmet.air_pressure_at_sea_level[:]/100) #in hpa
-    pt = potential_temperatur(dmet.air_temperature_pl, dmet.pressure*100)
-    pt_sst = potential_temperatur(dmet.SST, dmet.air_pressure_at_sea_level)
-    dpt_sst = pt_sst[:, :, :] - pt[:, np.where(dmet.pressure == 850)[0], :, :].squeeze()
+    print(dmet.SST)
+
+    #pt = potential_temperatur(dmet.air_temperature_pl, dmet.pressure*100)
+    #pt_sst = potential_temperatur(dmet.SST, dmet.air_pressure_at_sea_level)
+    #print("hollal")
+    #print(pt)
+    #exit()
+    #dpt_sst = pt_sst[:, :, :] - pt[:, np.where(dmet.pressure == 850)[0], :, :].squeeze()
+    dpt_sst = CAO_index(dmet.air_temperature_pl, dmet.pressure*100,dmet.SST,dmet.air_pressure_at_sea_level, p_level=850)
+    
     DELTAPT = np.where(dmet.SIC <= 0.99, dpt_sst, 0)
     SImask = np.where(dmet.SIC.squeeze() >= 0.1, dmet.SIC.squeeze(), np.NaN).squeeze()
     lvl = range(-1, 13)
@@ -79,7 +86,8 @@ def plot_CAO(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", mod
         if grid:
             nicegrid(ax=ax1)
         if overlays:
-            add_overlay(overlays, ax=ax1)
+            pass
+            #add_overlay(overlays, ax=ax1)
         if domain_name != model and data_domain != None:
             ax1.set_extent(data_domain.lonlat)
         # save and clean ###############################################################

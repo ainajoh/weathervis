@@ -31,7 +31,6 @@ import gc
 
 warnings.filterwarnings("ignore", category=UserWarning)  # suppress matplotlib warning
 
-
 def plot_BLH(
     datetime,
     data_domain,
@@ -179,24 +178,23 @@ def plot_BLH(
     del make_modelrun_folder, file_path
     gc.collect()
 
-
 def BLH(
     datetime,
     steps,
     model,
-    domain_name,
-    domain_lonlat,
-    legend,
-    info,
-    grid,
-    url,
-    point_lonlat,
-    use_latest,
-    delta_index,
-    coast_details,
-    overlays,
-    runid,
-    outpath,
+    domain_name=None,
+    domain_lonlat=None,
+    legend=None,
+    info=None,
+    grid=None,
+    url=None,
+    point_lonlat=None,
+    use_latest=None,
+    delta_index=None,
+    coast_details="auto",
+    overlays=None,
+    runid=None,
+    outpath=None,
 ):
     param = [
         "air_pressure_at_sea_level",
@@ -226,7 +224,6 @@ def BLH(
         overlays,
         runid,
     )
-
 
 if __name__ == "__main__":
     args = default_arguments()

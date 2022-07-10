@@ -13,6 +13,7 @@ import logging
 from collections import Counter
 import os
 import gc
+
 """
 ###################################################################
 This module checks what data is available, gives information on the dataset 
@@ -29,11 +30,7 @@ package_path = os.path.dirname(__file__)
 
 all_models = ["aromearctic", "meps"] #ECMWF later
 source = ["thredds"] # later"netcdf", "grib" 2019120100
-
-#use_latest = True
 pathhome= os.environ["HOME"]
-filelog=f"{pathhome}/wv_get_data.log"
-logging.basicConfig(filename=filelog, level = logging.INFO, format = '%(levelname)s : %(message)s')
 
 def SomeError( exception = Exception, message = "Something did not go well" ):
     print("################ SomeError in check_data.py #############################")
@@ -203,23 +200,6 @@ def filter_firstdate(file,date):
 class check_data():
 
     def __init__(self, model=None, date = None,param=None, step=None, mbrs=None, p_level= None, m_level=None,file = None, numbervar = 100, search = None, use_latest=False,url=None):
-        """
-        Parameters
-        ----------
-        date:  Modelrun as string in format YYYYMMDDHH
-        model: Weathermodel, either: MEPS, AromeArctic
-        url: opendal url to a specific file
-        param: Parameters as strings in a list
-        mbrs:  Which ensemble member
-        file: an object containing file info. The main outcome of return in this class
-        numbervar: max number of listed pameter, for searching.
-        search: Parameter to search for.
-        p_level: Which pressure levels in hPa
-        m_level: WHich model level in hPa
-        step:
-        use_latest: True if you want a recent date, False if u want to get from the archive
-        """
-        logging.info("# check_data() #\n#################")
         print("################ __init__ in check_data.py #############################")
 
         self.date = str(date) if date != None else None
@@ -232,19 +212,13 @@ class check_data():
         self.search = search
         self.p_level = p_level
         self.m_level = m_level
-
-
         self.maxstep = np.max(step) if step != None or type(step) != float or type(step) != int else step
         self.use_latest=use_latest
         filter_function_for_date(self.date)
         self.check_web_connection()
         self.model = filter_function_for_models_ignore_uppercases(self.model) if self.model != None else None
-        print("aina rmv")
-        print(p_level)
         #exit()
         self.p_level = list(p_level) if p_level != None else p_level #and type(p_level) != list else p_level
-
-        #self.p_level = [p_level] if p_level != None and type(p_level) != list else p_level
         self.m_level = [m_level] if m_level != None and type(m_level) != list else m_level
         if (self.model !=None and self.date !=None) or self.url !=None:
             all_files = self.check_files(date, model, param,  mbrs, url) #the main outcome
@@ -255,8 +229,6 @@ class check_data():
         ###################################################
         #search for parameter for a specific date or url file
         if self.param == None and (self.date != None or self.url != None):
-            #print("eeee")
-            #print(file)
             self.param = self.check_variable(self.file, self.search, self.url)
 
         #search for parameter for a all dates, only possible for not userdefined url.
@@ -271,13 +243,17 @@ class check_data():
 
         #self.clean_all()
 
-    def check_files(self, date, model, param, mbrs, url=None):
+    def check_files(self, date=None, model=None, param=None, mbrs=None, url=None):
         """
         Returns a dataframe containing file name and file url
         """
-        logging.info("--> check_files() <---\n")
         print("################ check_files in check_data.py #############################")
         base_url = ""
+
+        date= self.date if date  == None else date
+        model = self.model if model == None else model
+        param = self.param if param == None else param
+        mbrs = self.mbrs if mbrs else mbrs
 
         if self.url != None:
             #if a url file is given. we dont need to look for possible files.
@@ -287,6 +263,7 @@ class check_data():
             date = str(date); YYYY = date[0:4]; MM = date[4:6]; DD = date[6:8]; HH = date[8:10]
             # find out where to look for data
             archive_url = "latest" if self.use_latest else "archive"
+
             if model.lower()=="meps":
                 base_url = "https://thredds.met.no/thredds/catalog/meps25eps{0}/".format(archive_url)   #info about date, years and filname of our model
                 base_urlfile = "https://thredds.met.no/thredds/dodsC/meps25eps{0}/".format(archive_url) #info about variables in each file
@@ -295,6 +272,7 @@ class check_data():
                 base_urlfile = "https://thredds.met.no/thredds/dodsC/aromearctic{0}/".format(archive_url)
             else:
                 SomeError(ValueError, f"Cannot recognise the model")
+
 
             #Find what files exist at that date by scraping thredd web
             page = requests.get(base_url + "catalog.html") if self.use_latest else requests.get(base_url + YYYY+"/"+MM+"/"+DD+ "/catalog.html")
@@ -307,8 +285,8 @@ class check_data():
             df = ff.copy()[~ff["File"].str.contains('|'.join(drop_files))] #(drop_files)])
             df.reset_index(inplace=True, drop=True)
             df["url"] = base_urlfile + df['File'] if self.use_latest else f"{base_urlfile}/{YYYY}/{MM}/{DD}/" + df['File']
-            del ff
-            del rawfiles
+            #del ff
+            #del rawfiles
             soup.decompose()
             page.close()
             gc.collect()

@@ -192,8 +192,10 @@ class checkgetdata(unittest.TestCase):
         print(check.file.m_levels)
         print(check.file.p_levels)
 
-
-
+    def test_check_file(self): #more tests on ens members
+        check = check_data(date=self.latest_date, model=self.model_aa, p_level=[500,1000], mbrs=[0,1])
+        o = check.check_files() #date=self.latest_date, model=self.model_aa,param = self.one_good_param, mbrs=[0])
+        print(o)
 
 
     def tearDown(self):
@@ -211,4 +213,4 @@ if __name__ =='__main__':
     #runner.run(suite)
     #run one func:
     #python tests/test_checkget_data.py checkgetdata.test_date_good___archive
-
+    check pytest
