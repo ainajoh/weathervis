@@ -62,6 +62,9 @@ def filter_type(file, mbrs, p_level,m_level):
     """Used by check_data: Remove files not having the userdefined mbrs or levels
     Returns only files containing all the user defined preferences."""
     print("################ filter_type in check_data.py #############################")
+    #print("check")
+    #print(file, mbrs, p_level, m_level)
+    #exit()
     if mbrs != 0 and mbrs != None:
         filter = "strict"
         if filter == "strict":
@@ -77,9 +80,12 @@ def filter_type(file, mbrs, p_level,m_level):
             file = file[ll]
         if filter == "light": pass
         if filter == "medium": pass
+        
+    
     if m_level != None:
         filter="strict"
         if filter == "strict": #only those files that has all the wanted model levels (nb might not be for all param)
+
             def find_mlevels(value, filter="strict" ):
                 if value:
                     length_dict = {key: np.arange(1, len(v)+1) for key, v in value.items()}
@@ -221,7 +227,8 @@ class check_data():
         """
         logging.info("# check_data() #\n#################")
         print("################ __init__ in check_data.py #############################")
-
+        
+        
         self.date = str(date) if date != None else None
         self.model = model
         self.url = url
@@ -232,7 +239,7 @@ class check_data():
         self.search = search
         self.p_level = p_level
         self.m_level = m_level
-
+        
 
         self.maxstep = np.max(step) if step != None or type(step) != float or type(step) != int else step
         self.use_latest=use_latest
@@ -243,9 +250,12 @@ class check_data():
         print(p_level)
         #exit()
         self.p_level = list(p_level) if p_level != None else p_level #and type(p_level) != list else p_level
-
+        
         #self.p_level = [p_level] if p_level != None and type(p_level) != list else p_level
+
         self.m_level = [m_level] if m_level != None and type(m_level) != list else m_level
+        
+        
         if (self.model !=None and self.date !=None) or self.url !=None:
             all_files = self.check_files(date, model, param,  mbrs, url) #the main outcome
             self.file = self.check_file_info(all_files, param, mbrs)
@@ -328,7 +338,7 @@ class check_data():
         df['m_levels'] = object()  # df['m_levels'].astype(object)
         df['mbr_ens'] = object()  # df['mbr_ens'].astype(object)
         df['h_levels'] = object()  # df['h_levels'].astype(object)
-
+        
         i=0
         while i<len(df):
             #For every file in dataframe, read metadata.
@@ -398,11 +408,14 @@ class check_data():
             df.loc[i,"dim"] = [dimframe.to_dict(orient='index')]
             i+=1
             dataset.close()
-
+        
         file_withparam = filter_param( df.copy(), param)
         print("AINA rmv2")
         print( self.p_level)
+        
         file_corrtype = filter_type( df.copy(), mbrs, self.p_level, self.m_level)
+        print(df.copy())
+        print(file_corrtype)
         file = file_withparam[file_withparam.File.isin(file_corrtype.File)]
         file.reset_index(inplace=True, drop = True)
         file = filter_step(file,self.maxstep)
