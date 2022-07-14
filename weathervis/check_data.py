@@ -313,7 +313,7 @@ class check_data():
             rawfiles = soup.table.find_all("a")
             #print(rawfiles)
             ff =[str(i.text) for i in rawfiles]
-gi             ff= pd.DataFrame( data = list(filter(re.compile(f'.*{YYYY}{MM}{DD}T{HH}Z.*nc$').match, ff )), columns=["File"])
+            ff= pd.DataFrame( data = list(filter(re.compile(f'.*{YYYY}{MM}{DD}T{HH}Z.*nc$').match, ff )), columns=["File"])
             drop_files = ["_incomplete", "_vc_", "thunder", "_kf_", "_ppalgs_", "_pp_", "t2myr", "wbkz", "vtk","_preop_"]
             df = ff.copy()[~ff["File"].str.contains('|'.join(drop_files))] #(drop_files)])
             df.reset_index(inplace=True, drop=True)
