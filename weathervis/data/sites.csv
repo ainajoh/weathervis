@@ -24,9 +24,10 @@ NYA_Zepp;78.90722;11.88604;472;None;None;None
 NYA_imetStart;78.91539;11.88991;52;None;None;StartofCablecarforimetmeasurements
 NYA_Sea;78.94727;11.98862;0;None;None;middleofthefjordinthesea
 CAO0;79.0;10.0;0;None;None;WestofNYAinocean
-CAO1;73.0;10.0;0;None;None;None
+CAO1;77.0;10.0;0;None;None;None
 CAO2;75.0;10.0;0;None;None;None
-CAO3;77.0;10.0;0;None;None;None
+CAO3;73.0;10.0;0;None;None;None
+CAO4;71.0;10.0;0;None;None;None
 GEOF322;60.2;5.41667;60;None;None;OS_HORDALAND
 T#5;68.4983;16.8541;None;None;None;None
 T#4;68.4857;15.8869;None;None;None;None

@@ -311,11 +311,13 @@ class check_data():
             if page.status_code != 200:  SomeError(ConnectionError, f"Error locating site, is the date correct?")
             soup = BeautifulSoup(page.text, 'html.parser')
             rawfiles = soup.table.find_all("a")
+            #print(rawfiles)
             ff =[str(i.text) for i in rawfiles]
-            ff= pd.DataFrame( data = list(filter(re.compile(f'.*{YYYY}{MM}{DD}T{HH}Z.nc').match, ff )), columns=["File"])
-            drop_files = ["_vc_", "thunder", "_kf_", "_ppalgs_", "_pp_", "t2myr", "wbkz", "vtk","_preop_"]
+gi             ff= pd.DataFrame( data = list(filter(re.compile(f'.*{YYYY}{MM}{DD}T{HH}Z.*nc$').match, ff )), columns=["File"])
+            drop_files = ["_incomplete", "_vc_", "thunder", "_kf_", "_ppalgs_", "_pp_", "t2myr", "wbkz", "vtk","_preop_"]
             df = ff.copy()[~ff["File"].str.contains('|'.join(drop_files))] #(drop_files)])
             df.reset_index(inplace=True, drop=True)
+    
             df["url"] = base_urlfile + df['File'] if self.use_latest else f"{base_urlfile}/{YYYY}/{MM}/{DD}/" + df['File']
             del ff
             del rawfiles
