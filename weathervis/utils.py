@@ -548,7 +548,7 @@ def find_subdomains(domain_name, datetime=None, model=None, domain_lonlat=None, 
 
 
 def plot_by_subdomains(plt_func, checkget_data_handler, datetime, steps, model, domain_name, domain_lonlat, legend, info, grid, url, point_lonlat, use_latest,
-        delta_index, coast_details=None, param=None, p_level=None, overlays=None, runid=None):
+        delta_index, coast_details=None, param=None, p_level=None, overlays=None, runid=None, point_name=None):
 
     domains_with_subdomains = find_subdomains(domain_name=domain_name, datetime=datetime, model=model,
                                               domain_lonlat=domain_lonlat,
@@ -566,7 +566,7 @@ def plot_by_subdomains(plt_func, checkget_data_handler, datetime, steps, model, 
             for sub in subdom_list:
                 plt_func(datetime=datetime, steps=steps, model=model, domain_name=sub, data_domain=data_domain,
                          domain_lonlat=domain_lonlat, legend=legend, info=info, grid=grid, url=url,
-                         dmet=dmet, coast_details=coast_details, overlays=overlays)
+                         dmet=dmet, coast_details=coast_details, overlays=overlays, point_name=point_name)
 
 def none_or_str(value):
     if value == 'None':

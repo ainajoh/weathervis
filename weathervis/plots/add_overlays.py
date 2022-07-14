@@ -6,12 +6,24 @@ import numpy as np
 
 def add_overlay(types=[None], **kwargs): #for quick on/off in default map
   print("in add_overlays")
+  print(kwargs)
   for ty in types:
     if ty=="ISLAS":
       add_ISLAS_overlays(**kwargs)
+    if ty=="point_name":
+      point_on_map(**kwargs)
     #if ty=="topinfotext":
     #  add_topinfotext(**kwargs)
     #  #add_topinfotext(ax, model, datetime, leadtime, plot_name="missin_name", **kwargs)
+
+def point_on_map(ax, col="red",size = 40, **kwargs):
+  import cartopy.crs as ccrs
+  sites="../data/sites.csv"
+  locs = pd.read_csv(sites,sep=';')
+  with ax.hold_limits():
+    for pn in kwargs["point_name"]:
+      pointplot = locs[locs["Name"]==pn]
+      ax.scatter(pointplot["lon"],pointplot["lat"],s=size,color=col,marker='.',zorder=12,transform=ccrs.PlateCarree())
 
 def add_default_mslp_contour(x, y, MSLP, ax1, scale=1):
   # MSLP with contour labels every 10 hPa

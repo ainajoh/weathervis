@@ -23,7 +23,7 @@ warnings.filterwarnings("ignore", category=UserWarning)
 
 
 def plot_CAO(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", model=None, domain_name=None,
-             domain_lonlat=None, legend=True, info=False, grid=True,runid=None, outpath=None, url = None, save= True, overlays=None):
+             domain_lonlat=None, legend=True, info=False, grid=True,runid=None, outpath=None, url = None, save= True, overlays=None, **kwargs):
     eval(f"data_domain.{domain_name}()")  # get domain info
     ## CALCULATE AND INITIALISE ####################
     scale = data_domain.scale  # scale is larger for smaller domains in order to scale it up.
@@ -81,7 +81,7 @@ def plot_CAO(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", mod
         if grid:
             nicegrid(ax=ax1)
         if overlays:
-            add_overlay(overlays, ax=ax1)
+            add_overlay(overlays, ax=ax1, **kwargs)
         if domain_name != model and data_domain != None:
             ax1.set_extent(data_domain.lonlat)
         # save and clean ###############################################################
@@ -101,16 +101,16 @@ def plot_CAO(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", mod
     gc.collect()
 
 def CAO(datetime,use_latest, delta_index, coast_details, steps=0, model="MEPS", domain_name=None, domain_lonlat=None, legend=False, info=False, grid=True,
-        runid=None, outpath=None, url=None, point_lonlat =None,overlays=None):
+        runid=None, outpath=None, url=None, point_lonlat =None,overlays=None, point_name=None):
     param= ["air_pressure_at_sea_level", "surface_geopotential", "air_temperature_pl", "SST", "SIC"]  # add later
     p_level = [850, 1000]
     plot_by_subdomains(plot_CAO, checkget_data_handler, datetime, steps, model, domain_name, domain_lonlat, legend,
                        info, grid, url, point_lonlat, use_latest,
-                       delta_index, coast_details, param, p_level,overlays, runid)
+                       delta_index, coast_details, param, p_level,overlays, runid, point_name)
 
 if __name__ == "__main__":
     args = default_arguments()
     chunck_func_call(func = CAO, chunktype= args.chunktype, chunk=args.chunks, datetime=args.datetime, steps=args.steps, model=args.model,
             domain_name=args.domain_name, domain_lonlat=args.domain_lonlat, legend=args.legend, info=args.info, grid=args.grid, runid=args.id,
             outpath=args.outpath, use_latest=args.use_latest,delta_index=args.delta_index, coast_details=args.coast_details, url=args.url,
-            point_lonlat =args.point_lonlat, overlays= args.overlays)
+            point_lonlat =args.point_lonlat, overlays= args.overlays, point_name=args.point_name)
