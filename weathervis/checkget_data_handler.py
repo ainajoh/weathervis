@@ -128,7 +128,7 @@ def find_best_combinationoffiles(all_param, fileobj, m_level=None, p_level=None)
         ppd = pd.DataFrame([])
     return ppd,bad_param
 #@profile
-def retrievenow(our_choice,model,step, date,fileobj,m_level,p_level, domain_name=None, domain_lonlat=None,bad_param=[],bad_param_sfx=[],point_name=None, point_lonlat=None, use_latest=True,delta_index=None):
+def retrievenow(our_choice,model,step, date,fileobj,m_level,p_level, domain_name=None, num_point=1, domain_lonlat=None,bad_param=[],bad_param_sfx=[],point_name=None, point_lonlat=None, use_latest=True,delta_index=None):
     print("################ retrievenow in checkget_data_handler.py #############################")
 
     fixed_var = ["ap", "b", "ap2", "b2", "pressure", "hybrid", "hybrid2","hybrid0"]  # this should be gotten from get_data
@@ -137,7 +137,9 @@ def retrievenow(our_choice,model,step, date,fileobj,m_level,p_level, domain_name
     ourfileobj = fileobj[fileobj["File"].isin([ourfilename])]
 
     ourfileobj.reset_index(inplace=True, drop=True)
-    data_domain = domain_input_handler(dt=date, model=model, domain_name=domain_name, domain_lonlat=domain_lonlat, file =ourfileobj,point_name=point_name,point_lonlat=point_lonlat, use_latest=use_latest,delta_index=delta_index)#
+    data_domain = domain_input_handler(dt=date, model=model, domain_name=domain_name,
+                 domain_lonlat=domain_lonlat, file =ourfileobj,point_name=point_name,
+                 point_lonlat=point_lonlat, use_latest=use_latest,delta_index=delta_index, num_point=num_point)#
 
     combo = our_choice.combo
 
@@ -180,14 +182,14 @@ def retrievenow(our_choice,model,step, date,fileobj,m_level,p_level, domain_name
 
     return dmet, data_domain,bad_param
 #@profile
-def checkget_data_handler(all_param, date=None,  model=None, step=[0], p_level= None, m_level=None, mbrs=None, domain_name=None, domain_lonlat=None, point_name=None,point_lonlat=None,use_latest=False,delta_index=None, url=None):
+def checkget_data_handler(all_param, date=None,  model=None, num_point=1,step=[0], p_level= None, m_level=None, mbrs=None, domain_name=None, domain_lonlat=None, point_name=None,point_lonlat=None,use_latest=False,delta_index=None, url=None):
     print("################ checkget_data_handler in checkget_data_handler.py #############################")
     step = [step] if type(step) == int else step
     if url != None:
         print("AINA rmv")
         fileobj = check_data(url=url, model=model, date=date, step=step, use_latest=use_latest,p_level=p_level, m_level=m_level).file
         data_domain = domain_input_handler(file = fileobj, url=url, dt=date, model=model, domain_name=domain_name, domain_lonlat=domain_lonlat,
-                                           point_name=point_name, point_lonlat=point_lonlat, delta_index=delta_index)
+                                           point_name=point_name, point_lonlat=point_lonlat, delta_index=delta_index, num_point=num_point)
 
         dmet = get_data(file = fileobj, url=url, model=model, param=all_param, step=step, date=date, m_level=m_level,
                          p_level=p_level, data_domain=data_domain, use_latest=use_latest)

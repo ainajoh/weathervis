@@ -363,7 +363,9 @@ GpsAlt_m = 'GpsAlt_m'):
 #dt, model, domain_name, domain_lonlat, file, point_name, point_lonlat=None, use_latest=True
 #    data_domain = domain_input_handler(dt=date, model=model, domain_name=domain_name, domain_lonlat=domain_lonlat, file =ourfileobj,point_name=point_name,point_lonlat=point_lonlat, use_latest=use_latest,delta_index=delta_index)#
 
-def domain_input_handler(dt=None, model=None, domain_name=None, domain_lonlat=None, file=None, point_name=None, point_lonlat=None, use_latest=True, delta_index=None, url=None):
+def domain_input_handler(dt=None, model=None, domain_name=None, domain_lonlat=None, 
+                        file=None, point_name=None, point_lonlat=None, use_latest=True, 
+                        delta_index=None, url=None,num_point=1):
     print("######## domain_input_handler in utils.py ################### ")
     print(domain_name)
     print(domain_lonlat)
@@ -373,9 +375,9 @@ def domain_input_handler(dt=None, model=None, domain_name=None, domain_lonlat=No
     if domain_name or domain_lonlat:
         if domain_lonlat:
             print(f"\n####### Setting up domain for coordinates: {domain_lonlat} ##########")
-            data_domain = domain(dt, model, file=file, lonlat=domain_lonlat,use_latest=use_latest,delta_index=delta_index, url=url)
+            data_domain = domain(dt, model, file=file, lonlat=domain_lonlat,use_latest=use_latest,delta_index=delta_index, url=url, num_point=num_point)
         else:
-            data_domain = domain(dt, model, file=file, use_latest=use_latest,delta_index=delta_index, url=url)#
+            data_domain = domain(dt, model, file=file, use_latest=use_latest,delta_index=delta_index, url=url, num_point=num_point)#
 
         if domain_name != None and domain_name in dir(data_domain):
             print(f"\n####### Setting up domain: {domain_name} ##########")
@@ -461,6 +463,7 @@ def default_arguments():
     parser.add_argument("--domain_lonlat", default=None, help="[ lonmin, lonmax, latmin, latmax]")
     parser.add_argument("--point_name", default=None, nargs="+")
     parser.add_argument("--point_lonlat", default=None, help="[ lonmin, lonmax, latmin, latmax]")
+    parser.add_argument("--num_point", default=1, type=int)
     parser.add_argument("--legend", default=True, help="Display legend")
     parser.add_argument("--grid", default=True, help="Display legend")
     parser.add_argument("--info", default=False, help="Display info")
@@ -493,7 +496,7 @@ def default_arguments():
         args.domain_name = [args.model]
     return args
 
-def find_subdomains(domain_name, datetime=None, model=None, domain_lonlat=None, file=None, point_name=None, point_lonlat=None, use_latest=None, delta_index=None, url=None):
+def find_subdomains(domain_name, datetime=None, model=None, num_point=1, domain_lonlat=None, file=None, point_name=None, point_lonlat=None, use_latest=None, delta_index=None, url=None):
     print("###################### find_subdomains in utils.py ##################################")
     idx_domain_name = []
     domain_lonlat = None  # args.domain_lonlat
@@ -503,7 +506,7 @@ def find_subdomains(domain_name, datetime=None, model=None, domain_lonlat=None, 
     file = None
     dom1 = domain_input_handler(dt = datetime, model = model, domain_name = domain_name[0], domain_lonlat = domain_lonlat,
                                 file=file, point_name=point_name, point_lonlat=point_lonlat,
-                                use_latest=use_latest, delta_index=delta_index, url=url)
+                                use_latest=use_latest, delta_index=delta_index, url=url, num_point=num_point)
     for dom in domain_name:
         eval(f"dom1.{dom}()")
         idx_domain_name.append(dom1.idx)

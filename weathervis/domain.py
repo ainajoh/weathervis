@@ -13,14 +13,14 @@ package_path = os.path.dirname(__file__)
 if __name__ == "__main__":
     print("Run by itself")
 
-def lonlat2idx(lonlat, lon, lat):
+def lonlat2idx(lonlat, lon, lat, num_point=1):
     #Todo: add like, when u have a domain outside region of data then return idx= Only the full data.
     # DOMAIN FOR SHOWING GRIDPOINT:: MANUALLY ADJUSTED
     if len(lonlat)>2:
         idx = np.where((lat > lonlat[2]-0.11) & (lat < lonlat[3]+0.09) & \
                        (lon >= lonlat[0]-0.32) & (lon <= lonlat[1]+0.28))
     else:
-        idx = nearest_neighbour_idx(lonlat[0],lonlat[1],lon,lat)
+        idx = nearest_neighbour_idx(lonlat[0],lonlat[1],lon,lat, num_point=num_point)
     return idx
 
 def idx2lonlat(idx, url):
@@ -47,7 +47,8 @@ def find_scale(lonlat):
     return scale
 
 class domain():
-    def __init__(self, date=None, model=None, point_lonlat=None, file=None, lonlat=None, idx=None,domain_name=None, point_name=None, use_latest=True,delta_index=None, url=None):
+    def __init__(self, date=None, model=None, point_lonlat=None, file=None, lonlat=None, idx=None,domain_name=None, 
+    point_name=None, use_latest=True,delta_index=None, url=None, num_point=1):
         self.date = date
         self.model = model
         self.lonlat = lonlat
@@ -83,15 +84,15 @@ class domain():
             plon = float(sites.loc[self.point_name].lon)
             plat = float(sites.loc[self.point_name].lat)
             self.lonlat = [plon,plat]
-            self.idx = lonlat2idx(self.lonlat, self.lon, self.lat)
-            if self.delta_index!=None:
-                ii_max =  int(self.idx[0] + self.delta_index[0]/2)
-                ii_min = int(self.idx[0] - self.delta_index[0]/2)
-                jj_max = int(self.idx[1] + self.delta_index[1]/2)
-                jj_min = int(self.idx[1] - self.delta_index[1]/2)
-                ii=np.arange(ii_min,ii_max,1)
-                jj=np.arange(jj_min,jj_max,1)
-                self.idx = (ii,jj)
+            self.idx = lonlat2idx(self.lonlat, self.lon, self.lat, num_point)
+            #if self.delta_index!=None:
+            #    ii_max =  int(self.idx[0] + self.delta_index[0]/2)
+            #    ii_min = int(self.idx[0] - self.delta_index[0]/2)
+            #    jj_max = int(self.idx[1] + self.delta_index[1]/2)
+            #    jj_min = int(self.idx[1] - self.delta_index[1]/2)
+            #    ii=np.arange(ii_min,ii_max,1)
+            #    jj=np.arange(jj_min,jj_max,1)
+            #    self.idx = (ii,jj)
             print("aaaa")
             print(self.idx)
 
@@ -99,7 +100,7 @@ class domain():
             plon = float(point_lonlat[0])
             plat = float(point_lonlat[1])
             self.lonlat = [plon, plat]
-            self.idx = lonlat2idx(self.lonlat, self.lon, self.lat)
+            self.idx = lonlat2idx(self.lonlat, self.lon, self.lat, num_point)
             if self.delta_index != None:
                 ii_max = int(self.idx[0] + self.delta_index[0] / 2)
                 ii_min = int(self.idx[0] - self.delta_index[0] / 2)

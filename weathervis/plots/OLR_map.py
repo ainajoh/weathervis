@@ -14,10 +14,13 @@ import cartopy.feature as cfeature
 from mpl_toolkits.axes_grid1 import make_axes_locatable ##__N
 from weathervis.checkget_data_handler import *
 import gc
+from weathervis.plots.add_overlays import add_overlay
+
 
 warnings.filterwarnings("ignore", category=UserWarning) # suppress matplotlib warning
 
-def plot_OLR(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", model= None, domain_name = None, domain_lonlat = None, legend=False, info = False, save = True,grid=True, url = None, overlays=None, runid=None):
+def plot_OLR(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", model=None, domain_name=None,
+             domain_lonlat=None, legend=True, info=False, grid=True,runid=None, outpath=None, url = None, save= True, overlays=None, **kwargs):
   eval(f"data_domain.{domain_name}()")  # get domain info
   ## CALCULATE AND INITIALISE ####################
   scale = data_domain.scale  #scale is larger for smaller domains in order to scale it up.
@@ -47,11 +50,11 @@ def plot_OLR(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", mod
       ax1.add_feature(cfeature.GSHHSFeature(scale='intermediate'),edgecolor="brown", linewidth=0.5)  # ‘auto’, ‘coarse’, ‘low’, ‘intermediate’, ‘high, or ‘full’ (default is ‘auto’).
       ax1.text(0, 1, "{0}_OLR_{1}+{2:02d}".format(model, datetime, leadtime), ha='left', va='bottom', transform=ax1.transAxes,color='dimgrey')
       if grid:
-          nicegrid(ax=ax1,color="orange")
-
-      print(data_domain.lonlat)  # [15.8, 16.4, 69.2, 69.4]
+        nicegrid(ax=ax1)
+      if overlays:
+        add_overlay(overlays, ax=ax1, **kwargs)
       if domain_name != model and data_domain != None:
-          ax1.set_extent(data_domain.lonlat)
+        ax1.set_extent(data_domain.lonlat)
 
       make_modelrun_folder = setup_directory(OUTPUTPATH, "{0}".format(datetime))
       file_path = "{0}/{1}_{2}_{3}_{4}+{5:02d}.png".format(make_modelrun_folder, model, domain_name, "OLR", datetime,leadtime)
@@ -67,23 +70,19 @@ def plot_OLR(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", mod
   del make_modelrun_folder, file_path
   gc.collect()
 
-def OLR(datetime, steps, model, domain_name, domain_lonlat, legend, info, grid, url,point_lonlat,
-        use_latest,delta_index, coast_details, overlays, runid, outpath):
+def OLR(datetime,use_latest, delta_index, coast_details, steps=0, model="MEPS", domain_name=None, domain_lonlat=None, legend=False, info=False, grid=True,
+        runid=None, outpath=None, url=None, point_lonlat =None,overlays=None, point_name=None):
     param = ["air_pressure_at_sea_level", "surface_geopotential", "toa_outgoing_longwave_flux"]
     p_level = None
-    plot_by_subdomains( plot_OLR, checkget_data_handler, datetime, steps, model, domain_name, domain_lonlat, legend,
+    plot_by_subdomains(plot_OLR, checkget_data_handler, datetime, steps, model, domain_name, domain_lonlat, legend,
                        info, grid, url, point_lonlat, use_latest,
-                       delta_index, coast_details, param, p_level, overlays, runid)
+                       delta_index, coast_details, param, p_level,overlays, runid, point_name)
 
 
 if __name__ == "__main__":
     args = default_arguments()
-
-    chunck_func_call(func=OLR, chunktype=args.chunktype, chunk=args.chunks, datetime=args.datetime, steps=args.steps,
-                     model=args.model,
-                     domain_name=args.domain_name, domain_lonlat=args.domain_lonlat, legend=args.legend, info=args.info,
-                     grid=args.grid, runid=args.id,
-                     outpath=args.outpath, use_latest=args.use_latest, delta_index=args.delta_index,
-                     coast_details=args.coast_details, url=args.url,
-                     point_lonlat=args.point_lonlat, overlays=args.overlays)
+    chunck_func_call(func = OLR, chunktype= args.chunktype, chunk=args.chunks, datetime=args.datetime, steps=args.steps, model=args.model,
+            domain_name=args.domain_name, domain_lonlat=args.domain_lonlat, legend=args.legend, info=args.info, grid=args.grid, runid=args.id,
+            outpath=args.outpath, use_latest=args.use_latest,delta_index=args.delta_index, coast_details=args.coast_details, url=args.url,
+            point_lonlat =args.point_lonlat, overlays= args.overlays, point_name=args.point_name)
     gc.collect()
