@@ -369,9 +369,7 @@ def domain_input_handler(dt=None, model=None, domain_name=None, domain_lonlat=No
     print("######## domain_input_handler in utils.py ################### ")
     print(domain_name)
     print(domain_lonlat)
-    print(point_name)
-    #import os
-    #os._exit(0)
+    print(num_point)
     if domain_name or domain_lonlat:
         if domain_lonlat:
             print(f"\n####### Setting up domain for coordinates: {domain_lonlat} ##########")
@@ -390,22 +388,23 @@ def domain_input_handler(dt=None, model=None, domain_name=None, domain_lonlat=No
         else:
             print(f"No domain found with that name; {domain_name}")
     else:
-        data_domain=None
+        data_domain=None    #domain(dt, model,point_name=point_name, file=file, use_latest=use_latest,delta_index=delta_index, url=url, num_point=num_point)#
+
     print(data_domain)
 
     if (point_name !=None and domain_name == None and domain_lonlat == None):
         print("here")
 
-        data_domain = domain(dt, model, file=file, point_name=point_name,use_latest=use_latest,delta_index=delta_index, url=url)
+        data_domain = domain(dt, model, file=file, point_name=point_name,use_latest=use_latest,delta_index=delta_index, url=url,num_point=num_point)
         print("here2")
 
     if (point_lonlat != None and domain_name == None and domain_lonlat == None):
-        print("here")
         data_domain = domain(dt, model, file=file, point_lonlat= point_lonlat, use_latest=use_latest,
-                                delta_index=delta_index, url=url)
+                                delta_index=delta_index, url=url,num_point=num_point)
 
         #import os
         #os._exit(0)
+    print(data_domain)
 
     #if (point_lonlat != None and point_name == None and domain_name == None and domain_lonlat == None):
     #    data_domain = domain(dt, model, file=file, lonlat=point_lonlat,use_latest=use_latest,delta_index=delta_index, url=url)

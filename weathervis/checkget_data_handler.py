@@ -137,6 +137,7 @@ def retrievenow(our_choice,model,step, date,fileobj,m_level,p_level, domain_name
     ourfileobj = fileobj[fileobj["File"].isin([ourfilename])]
 
     ourfileobj.reset_index(inplace=True, drop=True)
+    print(num_point)
     data_domain = domain_input_handler(dt=date, model=model, domain_name=domain_name,
                  domain_lonlat=domain_lonlat, file =ourfileobj,point_name=point_name,
                  point_lonlat=point_lonlat, use_latest=use_latest,delta_index=delta_index, num_point=num_point)#
@@ -198,6 +199,9 @@ def checkget_data_handler(all_param, date=None,  model=None, num_point=1,step=[0
         return dmet, data_domain, bad_param
 
     date=str(date)
+    print(model)
+    print(date)
+    print(step)
     fileobj = check_data(model=model, date=date, step=step, use_latest=use_latest).file
     all_choices, bad_param  = find_best_combinationoffiles(all_param=all_param, fileobj=fileobj,m_level=m_level,p_level=p_level)
 
@@ -218,7 +222,7 @@ def checkget_data_handler(all_param, date=None,  model=None, num_point=1,step=[0
             dmet, data_domain,bad_param = retrievenow(our_choice = all_choices.loc[i],model=model,step=step, date=date,fileobj=fileobj,
                                    m_level=m_level,p_level=p_level,domain_name=domain_name, domain_lonlat=domain_lonlat,
                                     bad_param = bad_param,bad_param_sfx = bad_param_sfx,point_name=point_name,point_lonlat=point_lonlat,use_latest=use_latest,
-                                                     delta_index=delta_index)
+                                                     delta_index=delta_index, num_point=num_point)
             break
         except:
             print("Oops!", sys.exc_info()[0], "occurred.")

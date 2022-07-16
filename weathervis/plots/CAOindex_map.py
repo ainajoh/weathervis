@@ -24,9 +24,10 @@ warnings.filterwarnings("ignore", category=UserWarning)
 
 def plot_CAO(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", model=None, domain_name=None,
              domain_lonlat=None, legend=True, info=False, grid=True,runid=None, outpath=None, url = None, save= True, overlays=None, **kwargs):
-    eval(f"data_domain.{domain_name}()")  # get domain info
+    #eval(f"data_domain.{domain_name}()")  # get domain info
     ## CALCULATE AND INITIALISE ####################
     scale = data_domain.scale  # scale is larger for smaller domains in order to scale it up.
+    print(scale)
     MSLP = filter_values_over_mountain(dmet.surface_geopotential[:], dmet.air_pressure_at_sea_level[:]/100) #in hpa
     pt = potential_temperatur(dmet.air_temperature_pl, dmet.pressure*100)
     pt_sst = potential_temperatur(dmet.SST, dmet.air_pressure_at_sea_level)
@@ -56,6 +57,9 @@ def plot_CAO(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", mod
     itim = 0
     for leadtime in np.array(steps):
         print('Plotting {0} + {1:02d} UTC'.format(datetime, leadtime))
+        print(np.shape(MSLP))
+        print(np.shape(dmet.x))
+        print(np.shape(dmet.y))
         ax1 = default_mslp_contour(dmet.x, dmet.y, MSLP[itim, 0, :, :], ax1, scale=scale)
         CF_prec = ax1.contourf(dmet.x, dmet.y, DELTAPT[itim,0,:,:], zorder=0,
                               antialiased=True, extend="max", levels=lvl, colors=C, vmin=0, vmax=12)  #

@@ -16,11 +16,14 @@ if __name__ == "__main__":
 def lonlat2idx(lonlat, lon, lat, num_point=1):
     #Todo: add like, when u have a domain outside region of data then return idx= Only the full data.
     # DOMAIN FOR SHOWING GRIDPOINT:: MANUALLY ADJUSTED
+    from weathervis.calculation import nearest_neighbour_idx
+
     if len(lonlat)>2:
         idx = np.where((lat > lonlat[2]-0.11) & (lat < lonlat[3]+0.09) & \
                        (lon >= lonlat[0]-0.32) & (lon <= lonlat[1]+0.28))
     else:
-        idx = nearest_neighbour_idx(lonlat[0],lonlat[1],lon,lat, num_point=num_point)
+
+        idx = nearest_neighbour_idx(lonlat[0],lonlat[1],lon,lat, num_point)
     return idx
 
 def idx2lonlat(idx, url):
@@ -84,6 +87,10 @@ class domain():
             plon = float(sites.loc[self.point_name].lon)
             plat = float(sites.loc[self.point_name].lat)
             self.lonlat = [plon,plat]
+            print("fooooo")
+            print(self.lonlat)
+            #print(self.lon)
+            #print(self.lat)
             self.idx = lonlat2idx(self.lonlat, self.lon, self.lat, num_point)
             #if self.delta_index!=None:
             #    ii_max =  int(self.idx[0] + self.delta_index[0]/2)

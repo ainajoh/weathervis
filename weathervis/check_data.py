@@ -260,13 +260,12 @@ class check_data():
             all_files = self.check_files(date, model, param,  mbrs, url) #the main outcome
             self.file = self.check_file_info(all_files, param, mbrs)
 
+
         ###################################################
         # SEARCH OPTIONS UNDER
         ###################################################
         #search for parameter for a specific date or url file
         if self.param == None and (self.date != None or self.url != None):
-            #print("eeee")
-            #print(file)
             self.param = self.check_variable(self.file, self.search, self.url)
 
         #search for parameter for a all dates, only possible for not userdefined url.
@@ -468,6 +467,7 @@ class check_data():
 
         #url not supported yet in var search
         logging.info("--> check_variable() <---\n")
+        print(file)
         var_dict = file.at[0, "var"]
         param = []
         for n in range(0,len(file)):
