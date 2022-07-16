@@ -197,10 +197,8 @@ class get_data():
         i=0# loop that updates the url to include each parameter with its dimensions
         while i < len(list_p):
             prm = param[i]
-            print(prm)
             url += f"{prm}"  # example:  url =url+x_wind_pl
             dimlist = list( file["var"][prm]["dim"] )  # List of the variables the param depends on ('time', 'pressure', 'ensemble_member', 'y', 'x')
-            print(dimlist)
             #########################
             # Find different dimention related to either pressure, model levels, height levels or ens members.
             # Then adjust retrieve url to only include upper and lower limit of these variables.
@@ -355,17 +353,27 @@ class get_data():
         print(url)
         dataset = Dataset(url)
         self.indexidct = dict.fromkeys(self.indexidct, ":")  #reset the index dictionary
+        
         for k in dataset.__dict__.keys(): #info of the file
             ss = f"{k}"
             self.__dict__[ss] = dataset.__dict__[k]
         logging.info("-------> Getting variable: ")
         iteration =-1
+    
+        iindx = self.idx[1] # 218 219 218]
+        jindx = self.idx[0] 
+        point = [(x,y) for x,y in zip(iindx,jindx)]
+        point2 = [(x, y) for x in np.arange(min(iindx),max(iindx)+1) for y in np.arange(min(jindx),max(jindx)+1)]
+        main_list = list(set(point2) - set(point)) 
+
         for prm in self.param:
             iteration += 1
             logging.info(prm)
             dimlist = list(file["var"][prm]["dim"])  # List of the variables the param depends on ('time', 'pressure', 'ensemble_member', 'y', 'x')
             pressure_dim = list(filter(re.compile(f'press*').match, dimlist))
             model_dim = list(filter(re.compile(f'.*hybrid*').match, dimlist))
+            x_dim = list(filter(re.compile(f'x*').match, dimlist))
+
             #height_dim = list(filter(re.compile(f'.*height*').match, dimlist))
             #mbrs_dim = list(filter(re.compile(f'.*ensemble*').match, dimlist))
 
@@ -409,7 +417,8 @@ class get_data():
                 for k in dataset.variables[prm].__dict__.keys():
                     ss = f"{k}_{prm}"
                     self.__dict__[ss] = dataset.variables[prm].__dict__[k]
-
+            
+            
             varvar = f"dataset.variables['{prm}'][{startsub}]" ##
             varvar = eval(varvar)
             dimlist = np.array(list(file["var"][prm]["dim"]))  # ('time', 'pressure', 'ensemble_member', 'y', 'x')
@@ -417,6 +426,15 @@ class get_data():
             if not self.mbrs_bool and any(np.isin(dimlist, "ensemble_member")):#"ensemble_member" in dimlist:
                 indxmember = np.where(dimlist == "ensemble_member")[0][0]
                 varvar = dataset.variables[prm][:].squeeze(axis=indxmember)
+            if x_dim:
+                print("in x")
+                #print(prm)
+                #Todo: remove unwanted indeices that is in main_list. When we ask for 3 gridpoint it gives 4 due to retrieving min to max, so retrieving odd values gives one more than intended. But also asking for 300 gives 400 values so probably this bug increses. 
+                #for x,y in main_list:
+                #    #varrem = f"dataset.variables['{prm}'][{startsub}]" ##
+                    
+
+                
 
             self.__dict__[prm] = varvar
         dataset.close()

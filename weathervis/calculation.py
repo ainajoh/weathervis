@@ -64,13 +64,10 @@ def nearest_neighbour_idx(plon,plat, longitudes, latitudes, nmin=1):
         xatlocation = x_wind_10m[:,0,p]
     """
     #source https://github.com/metno/NWPdocs/wiki/From-x-y-wind-to-wind-direction
-    
-    print("heeeeee")
+    print("inside nearest_neighbour_idx")
     R = 6371.0 #model has 6371000.0
-    print(R)
-    dlat = np.radians(latitudes - plat) ##lat2 - lat1
-    print(dlat)
 
+    dlat = np.radians(latitudes - plat) ##lat2 - lat1
     dlon = np.radians(longitudes - plon) #lon2 - lon1
 
     platm = np.full(np.shape(latitudes), plat)
@@ -78,14 +75,10 @@ def nearest_neighbour_idx(plon,plat, longitudes, latitudes, nmin=1):
          np.cos(np.radians(plat)) * np.cos(np.radians(latitudes)) *
          np.sin(dlon / 2) * np.sin(dlon / 2))
     c = 2 * np.arctan2(np.sqrt(a), np.sqrt(1 - a))
-    print(c)
     d = R * c
     dsort = np.sort(d,axis=None)
     closest_idx = np.where(np.isin(d,dsort[0:nmin]))
-
     #point = [(x,y) for x,y in zip(closest_idx[0],closest_idx[1])]
-
-
     return closest_idx
 
 def nearest_neighbour(plon,plat, longitudes, latitudes, nmin=1):
@@ -124,12 +117,23 @@ def nearest_neighbour(plon,plat, longitudes, latitudes, nmin=1):
 
     return point
 def CAO_index(air_temperature_pl, pressure,SST,air_pressure_at_sea_level, p_level=850):
-    #pressure in pa
-    pt = potential_temperatur(air_temperature_pl, pressure)
+    #pressure in hpa
+    #pt = potential_temperatur(air_temperature_pl, pressure)
+    #pt_sst = potential_temperatur(SST, air_pressure_at_sea_level)
+
+    #dpt_sst = pt_sst[:, :, :] - pt[:, np.where(pressure == p_level)[0], :, :].squeeze()
+    
+    pt = potential_temperatur(air_temperature_pl, pressure*100)  #4, 2, 36, 36)
+
+    try: 
+         air_pressure_at_sea_level= air_pressure_at_sea_level.squeeze(axis=1)
+    except: 
+        air_pressure_at_sea_level = air_pressure_at_sea_level
     pt_sst = potential_temperatur(SST, air_pressure_at_sea_level)
-
+    #print(np.shape(SST))   #(4, 36, 36)
+    #print(np.shape(air_pressure_at_sea_level))  #(4, 1, 36, 36)
+    #print(np.shape(pt_sst))   #(4, 4, 36, 36) but #(4, 36, 36) if squeezing air.pressure
     dpt_sst = pt_sst[:, :, :] - pt[:, np.where(pressure == p_level)[0], :, :].squeeze()
-
     return dpt_sst
 
 def get_samplesize(q, rho, a=0.5, b = 0.95, acc = 3):

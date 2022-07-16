@@ -16,28 +16,23 @@ if __name__ == "__main__":
 def lonlat2idx(lonlat, lon, lat, num_point=1):
     #Todo: add like, when u have a domain outside region of data then return idx= Only the full data.
     # DOMAIN FOR SHOWING GRIDPOINT:: MANUALLY ADJUSTED
-    from weathervis.calculation import nearest_neighbour_idx
 
     if len(lonlat)>2:
         idx = np.where((lat > lonlat[2]-0.11) & (lat < lonlat[3]+0.09) & \
                        (lon >= lonlat[0]-0.32) & (lon <= lonlat[1]+0.28))
     else:
-
         idx = nearest_neighbour_idx(lonlat[0],lonlat[1],lon,lat, num_point)
+
     return idx
 
-def idx2lonlat(idx, url):
-    #todo: Remember if u do this once, you can just copy paste into function and u will only need this when new domain.
-    # Todo: add like, when u have a domain outside region of data then return idx= Only the full data.
-    dataset = Dataset(url)
-    lon = dataset.variables["longitude"][:]
-    lat = dataset.variables["latitude"][:]
+def idx2lonlat(idx, lon, lat, num_point=1):
     # DOMAIN FOR SHOWING GRIDPOINT:: MANUALLY ADJUSTED
-    lon = lon[idx[0].min():idx[0].max(),idx[1].min(): idx[1].max()]
-    lat = lat[idx[0].min():idx[0].max(),idx[1].min(): idx[1].max()]
-    dataset.close()
-    latlon = [lon.min(), lon.max(),lat.min(), lat.max(), ]
-
+    print("indise idx2lonlat")
+    #lon = lon[idx[0].min(),idx[1].min(): idx[1].max()]
+    #lat = lat[idx[0].min(),idx[1].min(): idx[1].max()]
+    lon = lon[idx[0].min():idx[0].max()+1,idx[1].min(): idx[1].max()+1]
+    lat = lat[idx[0].min():idx[0].max()+1,idx[1].min(): idx[1].max()+1]
+    latlon = [lon.min(), lon.max(),lat.min(), lat.max() ]
     return latlon
 
 def find_scale(lonlat):
@@ -73,8 +68,9 @@ class domain():
         else:
             self.url = self.make_url_base()
         self.url = self.url + "?latitude,longitude"
-
+        
         dataset = Dataset(self.url)
+
         self.lon = dataset.variables["longitude"][:]
         self.lat = dataset.variables["latitude"][:]
         dataset.close()  # self.lonlat = [0,30, 73, 82]  #
@@ -87,11 +83,8 @@ class domain():
             plon = float(sites.loc[self.point_name].lon)
             plat = float(sites.loc[self.point_name].lat)
             self.lonlat = [plon,plat]
-            print("fooooo")
-            print(self.lonlat)
-            #print(self.lon)
-            #print(self.lat)
             self.idx = lonlat2idx(self.lonlat, self.lon, self.lat, num_point)
+            self.lonlat=idx2lonlat(self.idx,self.lon,self.lat)
             #if self.delta_index!=None:
             #    ii_max =  int(self.idx[0] + self.delta_index[0]/2)
             #    ii_min = int(self.idx[0] - self.delta_index[0]/2)
@@ -100,8 +93,6 @@ class domain():
             #    ii=np.arange(ii_min,ii_max,1)
             #    jj=np.arange(jj_min,jj_max,1)
             #    self.idx = (ii,jj)
-            print("aaaa")
-            print(self.idx)
 
         if self.point_lonlat != None and self.domain_name == None:
             plon = float(point_lonlat[0])
@@ -116,8 +107,7 @@ class domain():
                 ii = np.arange(ii_min, ii_max, 1)
                 jj = np.arange(jj_min, jj_max, 1)
                 self.idx = (ii, jj)
-            print("aaaa")
-            print(self.idx)
+
 
 
 

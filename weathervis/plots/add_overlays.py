@@ -7,6 +7,8 @@ import numpy as np
 def add_overlay(types=[None], **kwargs): #for quick on/off in default map
   print("in add_overlays")
   print(kwargs)
+  print(types)
+  #exit()
   for ty in types:
     if ty=="ISLAS":
       add_ISLAS_overlays(**kwargs)

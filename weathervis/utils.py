@@ -58,7 +58,7 @@ def setup_directory( path, folder_name):
         print("Directory ", projectpath, " already exists")
     return projectpath
 
-def adjustable_colorbar_cax(fig1,ax1): #,data, **kwargs):
+def adjustable_colorbar_cax(fig1,ax1, orientation="horizontal"): #,data, **kwargs):
     """colorbars do not asjust byitself with set_extent when defining a figure size at the start.
        if u remove figure_size and it adjust, but labels and text will not be consistent.
        returns:
@@ -66,7 +66,10 @@ def adjustable_colorbar_cax(fig1,ax1): #,data, **kwargs):
        usage:
     """
     divider = make_axes_locatable(ax1) ##__N
-    ax_cb = divider.new_horizontal(size="5%", pad=0.1, axes_class=plt.Axes) ##__N
+    if orientation=="horizontal":
+        ax_cb = divider.new_horizontal(size="5%", pad=0.1, axes_class=plt.Axes) ##__N
+    else:
+        ax_cb = divider.new_vertical(size="5%", pad=0.2, axes_class=plt.Axes) ##__N
     fig1.add_axes(ax_cb)
     return ax_cb
 
@@ -161,7 +164,6 @@ def nice_vprof_colorbar(CF, ax, lvl=None, ticks=None, label=None, highlight_val=
 
 def add_distance_circle():
     memory_check="hei"
-    print("test")
 
 def add_point_on_map(ax, lonlat = None, point_name=None, labels=None, colors=None):
     """Add a marker point on a cartopy map either at lonlat input or from a point_name in sites.csv file
@@ -367,9 +369,6 @@ def domain_input_handler(dt=None, model=None, domain_name=None, domain_lonlat=No
                         file=None, point_name=None, point_lonlat=None, use_latest=True, 
                         delta_index=None, url=None,num_point=1):
     print("######## domain_input_handler in utils.py ################### ")
-    print(domain_name)
-    print(domain_lonlat)
-    print(num_point)
     if domain_name or domain_lonlat:
         if domain_lonlat:
             print(f"\n####### Setting up domain for coordinates: {domain_lonlat} ##########")
@@ -390,13 +389,8 @@ def domain_input_handler(dt=None, model=None, domain_name=None, domain_lonlat=No
     else:
         data_domain=None    #domain(dt, model,point_name=point_name, file=file, use_latest=use_latest,delta_index=delta_index, url=url, num_point=num_point)#
 
-    print(data_domain)
-
     if (point_name !=None and domain_name == None and domain_lonlat == None):
-        print("here")
-
         data_domain = domain(dt, model, file=file, point_name=point_name,use_latest=use_latest,delta_index=delta_index, url=url,num_point=num_point)
-        print("here2")
 
     if (point_lonlat != None and domain_name == None and domain_lonlat == None):
         data_domain = domain(dt, model, file=file, point_lonlat= point_lonlat, use_latest=use_latest,
@@ -404,7 +398,6 @@ def domain_input_handler(dt=None, model=None, domain_name=None, domain_lonlat=No
 
         #import os
         #os._exit(0)
-    print(data_domain)
 
     #if (point_lonlat != None and point_name == None and domain_name == None and domain_lonlat == None):
     #    data_domain = domain(dt, model, file=file, lonlat=point_lonlat,use_latest=use_latest,delta_index=delta_index, url=url)
@@ -556,8 +549,6 @@ def plot_by_subdomains(plt_func, checkget_data_handler, datetime, steps, model, 
                                               domain_lonlat=domain_lonlat,
                                               point_lonlat=point_lonlat, use_latest=use_latest, delta_index=delta_index,
                                               url=url)
-    print(domains_with_subdomains)
-    print(domains_with_subdomains.index.values)
     for domain_name in domains_with_subdomains.index.values:
         dmet, data_domain, bad_param = checkget_data_handler(p_level=p_level, model=model, step=steps, date=datetime,
                                                              domain_name=domain_name, all_param=param)
@@ -578,7 +569,6 @@ def none_or_str(value):
 
 def chunck_func_call(func= None, chunktype="steps", chunk=6, **kwargs):
     if chunktype==None: # do not split
-        print(kwargs)
         func(**kwargs)
     elif chunktype=="steps":
         cn = np.int(len(kwargs["steps"]) // chunk)

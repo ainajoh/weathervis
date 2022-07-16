@@ -86,8 +86,16 @@ def plot_CAO(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", mod
             nicegrid(ax=ax1)
         if overlays:
             add_overlay(overlays, ax=ax1, **kwargs)
-        if domain_name != model and data_domain != None:
+        if domain_name != model and data_domain != None and domain_name !=None:
+            if domain_name !=None: eval(f"data_domain.{domain_name}()") 
             ax1.set_extent(data_domain.lonlat)
+
+        an_array = np.empty( (len(dmet.y),len(dmet.x)) )
+        an_array[:] = np.NaN
+        ax1.contourf(dmet.x, dmet.y,an_array, alpha=0)
+
+
+
         # save and clean ###############################################################
         make_modelrun_folder = setup_directory(OUTPUTPATH, "{0}{1}".format(datetime, "-"+runid if runid!=None else ""))
         file_path = "{0}/{1}_{2}_{3}_{4}+{5:02d}.png".format(make_modelrun_folder, model, domain_name,"CAOi", datetime,leadtime)
