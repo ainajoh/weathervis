@@ -24,6 +24,7 @@ warnings.filterwarnings("ignore", category=UserWarning)
 
 def plot_CAO(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", model=None, domain_name=None,
              domain_lonlat=None, legend=True, info=False, grid=True,runid=None, outpath=None, url = None, save= True, overlays=None, **kwargs):
+    print(kwargs["point_name"])
     #eval(f"data_domain.{domain_name}()")  # get domain info
     ## CALCULATE AND INITIALISE ####################
     scale = data_domain.scale  # scale is larger for smaller domains in order to scale it up.
@@ -32,8 +33,12 @@ def plot_CAO(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", mod
     pt = potential_temperatur(dmet.air_temperature_pl, dmet.pressure*100)
     pt_sst = potential_temperatur(dmet.SST, dmet.air_pressure_at_sea_level)
     dpt_sst = pt_sst[:, :, :] - pt[:, np.where(dmet.pressure == 850)[0], :, :].squeeze()
+    
+    dpt_sst = CAO_index(dmet.air_temperature_pl,dmet.pressure,dmet.SST,dmet.air_pressure_at_sea_level, p_level=850).squeeze()
+
     DELTAPT = np.where(dmet.SIC <= 0.99, dpt_sst, 0)
     SImask = np.where(dmet.SIC.squeeze() >= 0.1, dmet.SIC.squeeze(), np.NaN).squeeze()
+    
     lvl = range(-1, 13)
     C = [[255, 255, 255],
          [204, 191, 189],
@@ -61,7 +66,7 @@ def plot_CAO(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", mod
         print(np.shape(dmet.x))
         print(np.shape(dmet.y))
         ax1 = default_mslp_contour(dmet.x, dmet.y, MSLP[itim, 0, :, :], ax1, scale=scale)
-        CF_prec = ax1.contourf(dmet.x, dmet.y, DELTAPT[itim,0,:,:], zorder=0,
+        CF_prec = ax1.contourf(dmet.x, dmet.y, DELTAPT[itim,:,:], zorder=0,
                               antialiased=True, extend="max", levels=lvl, colors=C, vmin=0, vmax=12)  #
         ax1.contourf(dmet.x, dmet.y, SImask[itim, :, :], zorder=1, alpha=0.5, colors='azure')
         ax1.contour(dmet.x, dmet.y,
@@ -85,7 +90,8 @@ def plot_CAO(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", mod
         if grid:
             nicegrid(ax=ax1)
         if overlays:
-            add_overlay(overlays, ax=ax1, **kwargs)
+            print(kwargs["point_name"])
+            add_overlay(overlays, ax=ax1,crs=crs, **kwargs)
         if domain_name != model and data_domain != None and domain_name !=None:
             if domain_name !=None: eval(f"data_domain.{domain_name}()") 
             ax1.set_extent(data_domain.lonlat)

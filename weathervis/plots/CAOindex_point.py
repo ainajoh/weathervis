@@ -24,7 +24,8 @@ warnings.filterwarnings("ignore", category=UserWarning)
 
 def plot_CAOindex_point(point, dmet, barb=True,fillbg=False, **args):
     rad = (len(dmet.x)/2)*2.5
-    textinfo = f"{point.index.values[0]}; cord: ({point['lat'].values[0]}, {point['lon'].values[0]}), radius:{rad} km"
+    textinfo = f"{point.name}; cord: ({point['lat']}, {point['lon']}), radius:{rad} km"
+    #textinfo = f"{point.index.values[0]}; cord: ({point['lat'].values[0]}, {point['lon'].values[0]}), radius:{rad} km"
     print(textinfo)
     CAOi = CAO_index(dmet.air_temperature_pl,dmet.pressure,dmet.SST,dmet.air_pressure_at_sea_level, p_level=850)
     CAOialleval= ( CAOi != np.nan).sum(axis=(1,2))
@@ -56,10 +57,17 @@ def plot_CAOindex_point(point, dmet, barb=True,fillbg=False, **args):
     if barb == True: 
         width=0.03
         print(pros_CAOabove8)
-        if (pros_CAOabove8!=pros_CAOabove4).any(): a4 = ax2.bar(time, pros_CAOabove4, width, color=colors[0], alpha= 0.9, align='center',label='>4')
-        if (pros_CAOabove12!=pros_CAOabove8).any(): a3 = ax2.bar(time, pros_CAOabove8, width, color=colors[1], alpha= 0.9, align='center',label='>8')
-        if (pros_CAOabove16!=pros_CAOabove12).any():a2 = ax2.bar(time, pros_CAOabove12,width, color=colors[2], alpha= 0.9, align='center',label='>12')
+        #if (pros_CAOabove8!=pros_CAOabove4).any(): a4 = ax2.bar(time, pros_CAOabove4, width, color=colors[0], alpha= 0.9, align='center',label='>4')
+        #if (pros_CAOabove12!=pros_CAOabove8).any(): a3 = ax2.bar(time, pros_CAOabove8, width, color=colors[1], alpha= 0.9, align='center',label='>8')
+        #if (pros_CAOabove16!=pros_CAOabove12).any():a2 = ax2.bar(time, pros_CAOabove12,width, color=colors[2], alpha= 0.9, align='center',label='>12')
+        #a1 = ax2.bar(time, pros_CAOabove16,width, color=colors[3], alpha= 0.9, align='center',label='>16')
+        
+        a4 = ax2.bar(time, pros_CAOabove4, width, color=colors[0], alpha= 0.9, align='center',label='>4')
+        a3 = ax2.bar(time, pros_CAOabove8, width, color=colors[1], alpha= 0.9, align='center',label='>8')
+        a2 = ax2.bar(time, pros_CAOabove12,width, color=colors[2], alpha= 0.9, align='center',label='>12')
         a1 = ax2.bar(time, pros_CAOabove16,width, color=colors[3], alpha= 0.9, align='center',label='>16')
+        
+        
         ax2.legend(loc='upper right')
     elif fillbg==True:
         from matplotlib.colors import LinearSegmentedColormap
@@ -79,7 +87,7 @@ def plot_CAOindex_point(point, dmet, barb=True,fillbg=False, **args):
     #plt.savefig(f"{config.path_fig}{figname}")
     make_modelrun_folder = setup_directory(OUTPUTPATH, "{0}".format(args["datetime"]))
     file_path = "{0}/{1}_{2}_{3}_{4}.png".format(
-                make_modelrun_folder, args["model"], args["point_name"][0], "CAOi_point", args["datetime"])
+                make_modelrun_folder, args["model"], args["point_name"], "CAOi_point", args["datetime"])
     print(f"filename: {file_path}")
     fig.savefig(file_path, bbox_inches="tight", dpi=200)
     plt.cla()
@@ -88,7 +96,7 @@ def plot_CAOindex_point(point, dmet, barb=True,fillbg=False, **args):
 def plot_CAOindex_map(**kwargs ):
     kwargs["domain_name"]="Svalbard"
     kwargs["overlays"]=["point_name"]
-    kwargs["point_name"]=["CAO1"]
+    kwargs["point_name"]=[kwargs["point_name"]]
     plot_CAO(**kwargs)
 
 
@@ -97,13 +105,18 @@ def CAO(datetime,use_latest, delta_index, coast_details, steps=0, model="MEPS", 
     param= ["air_pressure_at_sea_level", "surface_geopotential", "air_temperature_pl", "SST", "SIC"]  # add later
     p_level = [850, 1000]
     domain_name= None
+    point_name=point_name[0]
     sites = pd.read_csv("../data/sites.csv", sep=";", header=0, index_col=0)
     point = sites.loc[point_name]
     #lonlat = [sites.loc[point_name].lon, sites.loc[point_name].lat]
+    print(steps)
+    print(point_name)
     dmet, data_domain, bad_param = checkget_data_handler(p_level=p_level, model=model, step=steps, date=datetime,
                                                              domain_name=domain_name, point_name= point_name,
                                                               all_param=param, num_point=1000)
     print(np.shape(dmet.air_pressure_at_sea_level))
+
+    print(point_name)
     #plot_CAOindex_map(datetime=datetime, dmet=dmet, data_domain=data_domain, steps=steps, model=model, domain_name=domain_name,
     #                     domain_lonlat=domain_lonlat, legend=legend, info=info, grid=grid, url=url,
     #                     overlays=overlays, point_name=point_name)

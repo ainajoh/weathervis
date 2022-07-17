@@ -3,10 +3,12 @@ import matplotlib.colors as colors
 import pandas as pd
 import shapely as sh
 import numpy as np
+import cartopy.crs as ccrs
 
-def add_overlay(types=[None], **kwargs): #for quick on/off in default map
+def add_overlay(types=[None], crs=ccrs,  **kwargs): #for quick on/off in default map
   print("in add_overlays")
   print(kwargs)
+  kwargs["crs"] = crs
   print(types)
   #exit()
   for ty in types:
@@ -18,14 +20,18 @@ def add_overlay(types=[None], **kwargs): #for quick on/off in default map
     #  add_topinfotext(**kwargs)
     #  #add_topinfotext(ax, model, datetime, leadtime, plot_name="missin_name", **kwargs)
 
-def point_on_map(ax, col="red",size = 40, **kwargs):
-  import cartopy.crs as ccrs
+def point_on_map(ax,col="red",size = 40, **kwargs):
+  print("in overlays")
+  #import cartopy.crs as ccrs
   sites="../data/sites.csv"
   locs = pd.read_csv(sites,sep=';')
   with ax.hold_limits():
     for pn in kwargs["point_name"]:
-      pointplot = locs[locs["Name"]==pn]
-      ax.scatter(pointplot["lon"],pointplot["lat"],s=size,color=col,marker='.',zorder=12,transform=ccrs.PlateCarree())
+      print(pn)
+      pointplot = locs[locs["Name"]==pn] #sites.loc
+      print(pointplot)
+      print(float(pointplot["lon"].values[0]))
+      ax.scatter(float(pointplot["lon"].values[0]),float(pointplot["lat"].values[0]),s=size,color=col,marker='.',zorder=12, transform=ccrs.PlateCarree())
 
 def add_default_mslp_contour(x, y, MSLP, ax1, scale=1):
   # MSLP with contour labels every 10 hPa
