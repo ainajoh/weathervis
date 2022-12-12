@@ -65,6 +65,7 @@ def filter_type(file, mbrs, p_level,m_level):
     #print("check")
     #print(file, mbrs, p_level, m_level)
     #exit()
+
     if mbrs != 0 and mbrs != None:
         filter = "strict"
         if filter == "strict":
@@ -297,26 +298,42 @@ class check_data():
             # find out where to look for data
             archive_url = "latest" if self.use_latest else "archive"
             if model.lower()=="meps":
-                base_url = "https://thredds.met.no/thredds/catalog/meps25eps{0}/".format(archive_url)   #info about date, years and filname of our model
-                base_urlfile = "https://thredds.met.no/thredds/dodsC/meps25eps{0}/".format(archive_url) #info about variables in each file
-            elif model.lower() == "aromearctic":
-                base_url = "https://thredds.met.no/thredds/catalog/aromearctic{0}/".format(archive_url)
-                base_urlfile = "https://thredds.met.no/thredds/dodsC/aromearctic{0}/".format(archive_url)
+                if archive_url =="latest":
+                    base_url = "https://thredds.met.no/thredds/catalog/meps{0}/".format(archive_url)   #info about date, years and filname of our model
+                    base_urlfile = "https://thredds.met.no/thredds/dodsC/meps{0}/".format(archive_url) #info about variables in each file
+                else:
+                    base_url = "https://thredds.met.no/thredds/catalog/meps25eps{0}/".format(archive_url)   #info about date, years and filname of our model
+                    base_urlfile = "https://thredds.met.no/thredds/dodsC/meps25eps{0}/".format(archive_url) #info about variables in each file
+            elif model.lower() == "aromearctic":               
+                if archive_url =="latest":
+                    base_url = "https://thredds.met.no/thredds/catalog/aromearctic{0}/{0}/".format(archive_url)
+                    base_urlfile = "https://thredds.met.no/thredds/dodsC/aromearctic{0}/{0}/".format(archive_url)
+                else:
+                    base_url = "https://thredds.met.no/thredds/catalog/aromearctic{0}/".format(archive_url)
+                    base_urlfile = "https://thredds.met.no/thredds/dodsC/aromearctic{0}/".format(archive_url)
+                
+
             else:
                 SomeError(ValueError, f"Cannot recognise the model")
 
+            #print(base_url)
+            #exit()
+
             #Find what files exist at that date by scraping thredd web
-            page = requests.get(base_url + "catalog.html") if self.use_latest else requests.get(base_url + YYYY+"/"+MM+"/"+DD+ "/catalog.html")
-            if page.status_code != 200:  SomeError(ConnectionError, f"Error locating site, is the date correct?")
+            our_url = base_url + "catalog.html" if self.use_latest else base_url + YYYY+"/"+MM+"/"+DD+ "/catalog.html"
+            page = requests.get(our_url)
+
+            if page.status_code != 200:  SomeError(ConnectionError, f"\nError locating site: {our_url}. Either; \n The url location might have changed \n Your date might be not correct ")
             soup = BeautifulSoup(page.text, 'html.parser')
             rawfiles = soup.table.find_all("a")
             #print(rawfiles)
             ff =[str(i.text) for i in rawfiles]
-            ff= pd.DataFrame( data = list(filter(re.compile(f'.*{YYYY}{MM}{DD}T{HH}Z.*nc$').match, ff )), columns=["File"])
+            print(ff)
+            #exit()
+            ff= pd.DataFrame( data = list(filter(re.compile(f'.*{YYYY}{MM}{DD}T{HH}Z.*nc').match, ff )), columns=["File"])
             drop_files = ["_incomplete", "_vc_", "thunder", "_kf_", "_ppalgs_", "_pp_", "t2myr", "wbkz", "vtk","_preop_"]
             df = ff.copy()[~ff["File"].str.contains('|'.join(drop_files))] #(drop_files)])
             df.reset_index(inplace=True, drop=True)
-    
             df["url"] = base_urlfile + df['File'] if self.use_latest else f"{base_urlfile}/{YYYY}/{MM}/{DD}/" + df['File']
             del ff
             del rawfiles
@@ -411,7 +428,6 @@ class check_data():
             dataset.close()
         
         file_withparam = filter_param( df.copy(), param)
-        print("AINA rmv2")
         print( self.p_level)
         
         file_corrtype = filter_type( df.copy(), mbrs, self.p_level, self.m_level)
@@ -545,6 +561,7 @@ class check_data():
         print("################ check_web_connection in check_data.py #############################")
 
         url_test = "https://thredds.met.no/thredds/catalog/meps25epsarchive/catalog.html"
+        
         try:
             webcheck = requests.head(url_test, timeout=5)
         except requests.exceptions.Timeout as e:

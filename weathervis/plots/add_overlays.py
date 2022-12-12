@@ -19,20 +19,23 @@ def add_overlay(types=[None], crs=ccrs,  **kwargs): #for quick on/off in default
     #if ty=="topinfotext":
     #  add_topinfotext(**kwargs)
     #  #add_topinfotext(ax, model, datetime, leadtime, plot_name="missin_name", **kwargs)
-
-def point_on_map(ax,col="red",size = 40, **kwargs):
+ ##red #FF8886   blue #81d4fa
+def point_on_map(ax,col=["#81d4fa", "#FF8886"],size = 1200, **kwargs):
   print("in overlays")
   #import cartopy.crs as ccrs
   sites="../data/sites.csv"
   locs = pd.read_csv(sites,sep=';')
   with ax.hold_limits():
+    i_p = 0
     for pn in kwargs["point_name"]:
+      if len(col) == i_p:
+        i_p = 0
       print(pn)
       pointplot = locs[locs["Name"]==pn] #sites.loc
       print(pointplot)
       print(float(pointplot["lon"].values[0]))
-      ax.scatter(float(pointplot["lon"].values[0]),float(pointplot["lat"].values[0]),s=size,color=col,marker='.',zorder=12, transform=ccrs.PlateCarree())
-
+      ax.scatter(float(pointplot["lon"].values[0]),float(pointplot["lat"].values[0]),s=size,color=col[i_p],marker='s',zorder=12, transform=ccrs.PlateCarree())
+      i_p+=1
 def add_default_mslp_contour(x, y, MSLP, ax1, scale=1):
   # MSLP with contour labels every 10 hPa
   C_P = ax1.contour(x, y, MSLP, zorder=1, alpha=1.0,

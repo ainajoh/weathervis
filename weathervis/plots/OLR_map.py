@@ -28,7 +28,7 @@ def plot_OLR(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", mod
   MSLP = filter_values_over_mountain(dmet.surface_geopotential[:], dmet.air_pressure_at_sea_level[:])
   # PLOTTING ROUTNE ######################
   crs = default_map_projection(dmet) #change if u want another projection
-  fig1, ax1 = plt.subplots(1, 1, figsize=(7, 9), subplot_kw={'projection': crs})
+  fig1, ax1 = plt.subplots(1, 1, figsize=(7*3, 9*3), subplot_kw={'projection': crs})
   itim = 0
   for leadtime in np.array(steps):
       print('Plotting {0} + {1:02d} UTC'.format(datetime, leadtime))
@@ -49,6 +49,10 @@ def plot_OLR(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", mod
       ax1.pcolormesh(x, y, data[ :, :], vmin=-230,vmax=-110, cmap=plt.cm.Greys_r)
       ax1.add_feature(cfeature.GSHHSFeature(scale='intermediate'),edgecolor="brown", linewidth=0.5)  # ‘auto’, ‘coarse’, ‘low’, ‘intermediate’, ‘high, or ‘full’ (default is ‘auto’).
       ax1.text(0, 1, "{0}_OLR_{1}+{2:02d}".format(model, datetime, leadtime), ha='left', va='bottom', transform=ax1.transAxes,color='dimgrey')
+      ax1.contour(dmet.x, dmet.y,
+                             dmet.SIC[itim, :, :] if len(np.shape(dmet.SIC)) == 3 else dmet.SIC[itim,0, :, :],
+                             zorder=2, linewidths=2.0, colors="black", levels=[0.1, 0.5])
+      
       if grid:
         nicegrid(ax=ax1)
       if overlays:
@@ -59,7 +63,7 @@ def plot_OLR(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", mod
       make_modelrun_folder = setup_directory(OUTPUTPATH, "{0}".format(datetime))
       file_path = "{0}/{1}_{2}_{3}_{4}+{5:02d}.png".format(make_modelrun_folder, model, domain_name, "OLR", datetime,leadtime)
       print(f"filename: {file_path}")
-      fig1.savefig(file_path, bbox_inches="tight", dpi=200)
+      fig1.savefig(file_path, bbox_inches="tight", dpi=300)
       ax1.cla()
       itim += 1
   plt.close(fig1)
@@ -72,7 +76,7 @@ def plot_OLR(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", mod
 
 def OLR(datetime,use_latest, delta_index, coast_details, steps=0, model="MEPS", domain_name=None, domain_lonlat=None, legend=False, info=False, grid=True,
         runid=None, outpath=None, url=None, point_lonlat =None,overlays=None, point_name=None):
-    param = ["air_pressure_at_sea_level", "surface_geopotential", "toa_outgoing_longwave_flux"]
+    param = ["air_pressure_at_sea_level", "surface_geopotential", "toa_outgoing_longwave_flux", "SIC"]
     p_level = None
     plot_by_subdomains(plot_OLR, checkget_data_handler, datetime, steps, model, domain_name, domain_lonlat, legend,
                        info, grid, url, point_lonlat, use_latest,

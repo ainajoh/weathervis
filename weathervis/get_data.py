@@ -327,11 +327,11 @@ class get_data():
         if self.use_latest==False and self.model.lower() =="aromearctic":
               url = f"https://thredds.met.no/thredds/dodsC/aromearcticarchive/{YYYY}/{MM}/{DD}/{file.loc['File']}"
         elif self.use_latest==True and self.model.lower()  =="aromearctic":
-              url = f"https://thredds.met.no/thredds/dodsC/aromearcticlatest/{file.loc['File']}"
+              url = f"https://thredds.met.no/thredds/dodsC/aromearcticlatest/latest/{file.loc['File']}"
         elif self.use_latest==False and self.model.lower()  =="meps":
               url = f"https://thredds.met.no/thredds/dodsC/meps25epsarchive/{YYYY}/{MM}/{DD}/{file.loc['File']}"
         elif self.use_latest==True and self.model.lower()  =="meps":
-              url = f"https://thredds.met.no/thredds/dodsC/meps25epslatest/{file.loc['File']}"
+              url = f"https://thredds.met.no/thredds/dodsC/mepslatest/{file.loc['File']}"
         else:
               url = self.url
 
