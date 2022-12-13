@@ -368,14 +368,17 @@ GpsAlt_m = 'GpsAlt_m'):
 def domain_input_handler(dt=None, model=None, domain_name=None, domain_lonlat=None, 
                         file=None, point_name=None, point_lonlat=None, use_latest=True, 
                         delta_index=None, url=None,num_point=1):
+    
     print("######## domain_input_handler in utils.py ################### ")
+    print(domain_name)
     if domain_name or domain_lonlat:
         if domain_lonlat:
             print(f"\n####### Setting up domain for coordinates: {domain_lonlat} ##########")
             data_domain = domain(dt, model, file=file, lonlat=domain_lonlat,use_latest=use_latest,delta_index=delta_index, url=url, num_point=num_point)
         else:
+            
             data_domain = domain(dt, model, file=file, use_latest=use_latest,delta_index=delta_index, url=url, num_point=num_point)#
-
+            
         if domain_name != None and domain_name in dir(data_domain):
             print(f"\n####### Setting up domain: {domain_name} ##########")
             domain_name = domain_name.strip()
@@ -402,7 +405,7 @@ def domain_input_handler(dt=None, model=None, domain_name=None, domain_lonlat=No
     #if (point_lonlat != None and point_name == None and domain_name == None and domain_lonlat == None):
     #    data_domain = domain(dt, model, file=file, lonlat=point_lonlat,use_latest=use_latest,delta_index=delta_index, url=url)
 
-
+    
     return data_domain
 
 def default_map_projection(dmet):
@@ -496,9 +499,11 @@ def find_subdomains(domain_name, datetime=None, model=None, num_point=1, domain_
     point_name = None  # args.point_name
     delta_index = None  # args.delta_index
     file = None
+    
     dom1 = domain_input_handler(dt = datetime, model = model, domain_name = domain_name[0], domain_lonlat = domain_lonlat,
                                 file=file, point_name=point_name, point_lonlat=point_lonlat,
                                 use_latest=use_latest, delta_index=delta_index, url=url, num_point=num_point)
+    
     for dom in domain_name:
         eval(f"dom1.{dom}()")
         idx_domain_name.append(dom1.idx)
@@ -549,6 +554,9 @@ def plot_by_subdomains(plt_func, checkget_data_handler, datetime, steps, model, 
                                               domain_lonlat=domain_lonlat,
                                               point_lonlat=point_lonlat, use_latest=use_latest, delta_index=delta_index,
                                               url=url)
+    #print("test")
+    #print(domains_with_subdomains)
+    #exit(1)
     for domain_name in domains_with_subdomains.index.values:
         dmet, data_domain, bad_param = checkget_data_handler(p_level=p_level, model=model, step=steps, date=datetime,
                                                              domain_name=domain_name, all_param=param)

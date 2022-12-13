@@ -420,7 +420,7 @@ class get_data():
                 indxmember = np.where(dimlist == "ensemble_member")[0][0]
                 varvar = dataset.variables[prm][:].squeeze(axis=indxmember)
             if x_dim:
-                print("in x")
+                pass
                 #print(prm)
                 #Todo: remove unwanted indeices that is in main_list. When we ask for 3 gridpoint it gives 4 due to retrieving min to max, so retrieving odd values gives one more than intended. But also asking for 300 gives 400 values so probably this bug increses. 
                 #for x,y in main_list:

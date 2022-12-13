@@ -241,25 +241,23 @@ class check_data():
         self.p_level = p_level
         self.m_level = m_level
         self.drop_files = []
-
         self.maxstep = np.max(step) if step != None or type(step) != float or type(step) != int else step
         self.use_latest=use_latest
+        print(self.model)
         filter_function_for_date(self.date)
         self.check_web_connection()
         self.model = filter_function_for_models_ignore_uppercases(self.model) if self.model != None else None
-        print("aina rmv")
-        print(p_level)
-        #exit()
         self.p_level = list(p_level) if p_level != None else p_level #and type(p_level) != list else p_level
-        
         #self.p_level = [p_level] if p_level != None and type(p_level) != list else p_level
-
         self.m_level = [m_level] if m_level != None and type(m_level) != list else m_level
-        
-        
+        if self.model==None and self.url==None: 
+
+            return
+
         if (self.model !=None and self.date !=None) or self.url !=None:
             all_files = self.check_files(date, model, param,  mbrs, url) #the main outcome
             self.file = self.check_file_info(all_files, param, mbrs)
+
 
 
         ###################################################
@@ -285,9 +283,13 @@ class check_data():
         meta_df=pd.read_csv(metafile, comment='#', sep=",",skipinitialspace=True)
         return meta_df
 
-    def filter_metadata(self, meta_df):
+    def filter_metadata(self, meta_df, model=None, use_latest=None):
+        self.use_latest=use_latest if use_latest !=None else self.use_latest
+        self.model=model if model !=None else self.model
         archive_url = "latest" if self.use_latest else "archive"
-        meta_df = meta_df[(meta_df.Name == self.model) & (meta_df.source.str.contains(archive_url))]
+        #print(meta_df.Name.str.contains(self.model, case=False))
+        #exit(1)
+        meta_df = meta_df[(meta_df.Name.str.contains(self.model, case=False)) & (meta_df.source.str.contains(archive_url))]
         if len(meta_df) !=1: 
             SomeError(ValueError,f"too many / non options found for metadata: {meta_df}")
         #meta_df = meta_df#.head(1)
@@ -302,7 +304,7 @@ class check_data():
         logging.info("--> check_files() <---\n")
         print("################ check_files in check_data.py #############################")
         base_url = ""
-        
+        print("YEEE")
         if self.url != None:
             #if a url file is given. we dont need to look for possible files.
             df = pd.DataFrame(data=list([re.search(f'[^/]*nc$', self.url).group(0)]), columns=["File"])

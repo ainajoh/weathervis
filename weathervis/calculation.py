@@ -116,7 +116,7 @@ def nearest_neighbour(plon,plat, longitudes, latitudes, nmin=1):
 
 
     return point
-def CAO_index(air_temperature_pl, pressure,SST,air_pressure_at_sea_level, p_level=850):
+def CAO_index(air_temperature_pl, pressure, SST,air_pressure_at_sea_level, p_level=850):
     #pressure in hpa
     #pt = potential_temperatur(air_temperature_pl, pressure)
     #pt_sst = potential_temperatur(SST, air_pressure_at_sea_level)
@@ -125,10 +125,10 @@ def CAO_index(air_temperature_pl, pressure,SST,air_pressure_at_sea_level, p_leve
     
     pt = potential_temperatur(air_temperature_pl, pressure*100)  #4, 2, 36, 36)
 
-    try: 
-         air_pressure_at_sea_level= air_pressure_at_sea_level.squeeze(axis=1)
-    except: 
-        air_pressure_at_sea_level = air_pressure_at_sea_level
+    #try: 
+    #     air_pressure_at_sea_level= air_pressure_at_sea_level.squeeze(axis=1)
+    #except: 
+    #    air_pressure_at_sea_level = air_pressure_at_sea_level
     pt_sst = potential_temperatur(SST, air_pressure_at_sea_level)
     #print(np.shape(SST))   #(4, 36, 36)
     #print(np.shape(air_pressure_at_sea_level))  #(4, 1, 36, 36)
@@ -210,7 +210,9 @@ def potential_temperatur(temperature, pressure):
     cp = 1004.  #[J/kg] specific heat for dry air (WH)
     theta = np.full(np.shape(temperature), np.nan)
     #print(np.shape(theta))
-    #print(len(np.shape(theta)))
+    print("hey")
+    print(len(np.shape(theta)))
+    print(len(np.shape(pressure)))
     if len(np.shape(theta)) ==4:
         if len(np.shape(pressure)) ==1:
             for i in range(0,len(pressure)):
@@ -219,7 +221,7 @@ def potential_temperatur(temperature, pressure):
             for i in range(0,np.shape(pressure)[1]):
                 theta[:,i,:,:] = temperature[:,i,:,:]  * (p0 / pressure[:,i,:,:]) ** (Rd/cp) #[K]
 
-
+    
     elif len(np.shape(theta)) ==1:
         for i in range(0,len(pressure)):
             theta[i] = temperature[i]  * (p0 / pressure[i]) ** (Rd/cp) #[K]

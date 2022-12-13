@@ -34,10 +34,17 @@ def plot_CAO(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", mod
     pt_sst = potential_temperatur(dmet.SST, dmet.air_pressure_at_sea_level)
     dpt_sst = pt_sst[:, :, :] - pt[:, np.where(dmet.pressure == 850)[0], :, :].squeeze()
     
-    dpt_sst = CAO_index(dmet.air_temperature_pl,dmet.pressure,dmet.SST,dmet.air_pressure_at_sea_level, p_level=850).squeeze()
+    dpt_sst = CAO_index(dmet.air_temperature_pl, dmet.pressure, dmet.SST, dmet.air_pressure_at_sea_level, p_level=850).squeeze()
 
     DELTAPT = np.where(dmet.SIC <= 0.99, dpt_sst, 0)
-    SImask = np.where(dmet.SIC.squeeze() >= 0.1, dmet.SIC.squeeze(), np.NaN).squeeze()
+    SImask = np.where(dmet.SIC >= 0.1, dmet.SIC, np.NaN)
+    try: 
+         DELTAPT= DELTAPT.squeeze(axis=1)
+         SImask= SImask.squeeze(axis=1)
+    except: 
+        SImask = SImask
+        SImask = SImask
+
     
     lvl = range(-1, 13)
     C = [[255, 255, 255],
@@ -65,15 +72,20 @@ def plot_CAO(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", mod
         print(np.shape(MSLP))
         print(np.shape(dmet.x))
         print(np.shape(dmet.y))
+        print(np.shape(SImask))
+        print(np.shape(DELTAPT))
         ax1 = default_mslp_contour(dmet.x, dmet.y, MSLP[itim, 0, :, :], ax1, scale=scale)
+        
         CF_prec = ax1.contourf(dmet.x, dmet.y, DELTAPT[itim,:,:], zorder=0,
                               antialiased=True, extend="max", levels=lvl, colors=C, vmin=0, vmax=12)  #
+        
         ax1.contourf(dmet.x, dmet.y, SImask[itim, :, :], zorder=1, alpha=0.5, colors='azure')
+        
         ax1.contour(dmet.x, dmet.y,
                              dmet.SIC[itim, :, :] if len(np.shape(dmet.SIC)) == 3 else dmet.SIC[itim,0, :, :],
                              zorder=2, linewidths=2.0, colors="black", levels=[0.1, 0.5])  #
         ax1.add_feature(cfeature.GSHHSFeature(scale=coast_details))
-
+        
         if legend:
             proxy = [plt.axhline(y=0, xmin=1, xmax=1, color="grey"),
                     plt.axhline(y=0, xmin=1, xmax=1, color="black", linewidth=4)]

@@ -54,11 +54,10 @@ class domain():
         self.domain_name = domain_name
         self.point_name=point_name
         self.point_lonlat=point_lonlat
-
         self.use_latest = use_latest
         self.delta_index=delta_index
         self.scale = find_scale(self.lonlat) if self.lonlat else 1
-
+        
         if (file is not None and isinstance(file, pd.DataFrame) ):  #type(file)==pd.core.frame.DataFrame):
             self.url = file.loc[0,'url']
         elif (file is not None):
@@ -67,6 +66,7 @@ class domain():
             self.url = url
         else:
             self.url = self.make_url_base()
+        
         self.url = self.url + "?latitude,longitude"
         
         dataset = Dataset(self.url)
@@ -132,30 +132,49 @@ class domain():
         date = str(self.date)
         YYYY = date[0:4]; MM = date[4:6]; DD = date[6:8] #HH = date[8:10]
         archive_url = "latest" if self.use_latest else f"archive/{YYYY}/{MM}/{DD}/"
-        if self.model.lower() == "aromearctic":
-            base_url = "https://thredds.met.no/thredds/catalog/aromearctic{0}/".format(archive_url)
-            base_urlfile = "https://thredds.met.no/thredds/dodsC/aromearctic{0}/".format(archive_url)
-        elif self.model.lower() == "meps":
-            base_url = "https://thredds.met.no/thredds/catalog/meps25eps{0}/".format(archive_url)
-            base_urlfile = "https://thredds.met.no/thredds/dodsC/meps25eps{0}/".format(archive_url)
-        else:
-            base_url = self.url
+        check=check_data()
+        #print(check.url)
+        meta_df = check.filter_metadata(check.load_metadata(), model=self.model, use_latest=self.use_latest)
+        base_url = meta_df[meta_df.modelinfotype]
+        base_urlfile=meta_df[meta_df.source]
+        base_url = base_url + "catalog.html" if self.use_latest else base_url + YYYY+"/"+MM+"/"+DD+ "/catalog.html"
+        base_urlfile = base_urlfile if self.use_latest else base_urlfile + YYYY+"/"+MM+"/"+DD + "/"
 
-        page = requests.get(base_url + "catalog.html")
+        print(base_url)
+
+        #if self.model.lower() == "aromearctic":
+        #    base_url = "https://thredds.met.no/thredds/catalog/aromearctic{0}/".format(archive_url)
+        #    base_urlfile = "https://thredds.met.no/thredds/dodsC/aromearctic{0}/".format(archive_url)
+        #elif self.model.lower() == "meps":
+        #    base_url = "https://thredds.met.no/thredds/catalog/meps25eps{0}/".format(archive_url)
+        #    base_urlfile = "https://thredds.met.no/thredds/dodsC/meps25eps{0}/".format(archive_url)
+        #else:
+        #    base_url = self.url
+
+
+        page = requests.get(base_url)
         soup = BeautifulSoup(page.text, 'html.parser')
         rawfiles = soup.table.find_all("a")
+        
         ff = [str(i.text) for i in rawfiles]
+        
         ff = pd.DataFrame(data=list(filter(re.compile(f'.*.nc$|.*.ncml$').match, ff)), columns=["File"])
         drop_files = ["_vc_", "thunder", "_kf_", "_ppalgs_", "_pp_", "t2myr", "wbkz", "vtk", "_preop_"]
+        
         df = ff.copy()[~ff["File"].str.contains('|'.join(drop_files))]  # (drop_files)])
         df.reset_index(inplace=True, drop=True)
+        
         df["url"] = base_urlfile + df['File']# if self.use_latest else f"{base_urlfile}/{YYYY}/{MM}/{DD}/" + df['File']
         del ff
         del rawfiles
         soup.decompose()
         page.close()
         gc.collect()
+        print("eee1")
+        print( df.url)
+        print( df.url[0])
 
+        
         url= df.url[0] #just random pick the first one
         return url
 
