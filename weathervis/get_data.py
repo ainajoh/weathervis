@@ -326,21 +326,8 @@ class get_data():
         MM = date[4:6]
         DD = date[6:8]
         HH = date[8:10]
-      
-        #exit(1)
-        #meta_df = self.filter_metadata(self.load_metadata())
+    
         url = file.url if self.url==None else self.url
-        #if self.use_latest==False and self.model.lower() =="aromearctic":
-        #      url = f"https://thredds.met.no/thredds/dodsC/aromearcticarchive/{YYYY}/{MM}/{DD}/{file.loc['File']}"
-        #elif self.use_latest==True and self.model.lower()  =="aromearctic":
-        #      url = f"https://thredds.met.no/thredds/dodsC/aromearcticlatest/latest/{file.loc['File']}"
-        #elif self.use_latest==False and self.model.lower()  =="meps":
-        #      url = f"https://thredds.met.no/thredds/dodsC/meps25epsarchive/{YYYY}/{MM}/{DD}/{file.loc['File']}"
-        #elif self.use_latest==True and self.model.lower()  =="meps":
-        #      url = f"https://thredds.met.no/thredds/dodsC/mepslatest/{file.loc['File']}"
-        #else:
-        #      url = self.url
-
         logging.info(url)
         return url #returns the url that will be set to global url.
 

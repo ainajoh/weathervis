@@ -240,7 +240,7 @@ class check_data():
         self.search = search
         self.p_level = p_level
         self.m_level = m_level
-        
+        self.drop_files = []
 
         self.maxstep = np.max(step) if step != None or type(step) != float or type(step) != int else step
         self.use_latest=use_latest
@@ -309,10 +309,12 @@ class check_data():
             df["url"] = self.url
         else:
             meta_df = self.filter_metadata(self.load_metadata())
-
             date = str(date); YYYY = date[0:4]; MM = date[4:6]; DD = date[6:8]; HH = date[8:10]
             base_url = meta_df[meta_df.modelinfotype]
             base_urlfile=meta_df[meta_df.source]
+            drop_files = re.sub(r'\s+', "", meta_df["exclude_filename"]).split(",")
+            self.drop_files=drop_files
+
             #Find what files exist at that date by scraping thredd web
             our_url = base_url + "catalog.html" if self.use_latest else base_url + YYYY+"/"+MM+"/"+DD+ "/catalog.html"
             page = requests.get(our_url)
@@ -325,7 +327,6 @@ class check_data():
             print(ff)
             #exit()
             ff= pd.DataFrame( data = list(filter(re.compile(f'.*{YYYY}{MM}{DD}T{HH}Z.*nc').match, ff )), columns=["File"])
-            drop_files = ["_incomplete", "_vc_", "thunder", "_kf_", "_ppalgs_", "_pp_", "t2myr", "wbkz", "vtk","_preop_"]
             df = ff.copy()[~ff["File"].str.contains('|'.join(drop_files))] #(drop_files)])
             df.reset_index(inplace=True, drop=True)
             df["url"] = base_urlfile + df['File'] if self.use_latest else f"{base_urlfile}/{YYYY}/{MM}/{DD}/" + df['File']
