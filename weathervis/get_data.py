@@ -128,17 +128,20 @@ class get_data():
 
         #If No member is wanted, we take the control (mbr=0)
         self.url = url
+        #print(self.url)
+        #exit(1)
         self.units = self.dummyobject()
         self.FillValue = self.dummyobject()
         self.use_latest=use_latest
         self.indexidct = None #updated later Contains the indexes for the dimentions we want, see adjust_user_url()
 
         #Check and filter for valid settings. If any of these result in a error, this script stops
-        check_if_thredds_is_down("https://thredds.met.no/thredds/catalog/meps25epsarchive/catalog.html")
+        #check_if_thredds_is_down("https://thredds.met.no/thredds/catalog/meps25epsarchive/catalog.html")
 
 
 
         if self.url is None:
+            #print(self.file)
             filter_function_for_file(self.file)
 
             if self.model: filter_function_for_models(self.model)
@@ -323,17 +326,20 @@ class get_data():
         MM = date[4:6]
         DD = date[6:8]
         HH = date[8:10]
-
-        if self.use_latest==False and self.model.lower() =="aromearctic":
-              url = f"https://thredds.met.no/thredds/dodsC/aromearcticarchive/{YYYY}/{MM}/{DD}/{file.loc['File']}"
-        elif self.use_latest==True and self.model.lower()  =="aromearctic":
-              url = f"https://thredds.met.no/thredds/dodsC/aromearcticlatest/latest/{file.loc['File']}"
-        elif self.use_latest==False and self.model.lower()  =="meps":
-              url = f"https://thredds.met.no/thredds/dodsC/meps25epsarchive/{YYYY}/{MM}/{DD}/{file.loc['File']}"
-        elif self.use_latest==True and self.model.lower()  =="meps":
-              url = f"https://thredds.met.no/thredds/dodsC/mepslatest/{file.loc['File']}"
-        else:
-              url = self.url
+      
+        #exit(1)
+        #meta_df = self.filter_metadata(self.load_metadata())
+        url = file.url if self.url==None else self.url
+        #if self.use_latest==False and self.model.lower() =="aromearctic":
+        #      url = f"https://thredds.met.no/thredds/dodsC/aromearcticarchive/{YYYY}/{MM}/{DD}/{file.loc['File']}"
+        #elif self.use_latest==True and self.model.lower()  =="aromearctic":
+        #      url = f"https://thredds.met.no/thredds/dodsC/aromearcticlatest/latest/{file.loc['File']}"
+        #elif self.use_latest==False and self.model.lower()  =="meps":
+        #      url = f"https://thredds.met.no/thredds/dodsC/meps25epsarchive/{YYYY}/{MM}/{DD}/{file.loc['File']}"
+        #elif self.use_latest==True and self.model.lower()  =="meps":
+        #      url = f"https://thredds.met.no/thredds/dodsC/mepslatest/{file.loc['File']}"
+        #else:
+        #      url = self.url
 
         logging.info(url)
         return url #returns the url that will be set to global url.

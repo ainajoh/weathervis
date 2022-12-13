@@ -56,7 +56,7 @@ def find_best_combinationoffiles(all_param, fileobj, m_level=None, p_level=None)
         tot_param_we_want_that_areNOT_available += [param_we_want_that_areNOT_available]
         tot_param_we_want_that_are_available += [param_we_want_that_are_available]
         filenames += [fileobj.loc[i].loc["File"]]
-    #getting the unique flattened version of the total parameter that was available and that was not.
+    #getting the uniq   ue flattened version of the total parameter that was available and that was not.
     tot_unique_avalable = []
     for sublist in tot_param_we_want_that_are_available:
         for item in sublist:

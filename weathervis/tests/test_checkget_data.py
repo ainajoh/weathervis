@@ -63,6 +63,7 @@ class checkgetdata(unittest.TestCase):
 
     def test_date_correct___archive_url(self):
         #test missing model, date, step, and use_latest
+        print(self.url_base)
         checkget_data_handler(all_param=self.one_good_param, url=self.url_base)
 
     def test_date_good___latest(self): #error

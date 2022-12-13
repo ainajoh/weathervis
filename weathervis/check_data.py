@@ -280,7 +280,21 @@ class check_data():
         ###################################################
 
         #self.clean_all()
+    def load_metadata(self):
+        metafile=f"{package_path}/data/metadata/supported_model_info.csv"
+        meta_df=pd.read_csv(metafile, comment='#', sep=",",skipinitialspace=True)
+        return meta_df
 
+    def filter_metadata(self, meta_df):
+        archive_url = "latest" if self.use_latest else "archive"
+        meta_df = meta_df[(meta_df.Name == self.model) & (meta_df.source.str.contains(archive_url))]
+        if len(meta_df) !=1: 
+            SomeError(ValueError,f"too many / non options found for metadata: {meta_df}")
+        #meta_df = meta_df#.head(1)
+        #print(meta_df[meta_df.source])
+        return meta_df.squeeze()
+
+        
     def check_files(self, date, model, param, mbrs, url=None):
         """
         Returns a dataframe containing file name and file url
@@ -288,37 +302,17 @@ class check_data():
         logging.info("--> check_files() <---\n")
         print("################ check_files in check_data.py #############################")
         base_url = ""
-
+        
         if self.url != None:
             #if a url file is given. we dont need to look for possible files.
             df = pd.DataFrame(data=list([re.search(f'[^/]*nc$', self.url).group(0)]), columns=["File"])
             df["url"] = self.url
         else:
+            meta_df = self.filter_metadata(self.load_metadata())
+
             date = str(date); YYYY = date[0:4]; MM = date[4:6]; DD = date[6:8]; HH = date[8:10]
-            # find out where to look for data
-            archive_url = "latest" if self.use_latest else "archive"
-            if model.lower()=="meps":
-                if archive_url =="latest":
-                    base_url = "https://thredds.met.no/thredds/catalog/meps{0}/".format(archive_url)   #info about date, years and filname of our model
-                    base_urlfile = "https://thredds.met.no/thredds/dodsC/meps{0}/".format(archive_url) #info about variables in each file
-                else:
-                    base_url = "https://thredds.met.no/thredds/catalog/meps25eps{0}/".format(archive_url)   #info about date, years and filname of our model
-                    base_urlfile = "https://thredds.met.no/thredds/dodsC/meps25eps{0}/".format(archive_url) #info about variables in each file
-            elif model.lower() == "aromearctic":               
-                if archive_url =="latest":
-                    base_url = "https://thredds.met.no/thredds/catalog/aromearctic{0}/{0}/".format(archive_url)
-                    base_urlfile = "https://thredds.met.no/thredds/dodsC/aromearctic{0}/{0}/".format(archive_url)
-                else:
-                    base_url = "https://thredds.met.no/thredds/catalog/aromearctic{0}/".format(archive_url)
-                    base_urlfile = "https://thredds.met.no/thredds/dodsC/aromearctic{0}/".format(archive_url)
-                
-
-            else:
-                SomeError(ValueError, f"Cannot recognise the model")
-
-            #print(base_url)
-            #exit()
-
+            base_url = meta_df[meta_df.modelinfotype]
+            base_urlfile=meta_df[meta_df.source]
             #Find what files exist at that date by scraping thredd web
             our_url = base_url + "catalog.html" if self.use_latest else base_url + YYYY+"/"+MM+"/"+DD+ "/catalog.html"
             page = requests.get(our_url)
@@ -461,7 +455,7 @@ class check_data():
         print("################ check_available_date in check_data.py #############################")
 
 
-        df = pd.read_csv(f"{package_path}/data/{model}_filesandvar.csv")
+        df = pd.read_csv(f"{package_path}/data/metadata/{model}_filesandvar.csv")
         dfc = df.copy()  # df['base_name'] = [re.sub(r'_[0-9]*T[0-9]*Z.nc','', str(x)) for x in df['File']]
         drop_files = ["_vc_", "thunder", "_kf_", "_ppalgs_", "_pp_", "t2myr", "wbkz", "vtk","_preop_", "_lagged_"]
         df_base = pd.DataFrame([re.sub(r'_[0-9]*T[0-9]*Z.nc', '', str(x)) for x in df['File']], columns=["base_name"])
@@ -501,7 +495,7 @@ class check_data():
         logging.info("--> check_variable_all <---\n")
         print("################ check_variable_all in check_data.py #############################")
 
-        df = pd.read_csv(f"{package_path}/data/{model}_filesandvar.csv")
+        df = pd.read_csv(f"{package_path}/data/metadata/{model}_filesandvar.csv")
         dfc = df.copy()  # df['base_name'] = [re.sub(r'_[0-9]*T[0-9]*Z.nc','', str(x)) for x in df['File']]
         drop_files = ["_vc_", "thunder", "_kf_", "_ppalgs_", "_pp_", "t2myr", "wbkz", "vtk","_preop_"]
         df_base = pd.DataFrame([re.sub(r'_[0-9]*T[0-9]*Z.nc', '', str(x)) for x in df['File']], columns=["base_name"])
