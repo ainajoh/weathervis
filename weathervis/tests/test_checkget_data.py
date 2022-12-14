@@ -15,10 +15,10 @@ class checkgetdata(unittest.TestCase):
     def setUp(self):
         warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-
         self.to_old_date = "1999010100"
         self.archive_date = "2020010100" #strftime('%Y%m%d')
-        self.latest_date = (datetime.today() - timedelta(hours=12)).strftime('%Y%m%d') + "00"
+        self.latest_date =  (datetime.today() - timedelta(hours=12)).strftime('%Y%m%d%H') #+ "00"
+        self.latest_date = self.latest_date[:-2] + str(int(self.latest_date[-2:])-int(self.latest_date[-2:])%6).zfill(2)
         self.to_futuristic_date = "2030010100"
         self.bad_format_date = "20200100"
         self.any_type_date = 2020010100
