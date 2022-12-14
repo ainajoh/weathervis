@@ -211,8 +211,10 @@ def potential_temperatur(temperature, pressure):
     theta = np.full(np.shape(temperature), np.nan)
     #print(np.shape(theta))
     print("hey")
-    print(len(np.shape(theta)))
-    print(len(np.shape(pressure)))
+    print(len(np.shape(theta))) #3
+    print(len(np.shape(pressure))) #4
+    print(np.shape(theta)) #3 (6, 36, 35)
+    print(np.shape(pressure)) #4 (6, 1, 36, 35)
     if len(np.shape(theta)) ==4:
         if len(np.shape(pressure)) ==1:
             for i in range(0,len(pressure)):
@@ -226,9 +228,12 @@ def potential_temperatur(temperature, pressure):
         for i in range(0,len(pressure)):
             theta[i] = temperature[i]  * (p0 / pressure[i]) ** (Rd/cp) #[K]
     elif len(np.shape(theta)) ==3:
-        #print(np.shape(pressure))
-        #print(np.shape(temperature))
-        theta = temperature  * (p0 / pressure) ** (Rd/cp) #[K]
+        if len(np.shape(pressure)) == 4:
+            pressure=pressure.squeeze(axis=1)
+            theta = temperature  * (p0 / pressure) ** (Rd/cp) #[K]
+        else:
+            for i in range(0,np.shape(pressure)[1]):
+                theta[:,i,:,:] = temperature[:,i,:,:]  * (p0 / pressure[:,i,:,:]) ** (Rd/cp) #[K]
 
 
     #print(theta)

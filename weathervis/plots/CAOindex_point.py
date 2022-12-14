@@ -106,7 +106,8 @@ def CAO(datetime,use_latest, delta_index, coast_details, steps=0, model="MEPS", 
     p_level = [850, 1000]
     domain_name= None
     point_name=point_name[0]
-    sites = pd.read_csv("../data/sites.csv", sep=";", header=0, index_col=0)
+    package_path = os.path.dirname(__file__)
+    sites = pd.read_csv(f"{package_path}/../data/sites.csv", sep=";", header=0, index_col=0)
     point = sites.loc[point_name]
     #lonlat = [sites.loc[point_name].lon, sites.loc[point_name].lat]
     print(steps)
