@@ -46,7 +46,17 @@ def VC_plot(model_data, adj_obs_data, raw_obs_data):
     colormap = "cividis_r"
     #norm = matplotlib.colors.Normalize(vmin=0, vmax=100) for a fixed value between plots
     obs_datetime = adj_obs_data.index[:num_p]
-    lx, tx = np.meshgrid(model_data.pressure, obs_datetime)
+    lx, tx = np.meshgrid(model_data.pressure, obs_datetime) # 10,6
+
+    print("before err and calc")
+    print(np.shape(obs_datetime)) #10 observations points tine
+
+    print(np.shape(model_data.pressure)) #6 pressure levels)
+    print(np.shape(model_data.relative_humidity_pl)) #(10,6)
+    print(np.shape(tx))     #(10, 6)
+    print(np.shape(lx))     #(10, 6)
+    print("before err ")
+    #exit(1)
     fig, ax = plt.subplots(figsize=(12, 3))
     pp = model_data.pressure
     cf = ax.pcolormesh(tx, lx, model_data.relative_humidity_pl * 100, norm=norm, cmap=colormap, shading='nearest', zorder=1)

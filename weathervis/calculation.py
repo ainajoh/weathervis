@@ -383,12 +383,35 @@ def ml2pl_full2full( ap, b, surface_air_pressure ):
     """
     timeSize = np.shape(surface_air_pressure)[0]
     levelSize = np.shape(ap)[0]
-    ySize = np.shape(surface_air_pressure)[2] #lat in y
-    xSize = np.shape(surface_air_pressure)[3] #lon in x
-    p = np.zeros(shape = (timeSize, levelSize, ySize, xSize))
-    for k in range(0,levelSize):
-        p[:, k, :, :] = ap[k] + b[k] * surface_air_pressure[:, 0, :, :]
+    print(np.shape(surface_air_pressure)) #(10,0)
+    print(np.shape(ap)) #(10, 4)
+    print(np.shape(b))
+    if len(np.shape(surface_air_pressure)) !=1:
+        sap = surface_air_pressure[:, 0, :, :] if len(np.shape(surface_air_pressure)) ==4 else surface_air_pressure
+        ySize = np.shape(surface_air_pressure)[-2] #lat in y
+        xSize = np.shape(surface_air_pressure)[-1] #lon in x
+        if len(np.shape(ap))==1: 
+            levelSize = np.shape(ap)[0]
+            p = np.zeros(shape = (timeSize, levelSize, ySize, xSize))
+
+            for k in range(0,levelSize):
+                p[:, k, :, :] = ap[k] + b[k] * sap[:,:,:]  #(10,1,1,1) = (10,1) + (10,1) * (10,1,1)
+        else: 
+            levelSize = np.shape(ap)[1]
+            p = np.zeros(shape = (timeSize, levelSize, ySize, xSize))
+
+            for k in range(0,levelSize):
+                for t in range(0,timeSize):
+                    p[t, k, :, :] = ap[t, k] + b[t, k] * sap[t,:,:]  #(10,1,1,1) = (10,1) + (10,1) * (10,1,1)
+
+    else: 
+        print(timeSize)
+        print(levelSize)
+        p = np.zeros(shape = (timeSize, levelSize))
+        for k in range(0,levelSize):
+            p[:,k] = ap[:,k] + b[:,k] * surface_air_pressure
     return p
+    
 def ml2pl_half2full( ap, b, surface_air_pressure):
     """
     Parameters
@@ -413,8 +436,8 @@ def ml2pl_half2full( ap, b, surface_air_pressure):
     """
     timeSize = np.shape(surface_air_pressure)[0]
     levelSize = np.shape(ap)[0]
-    ySize = np.shape(surface_air_pressure)[2]  # lat in y
-    xSize = np.shape(surface_air_pressure)[3]  # lon in x
+    ySize = np.shape(surface_air_pressure)[-2]  # lat in y
+    xSize = np.shape(surface_air_pressure)[-1]  # lon in x
     pfull = np.zeros(shape=(timeSize, levelSize, ySize, xSize))
     phalf = np.zeros(shape=(timeSize, levelSize, ySize, xSize))
     for k in range(0, levelSize):
@@ -527,6 +550,52 @@ def ml2pl( ap, b, surface_air_pressure, inputlevel="full", returnlevel="full"):
     return p
 
 #model levels to geopotential height
+def tmp_aina( air_temperature_ml, specific_humidity_ml, p):
+    print("CALCUl")
+    Rd = 287.06 #[J/kg K] Gas constant for dry air
+    g = 9.80665
+    z_h = 0  # 0 since geopotential is 0 at sea level
+    #if p == None:
+    #    p = ml2plhalf( ap, b, surface_air_pressure )
+
+
+    timeSize, levelSize, ySize, xSize = np.shape(p)
+    geotoreturn_m = np.zeros(shape=(timeSize, levelSize, ySize, xSize))
+    t_v_level = np.zeros(shape=(timeSize, levelSize, ySize, xSize))
+
+    levels = np.arange(0, levelSize)  #index of heighlevels from top(lvl = 0) to bottom(lvl=64)
+    levels_r = levels[::-1]           #index of heighlevels from bottom(lvl=64) to top(lvl = 0)
+    p_low = p[:, levelSize - 1, :, :] # Pa lowest modelcell is 64
+    
+    #print(levelSize - 1)
+    for k in levels_r:                #loops through all levels from bottom to top #64,63,63.....3,2,1,0 #
+        #print(k-1)
+        p_top = p[:, k - 1, :, :]     #Pressure at the top of that layer
+        t_v_level[:, k, :, :] = air_temperature_ml[:, k, :, :] * (1. + 0.609133 * specific_humidity_ml[:, k, :, :])
+
+        z_f = Rd*t_v_level*np.log(np.divide(p_low, p_top))
+
+        #if k == 0:  # top of atmos, last loop round
+        #    dlogP = np.log(p_low / 0.1)
+        #    alpha = np.log(2)
+        #else:
+        #    dlogP = np.log(np.divide(p_low, p_top))
+        #    dP = p_low - p_top  #positive
+        #    alpha = 1. - ((p_top / dP) * dlogP)
+
+        #TRd = t_v_level[:, k, :, :] * Rd
+        #z_f = z_h + (TRd * alpha)
+
+        geotoreturn_m[:, k, :, :] = z_f[:] #+ surface_geopotential[:, 0, :, :]
+
+        geotoreturn_m[:, k, :, :] = geotoreturn_m[:, k, :, :]/g
+
+        # update for next level
+        z_h = z_h + (TRd * dlogP)
+        p_low = p_top
+
+    return geotoreturn_m
+
 def pl2alt_half2full_gl( air_temperature_ml, specific_humidity_ml, p): #or heighttoreturn
     """
     Parameters
@@ -606,6 +675,57 @@ def pl2alt_half2full_gl( air_temperature_ml, specific_humidity_ml, p): #or heigh
         p_low = p_top
 
     return geotoreturn_m
+def cheat_alt2(m_level):
+    H= [30254.03, 22374.994, 19414.523, 17423.322, 15911.396,
+        14693.562, 13670.168, 12784.939, 12000.771, 11295.67,
+        10656.154, 10069.697, 9526.749, 9020.606, 8545.329,
+        8095.622, 7666.621, 7255.261, 6860.647, 6482.6475,
+        6120.2114, 5772.5386, 5439.24, 5119.7266, 4812.9917,
+        4518.409, 4235.814 , 3964.8125, 3705.2158, 3456.7522,
+        3219.1904,2992.2742, 2775.997, 2570.1826, 2374.75,
+        2189.7134,2015.0089, 1850.947, 1697.3981, 1553.8344,
+        1420.1567,1296.0018, 1180.7799, 1073.8468, 974.616,
+        882.6627,797.4953, 718.768, 645.9938, 578.859,
+        516.9622,459.96664, 407.48972, 359.2168, 314.86404,
+        274.01758,236.40355, 201.70901, 169.60783, 139.73337,
+        111.75843,85.367226,60.206, 35.87707, 11.923808]
+
+    print(m_level)
+    print(type(m_level))
+    #m_level = map(int, m_level)
+    #print(m_level)
+    #print(type(m_level))
+    alt = np.array([H[i] for i in m_level])
+    #alt = H[m_level]
+    return alt
+def cheat_alt(m_level):
+    H = [24122.6894480669, 20139.2203688489, 17982.7817599549, 16441.7123200128,
+     15221.9607620438, 14201.9513633491, 13318.7065659522, 12535.0423836784,
+     11827.0150898454, 11178.2217936245, 10575.9136768674, 10010.4629764989,
+     9476.39726730647, 8970.49319005479, 8490.10422494626, 8033.03285976169,
+     7597.43079283063, 7181.72764002209, 6784.57860867911, 6404.82538606181,
+     6041.46303718354, 5693.61312218488, 5360.50697368367, 5041.46826162131,
+     4735.90067455394, 4443.27792224573, 4163.13322354697, 3895.05391218293,
+     3638.67526925036, 3393.67546498291, 3159.77069480894, 2936.71247430545,
+     2724.28467132991, 2522.30099074027, 2330.60301601882, 2149.05819142430,#30=2149
+     1977.55945557602, 1816.02297530686, 1664.38790901915, 1522.61641562609,
+     1390.69217292080, 1268.36594816526, 1154.95528687548, 1049.75817760629,
+     952.260196563843, 861.980320753114, 778.466725603312, 701.292884739207,
+     630.053985133223, 564.363722589458, 503.851644277509, 448.161118360263,
+     396.946085973573, 349.869544871297, 306.601457634038, 266.817025119099,
+     230.194566908004, 196.413229972062, 165.151934080260, 136.086183243070,
+     108.885366240509, 83.2097562375566, 58.7032686584901, 34.9801888163106,
+     11.6284723290378]
+
+    print(m_level)
+    print(type(m_level))
+    #m_level = map(int, m_level)
+    #print(m_level)
+    #print(type(m_level))
+    alt = np.array([H[i] for i in m_level])
+    #alt = H[m_level]
+    return alt
+
 def pl2alt_full2half_gl( air_temperature_ml, specific_humidity_ml, p): #or heighttoreturn
     print("not implemented yet")
 def pl2alt_full2full_gl( air_temperature_ml, specific_humidity_ml,p): #or heighttoreturn
@@ -711,9 +831,11 @@ def ml2alt_gl( air_temperature_ml, specific_humidity_ml, ap, b, surface_air_pres
         p     = ml2pl_half2half(ap, b, surface_air_pressure)
         gph_m = pl2alt_half2half_gl( air_temperature_ml, specific_humidity_ml, p )
     elif inputlevel == "half" and returnlevel == "full":
-        p     = ml2pl_half2full( ap, b, surface_air_pressure )
+        p     = ml2pl_full2full( ap, b, surface_air_pressure )
 
         gph_m = pl2alt_half2full_gl( air_temperature_ml, specific_humidity_ml, p )
+        #gph_m = tmp_aina( air_temperature_ml, specific_humidity_ml, p )
+
     elif inputlevel == "full" and returnlevel == "half":
         p     = ml2pl_full2half( ap, b, surface_air_pressure )
         gph_m = pl2alt_full2full_gl( air_temperature_ml, specific_humidity_ml, p )
