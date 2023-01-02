@@ -30,7 +30,7 @@ import sys
 import numpy as np
 import gc
 from weathervis.utils import * #domain_input_handler
-
+import traceback
 #from memory_profiler import profile
 
 #@profile
@@ -185,7 +185,8 @@ def retrievenow(our_choice,model,step, date,fileobj,m_level,p_level, domain_name
 #@profile
 def checkget_data_handler(all_param, date=None,  model=None, num_point=1,step=[0], p_level= None, m_level=None, mbrs=None, domain_name=None, domain_lonlat=None, point_name=None,point_lonlat=None,use_latest=False,delta_index=None, url=None):
     print("################ checkget_data_handler in checkget_data_handler.py #############################")
-    step = [step] if type(step) == int else step
+    #step = [step] if type(step) == int else step #isinstance(<var>, int)
+    step = [step] if not isinstance(step, list) else step #
     if url != None:
         print("AINA rmv")
         fileobj = check_data(url=url, model=model, date=date, step=step, use_latest=use_latest,p_level=p_level, m_level=m_level).file
@@ -225,7 +226,9 @@ def checkget_data_handler(all_param, date=None,  model=None, num_point=1,step=[0
                                                      delta_index=delta_index, num_point=num_point)
             break
         except:
-            print("Oops!", sys.exc_info()[0], "occurred.")
+            print("Oops!", sys.exc_info()[0], "occurred. See info under:")
+
+            print(traceback.format_exc())
             print("Next entry.")
             print(" ")
     return dmet,data_domain,bad_param

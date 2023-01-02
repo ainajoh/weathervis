@@ -27,8 +27,12 @@ def map_plot(data_domain, model_data, adj_obs_data, raw_obs_data, domain_name):
     # MAP PLOTTING ROUTNE ######################
     crs = default_map_projection(model_data)
     fig1, ax1 = plt.subplots(1, 1, figsize=(7, 9), subplot_kw={'projection': crs})
+    #ax1.plt.colormesh(model_data.longitude, model_data.latitude,model_data.time, transform=ccrs.PlateCarree(), marker = "o", color="blue",  edgecolor="blue", zorder=3 )
+
+    
     ax1.scatter(model_data.longitude, model_data.latitude,transform=ccrs.PlateCarree(), marker = "o", color="blue",  edgecolor="blue", zorder=3 )
-    ax1.scatter(raw_obs_data.lon, raw_obs_data.lat, transform=ccrs.PlateCarree(), marker= "x", color="red", zorder=2)
+    ax1.scatter(raw_obs_data.lon[0:2], raw_obs_data.lat[0:2], transform=ccrs.PlateCarree(), marker= "x", color="red", zorder=2)
+    
     #ax1.scatter(raw_obs_data["Lon[d]"], raw_obs_data["Lat[d]"], transform=ccrs.PlateCarree(), marker= "x", color="green", zorder=3)
 
     ax1.add_feature(cfeature.GSHHSFeature(scale="auto"))
@@ -43,7 +47,7 @@ def VC_plot(model_data, adj_obs_data, raw_obs_data):
     norm = matplotlib.colors.Normalize(vmin=mi, vmax=ma)
     #norm = matplotlib.colors.Normalize(vmin=200, vmax=350)
 
-    colormap = "cividis_r"
+    colormap = "jet"
     obs_datetime = adj_obs_data.index[:num_p]
     lx, tx = np.meshgrid(model_data.m_level, obs_datetime)
     fig, ax = plt.subplots(figsize=(12, 3))
@@ -156,13 +160,14 @@ def VC_get_model_data(obs_data, datetime, model):
     steps=[]
     datetimes=[datetime]
     #Find the time and position of the observation
-    use_latest_modelrun=True #explenation bellow
+    use_latest_modelrun=False #explenation bellow
     # We can either choose to use just one initial modelrun with different leadtime to match the observation -->use_latest_modelrun=False
     #  Or we can choose to use the closest modelrun to the observation and fill in with leadtime  -->use_latest_modelrun=True
     
     #For loop that retrieves data and update the settings to get the modeldata closest to the observation
     for index, row in obs_data.iloc[:num_p].iterrows():  #Go through all the adjusted observation dataset
         point_lonlat = [row["lon"], row["lat"]]   #Location of observation
+        
         if use_latest_modelrun:  #updates modelrun datetime with closest date to the observation
             h = index.hour-index.hour%6
             new_initial_modelrun = index.strftime('%Y%m%d') + str(h).zfill(2)
@@ -173,7 +178,9 @@ def VC_get_model_data(obs_data, datetime, model):
         delta_t = index-modeldattime              #Difference beween the modelrun datetime and observation datetime
         step = delta_t.round('60min').components.hours            # The lead time hour closest to our observation
         steps = np.append(steps, step)            #save the steps in an array
-        
+        print(datetime)
+        print(step)
+        print("***************************************")
         #retrieve data
         ######################################################
         dmet, data_domain, bad_param = checkget_data_handler(all_param=param, model=model,  date=datetime,
@@ -188,7 +195,9 @@ def VC_get_model_data(obs_data, datetime, model):
         if dmet_old: #if we have an older retrieval then do: 
             for prm in dmet.param: #for every parameter retrieve
                 if prm != "pressure": #as long as it is not the pressure param: we glue them together
-                    setattr(dmet, prm,  np.array(np.append( np.array([getattr(dmet, prm)]), np.array([getattr(dmet_old, prm)])))   )
+                    #setattr(dmet, prm,  np.array( np.append( np.array([getattr(dmet, prm)]), np.array([getattr(dmet_old, prm)])))   )
+                    setattr(dmet, prm,  np.array( np.append( np.array([getattr(dmet_old, prm)]), np.array([getattr(dmet, prm)])))   )
+
         dmet_old = deepcopy(dmet)  #update old retieval
         #####################################################
     #We have to adjust the shape as the "glued" data lost the initial shape
@@ -241,7 +250,7 @@ if __name__ == "__main__":
     parser.add_argument("--model", default="AromeArctic", help="MEPS or AromeArctic")
     parser.add_argument("--domain_name", default=["Svalbard"], nargs="+", type= none_or_str)
     parser.add_argument("--datetime", help="YYYYMMDDHH for modelrun", default=None,  type=str)
-    parser.add_argument("--cmet", help="cmet1, cmet2.. etc", default="cmet1",  type=str)
+    parser.add_argument("--cmet", help="cmet1, cmet2.. etc", default="cmet2",  type=str)
 
     args = parser.parse_args()
 

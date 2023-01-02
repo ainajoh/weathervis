@@ -49,6 +49,22 @@ class checkgetdata(unittest.TestCase):
 
         #self.checkMEPSonDate = check_data(model="MEPS", date="2020010100")
 
+    def test_int64_step_type(self):
+        step=0
+        step = np.int64(step)
+        checkget_data_handler(model=self.model_aa, date=self.archive_date, all_param=self.one_good_param, step= step, use_latest=False)
+    def test_int_step_type(self):
+        step=0
+        checkget_data_handler(model=self.model_aa, date=self.archive_date, all_param=self.one_good_param, step= step, use_latest=False)
+    
+    def test_array_step_type(self):
+        step = np.array([0,1])
+        checkget_data_handler(model=self.model_aa, date=self.archive_date, all_param=self.one_good_param, step= step, use_latest=False)
+   
+    def test_list_step_type(self):
+        step = [0,1]
+        checkget_data_handler(model=self.model_aa, date=self.archive_date, all_param=self.one_good_param, step= step, use_latest=False)
+
     #DATES
     def test_date_good___archive(self): #OK
         checkget_data_handler(model=self.model_aa, date=self.archive_date, all_param=self.one_good_param, step= self.one_step, use_latest=False)
