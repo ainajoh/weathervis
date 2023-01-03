@@ -5,45 +5,53 @@ Containing useful functions
 import datetime as dt
 import numpy as np
 import math
+import cartopy.crs as ccrs  #add_point_on_map, default_map_projection
+from pyproj import Geod
 
 ####################################################################################################################
 # UTILITIES
 #####################################################################################################################
-def distance2point(plon,plat, longitudes, latitudes, nmin=1):
-    """
+def great_circle_distance(lon1, lat1, lon2, lat2, R=6378.137):
+    """Calculate the great circle distance between two points
+
+    based on : https://gist.github.com/gabesmed/1826175
+
+
     Parameters
     ----------
-    plon: longitude of a specific location [degrees]
-    plat: latitude of a specific location  [degrees]
-    longitudes: all longitudes of the model[degrees]
-    latitudes: all latitudes of the model  [degrees]
-    nmin: number of points you want nearest to your specific location
+
+    lon1: float
+        longitude of the starting point
+    lat1: float
+        latitude of the starting point
+    lon2: float
+        longitude of the ending point
+    lat2: float
+        latitude of the ending point
 
     Returns
     -------
-    indexes as tuples in array for the closest gridpoint near a specific location.
-    point = [(y1,x1),(y2,x2)]. This format is done in order to ease looping through points.
-    for p in point:
-        #gies p = (y1,x1)
-        xatlocation = x_wind_10m[:,0,p]
+
+    distance (km): float
+
+    Examples
+    --------
+
+    >>> great_circle_distance(0, 55, 8, 45.5)
+    1199.3240879770135
     """
-    #source https://github.com/metno/NWPdocs/wiki/From-x-y-wind-to-wind-direction
-    R = 6371.0 #model has 6371000.0
-    dlat = np.radians(latitudes - plat) ##lat2 - lat1
-    dlon = np.radians(longitudes - plon) #lon2 - lon1
-    platm = np.full(np.shape(latitudes), plat)
-    a = (np.sin(dlat / 2) * np.sin(dlat / 2) +
-         np.cos(np.radians(plat)) * np.cos(np.radians(latitudes)) *
-         np.sin(dlon / 2) * np.sin(dlon / 2))
+
+    #R = 6371.0 # 6378137  # earth circumference in km
+
+    dLat = np.radians(lat2 - lat1)
+    dLon = np.radians(lon2 - lon1)
+    a = (np.sin(dLat / 2) * np.sin(dLat / 2) +
+         np.cos(np.radians(lat1)) * np.cos(np.radians(lat2)) *
+         np.sin(dLon / 2) * np.sin(dLon / 2))
     c = 2 * np.arctan2(np.sqrt(a), np.sqrt(1 - a))
-    d = R * c
-    dsort = np.sort(d,axis=None)
-    closest_idx = np.where(np.isin(d,dsort[0:nmin]))
+    distance = R * c
 
-    #point = [(x,y) for x,y in zip(closest_idx[0],closest_idx[1])]
-
-
-    return closest_idx
+    return distance 
 
 def nearest_neighbour_idx(plon,plat, longitudes, latitudes, nmin=1):
     """
@@ -65,17 +73,7 @@ def nearest_neighbour_idx(plon,plat, longitudes, latitudes, nmin=1):
     """
     #source https://github.com/metno/NWPdocs/wiki/From-x-y-wind-to-wind-direction
     print("inside nearest_neighbour_idx")
-    R = 6371.0 #model has 6371000.0
-
-    dlat = np.radians(latitudes - plat) ##lat2 - lat1
-    dlon = np.radians(longitudes - plon) #lon2 - lon1
-
-    platm = np.full(np.shape(latitudes), plat)
-    a = (np.sin(dlat / 2) * np.sin(dlat / 2) +
-         np.cos(np.radians(plat)) * np.cos(np.radians(latitudes)) *
-         np.sin(dlon / 2) * np.sin(dlon / 2))
-    c = 2 * np.arctan2(np.sqrt(a), np.sqrt(1 - a))
-    d = R * c
+    d = great_circle_distance(plon,plat, longitudes, latitudes, R=6371.0)
     dsort = np.sort(d,axis=None)
     closest_idx = np.where(np.isin(d,dsort[0:nmin]))
     #point = [(x,y) for x,y in zip(closest_idx[0],closest_idx[1])]
@@ -100,22 +98,230 @@ def nearest_neighbour(plon,plat, longitudes, latitudes, nmin=1):
         xatlocation = x_wind_10m[:,0,p]
     """
     #source https://github.com/metno/NWPdocs/wiki/From-x-y-wind-to-wind-direction
-    R = 6371.0 #model has 6371000.0
-    dlat = np.radians(latitudes - plat) ##lat2 - lat1
-    dlon = np.radians(longitudes - plon) #lon2 - lon1
-    platm = np.full(np.shape(latitudes), plat)
-    a = (np.sin(dlat / 2) * np.sin(dlat / 2) +
-         np.cos(np.radians(plat)) * np.cos(np.radians(latitudes)) *
-         np.sin(dlon / 2) * np.sin(dlon / 2))
-    c = 2 * np.arctan2(np.sqrt(a), np.sqrt(1 - a))
-    d = R * c
-    dsort = np.sort(d,axis=None)
-    closest_idx = np.where(np.isin(d,dsort[0:nmin]))
-
+    closest_idx = nearest_neighbour_idx(plon,plat, longitudes, latitudes, nmin=nmin)
     point = [(x,y) for x,y in zip(closest_idx[0],closest_idx[1])]
 
-
     return point
+
+def rotate_points(lon, lat, center_longitude, center_latitude, parallels, model='MEPS', direction='n2r', pollon=None,pollat=None ):
+    """Rotate lon, lat from/to a rotated system
+
+    Parameters
+    ----------
+    center_longitude: float
+        longitudinal coordinate of the rotated center
+    center_latitude: float
+        latitudinal coordinate of the rotated center
+    lon: array (1d)
+        longitudinal coordinates to rotate
+    lat: array (1d)
+        latitudinal coordinates to rotate
+    direction: string, optional
+        direction of the rotation;
+        n2r: from non-rotated to rotated (default)
+        r2n: from rotated to non-rotated
+    model: string, optional
+    	used model
+
+    Returns
+    -------
+    rlon: array
+    rlat: array
+    """
+    lon = np.array(lon)
+    lat = np.array(lat)
+
+    if model =="MEPS":
+        parallels = (63.3,63.3)
+    elif model== "AromeAecric":
+        parallels= (77.5,77.5)
+
+    globe = ccrs.Globe(semimajor_axis=6371000.)
+
+    rotatedgrid = ccrs.LambertConformal(central_longitude=center_longitude, central_latitude=center_latitude, standard_parallels=parallels,
+                                globe=globe)
+
+    ''' If u do not have center lon lat and parallels, we can rotate with knowing the lonlat of the poles. 
+     In that case alter this function to allow this and uncomment bellow
+    rotatedgrid = ccrs.RotatedPole(
+        pole_longitude=pollon,
+        pole_latitude=pollat
+    )
+    '''
+    standard_grid = ccrs.Geodetic()
+
+    if direction == 'n2r':
+        rotated_points = rotatedgrid.transform_points(standard_grid, lon, lat)
+    elif direction == 'r2n':
+        rotated_points = standard_grid.transform_points(rotatedgrid, lon, lat)
+
+    rlon, rlat, _ = rotated_points.T
+    return rlon, rlat
+
+def find_cross_points(coo, nbre=1):
+    """ give nbre points along a great circle between coo[0] and coo[1]
+
+    Parameters
+    ----------
+    coo : list or numpy.ndarray
+        If `coo` is a list of coordinates, it is used of the starting and
+        end points: [(startlon, startlat), (endlon, endlat)]
+        If `coo` is a numpy.ndarray it is used as the cross-section points.
+        coo need then to be similar to :
+        np.array([[10, 45], [11, 46], [12, 47]])
+    Returns
+    ----------
+    """
+    g = Geod(ellps='WGS84')
+    cross_points = g.npts(coo[0][0], coo[0][1], coo[1][0], coo[1][1], nbre)
+    lat = np.array([point[1] for point in cross_points])
+    lon = np.array([point[0] for point in cross_points])
+    distance = great_circle_distance(coo[0][0], coo[0][1],
+                                     coo[1][0], coo[1][1])
+
+    return lon, lat, distance
+    
+def get_AllPointsBetween2PosOnGrid(coo, center_longitude, center_latitude, parallels, pollon=None,pollat=None, model=None, nbre=10,version="regular"):
+    """
+    Both adds mode points alonga great circle between two locations and
+     rotates (depending on input values; read about each parameter under)
+
+    Gets the points in between two points if specified, otherwise uses the raw values of coo
+    Return rotated or regular(no change of coo) gridpoints coordinates from original coordinate points coo
+    Returns distance of the entire line that coo spans out. 
+    
+    Parameters
+    ----------
+    coo : list or numpy.ndarray
+        If `coo` is a list of coordinates, it is used of the starting and
+        end points: [(startlon, startlat), (endlon, endlat)]
+        If `coo` is a numpy.ndarray it is used as the cross-section points.
+        coo need then to be similar to :
+        np.array([[10, 45], [11, 46], [12, 47]])
+    """
+    if type(coo) in [list, tuple]:
+        # find the coordinate of the cross-section
+        lon, lat, distance = find_cross_points(coo, nbre)
+        #add end points
+        lon=np.append(coo[0][0],lon)
+        lon=np.append(lon,coo[1][0])
+        lat=np.append(coo[0][1],lat)
+        lat=np.append(lat,coo[1][1] )
+        if version == 'rotated':
+            crlon, crlat = rotate_points(lon=lon, lat=lat,model=model,center_longitude=center_longitude,center_latitude=center_latitude, parallels=parallels,pollon=pollon, pollat=pollat  ) 
+        elif version == 'regular':
+            crlon, crlat = lon, lat
+        
+    elif type(coo) == np.ndarray: #already defined points that we want with no need for finding points along lines
+        lon = coo[:, 0]
+        lat = coo[:, 1]
+        nbre = coo.shape[0]
+        if version == 'rotated':
+            crlon, crlat = rotate_points(lon=lon, lat=lat,model=model,center_longitude=center_longitude,center_latitude=center_latitude, parallels=parallels,pollon=pollon, pollat=pollat  ) 
+        elif version == 'regular':
+            crlon, crlat = lon, lat
+        #TODO: if points are not along a great circle then the distance is not really correct. 
+        # More correct would be calculating great circle distance between each point and adding upp. 
+        distance = great_circle_distance(coo[0, 0], coo[0, 1],
+                                        coo[-1, 0], coo[-1, 1])
+    else:
+        msg = '<coo> should be of type list, tuple or nump.ndarray'
+        raise TypeError(msg)
+
+
+    distances = np.linspace(0, distance, nbre+2) # distance from start to every point
+    query_points = [[lat, lon] for lat, lon in zip(crlat, crlon)]
+    return query_points, distances
+
+def interpolate(data, grid, interplevels):
+    """interpolate `data` on `grid` for given `interplevels`
+
+    Interpolate the `data` array at every given levels (`interplevels`) using
+    the `grid` array as reference.
+
+    The `grid` array need to be increasing along the first axis.
+    Therefore ERA-Interim pressure must be flip: p[::-1, ...], but not
+    COSMO pressure since its level 0 is located at the top of the atmosphere.
+
+    Parameters
+    ----------
+    data : array (nz, nlat, nlon)
+        data to interpolate
+    grid : array (nz, nlat, nlon)
+        grid use to perform the interpolation
+    interplevels: list, array
+        list of the new vertical levels, in the same unit as the grid
+
+    Returns
+    -------
+    interpolated array: array (len(interplevels), nlat, nlon)
+
+    Examples
+    --------
+
+    >>> print(qv.shape)
+    (60, 181, 361)
+    >>> print(p.shape)
+    (60, 181, 361)
+    >>> levels = np.arange(200, 1050, 50)
+    (17,)
+    >>> qv_int = interpolate(qv, p, levels)
+    >>> print(qv_int.shape)
+    (17, 181, 361)
+
+    """
+    data = data.squeeze()
+    grid = grid.squeeze()
+    shape = list(data.shape)
+    if (data.ndim > 3) | (grid.ndim > 3):
+        message = "data and grid need to be 3d array"
+        raise IndexError(message)
+
+    try:
+        nintlev = len(interplevels)
+    except:
+        interplevels = [interplevels]
+        nintlev = len(interplevels)
+    print(shape)
+    shape[-3] = nintlev
+
+    outdata = np.ones(shape) * np.nan
+    if nintlev > 20:
+        for idx, _ in np.ndenumerate(data[0]):
+            column = grid[:, idx[0], idx[1]]
+            column_GRID = data[:, idx[0], idx[1]]
+
+            value = np.interp(
+                interplevels,
+                column,
+                column_GRID,
+                left=np.nan,
+                right=np.nan)
+            outdata[:, idx[0], idx[1]] = value[:]
+    else:
+        for j, intlevel in enumerate(interplevels):
+            for lev in range(grid.shape[0]):
+                cond1 = grid[lev, :, :] > intlevel
+                cond2 = grid[lev - 1, :, :] < intlevel
+                right = np.where(cond1 & cond2)
+                if right[0].size > 0:
+                    sabove = grid[lev, right[0], right[1]]
+                    sbelow = grid[lev - 1, right[0], right[1]]
+                    dabove = data[lev, right[0], right[1]]
+                    dbelow = data[lev - 1, right[0], right[1]]
+                    result = (intlevel - sbelow) / (sabove - sbelow) * \
+                             (dabove - dbelow) + dbelow
+                    outdata[j, right[0], right[1]] = result
+    return outdata
+
+def interpolate_grid(**kwargs):
+    from util.intergrid import Intergrid
+    intfunc = Intergrid(**kwargs)
+    return intfunc
+
+
+
+
 def CAO_index(air_temperature_pl, pressure, SST,air_pressure_at_sea_level, p_level=850):
     #pressure in hpa
     #pt = potential_temperatur(air_temperature_pl, pressure)
@@ -300,7 +506,12 @@ def virtual_temp(air_temperature_ml, specific_humidity_ml):
     #todo: adjust so u can send in either multidim array, lesser dim, or just point numbers
     #https://confluence.ecmwf.int/pages/viewpage.action?pageId=68163209
 
-    timeSize, levelSize, ySize, xSize = np.shape(air_temperature_ml)
+    if len(np.shape(air_temperature_ml)) == 4:
+        timeSize, levelSize, ySize, xSize = np.shape(air_temperature_ml)
+    else:
+        levelSize, ySize, xSize = np.shape(air_temperature_ml)
+        timeSize=0
+
     t_v_level = np.zeros(shape=(timeSize, levelSize, ySize, xSize))
     levels = np.arange(0, levelSize)
     levels_r = levels[::-1]  # bottom (lvl=64) to top(lvl = 0) of atmos
@@ -368,14 +579,19 @@ def lapserate(T_ml, z, srf_T = None):
 # HEIGHT HANDLING
 #####################################################################################################################
 #model levels to pressure levels
-def ml2pl_full2full( ap, b, surface_air_pressure ):
+def _ml2pl_full2full( ap, b, surface_air_pressure ):
     """
+    Calculate pressure on the same modellevels 
     Parameters
     ----------
     ap: [Pa]
     b
     surface_air_pressure: [Pa]]
-
+    timeSize: int,
+            time steps
+    levelSize: int,
+            vertical levels
+    
     Returns
     -------
     p(n,k,j,i) = ap(k) + b(k)*ps(n,j,i)
@@ -383,93 +599,30 @@ def ml2pl_full2full( ap, b, surface_air_pressure ):
     """
     timeSize = np.shape(surface_air_pressure)[0]
     levelSize = np.shape(ap)[0]
-    print(np.shape(surface_air_pressure)) #(10,0)
-    print(np.shape(ap)) #(10, 4)
-    print(np.shape(b))
-    if len(np.shape(surface_air_pressure)) !=1:
-        sap = surface_air_pressure[:, 0, :, :] if len(np.shape(surface_air_pressure)) ==4 else surface_air_pressure
+    if len(np.shape(surface_air_pressure)) !=1: #if we calculate for multiple positions
+        sap = surface_air_pressure[:, 0, :, :] if len(np.shape(surface_air_pressure)) ==4 else surface_air_pressure #removes unwanted dimention
         ySize = np.shape(surface_air_pressure)[-2] #lat in y
         xSize = np.shape(surface_air_pressure)[-1] #lon in x
-        if len(np.shape(ap))==1: 
+        if len(np.shape(ap))==1: #if one dimentional: most often the case
             levelSize = np.shape(ap)[0]
             p = np.zeros(shape = (timeSize, levelSize, ySize, xSize))
-
             for k in range(0,levelSize):
                 p[:, k, :, :] = ap[k] + b[k] * sap[:,:,:]  #(10,1,1,1) = (10,1) + (10,1) * (10,1,1)
-        else: 
-            levelSize = np.shape(ap)[1]
+        else: #if ap is not one dimentional but changes with time, like if we glue together different dataset at different times 
+            levelSize = np.shape(ap)[1] 
             p = np.zeros(shape = (timeSize, levelSize, ySize, xSize))
-
             for k in range(0,levelSize):
                 for t in range(0,timeSize):
                     p[t, k, :, :] = ap[t, k] + b[t, k] * sap[t,:,:]  #(10,1,1,1) = (10,1) + (10,1) * (10,1,1)
-
-    else: 
-        print(timeSize)
-        print(levelSize)
+    else: #if we calculate for just one positions
         p = np.zeros(shape = (timeSize, levelSize))
         for k in range(0,levelSize):
             p[:,k] = ap[:,k] + b[:,k] * surface_air_pressure
     return p
     
-def ml2pl_half2full( ap, b, surface_air_pressure):
-    """
-    Parameters
-    ----------
-    ap: [Pa]
-    b
-    surface_air_pressure: [Pa]
 
-    Returns
-    -------
-    Pressure [Pa] on full modellevels
-    Source:
-    ------
-    #Equations
-        Simmons, A. J. and Burridge, D. M. (1981)
-    #arome setup
-        https://journals.ametsoc.org/waf/article/32/2/609/40089/AROME-MetCoOp-A-Nordic-Convective-Scale
-    #Proof that ecmwf uses this equation even though  Simmons, A. J. and Burridge, D. M. (1981) said its bad on upperlevels
-        https://confluence.ecmwf.int/pages/viewpage.action?pageId=85405371
-    #Gave boundaries P(SURFACE) AND P(TOP)
-        https://www.umr-cnrm.fr/gmapdoc/IMG/pdf/d3_vert.pdf
     """
-    timeSize = np.shape(surface_air_pressure)[0]
-    levelSize = np.shape(ap)[0]
-    ySize = np.shape(surface_air_pressure)[-2]  # lat in y
-    xSize = np.shape(surface_air_pressure)[-1]  # lon in x
-    pfull = np.zeros(shape=(timeSize, levelSize, ySize, xSize))
-    phalf = np.zeros(shape=(timeSize, levelSize, ySize, xSize))
-    for k in range(0, levelSize):
-        phalf[:, k, :, :] = ap[k] + b[k] * surface_air_pressure[:, 0, :, :]
-        if k==0 or  k==levelSize-1: #top level(0), surface(levelSize=64)
-            pfull[:, k, :, :]=phalf[:, k, :, :]
-        else: #from k=1....to 63
-            pfull[:, k, :, :] = 0.5*( phalf[:, k-1, :, :] + phalf[:, k, :, :] )
-    return pfull
-def ml2pl_half2half( ap, b, surface_air_pressure ):
-    """
-    Parameters
-    ----------
-    ap: [Pa]
-    b
-    surface_air_pressure: [Pa]]
-
-    Returns
-    -------
-    p(n,k,j,i) = ap(k) + b(k)*ps(n,j,i)
-    p [Pa] pressure on each half modellevel.
-    """
-    timeSize = np.shape(surface_air_pressure)[0]
-    levelSize = np.shape(ap)[0]
-    ySize = np.shape(surface_air_pressure)[2] #lat in y
-    xSize = np.shape(surface_air_pressure)[3] #lon in x
-    p = np.zeros(shape = (timeSize, levelSize, ySize, xSize))
-    for k in range(0,levelSize):
-        p[:, k, :, :] = ap[k] + b[k] * surface_air_pressure[:, 0, :, :]
-    return p
-def ml2pl_full2half( ap, b, surface_air_pressure ):
-    """
+    NB NOT USED
     Parameters
     ----------
     ap: [Pa]
@@ -515,6 +668,29 @@ def ml2pl_full2half( ap, b, surface_air_pressure ):
 
 
     print("Not implemented yet")
+def _ml2pl_full2half( ap, b, surface_air_pressure ):
+    """
+    Calculates pressure on half levels
+    """
+    print("in ml2pl_full2half")
+    ap_0=0
+    b_0=0
+    ap_65 = 0
+    b_65 = 1
+    levelsize = np.shape(ap)[0]
+    #print( levelsize)
+    ah = np.zeros(levelsize+1)
+    bh = np.zeros(levelsize+1)
+    ah[0] = ap_0
+    bh[0] = b_0
+    ah[65] = ap_65
+    bh[65] = b_65
+    for k in range(1,levelsize):
+        #ah[k-1] = 2*ap[k] - ah(k)   #bh[k-1] = 2*b[k] - bh(k)
+        ah[k] = 2*ap[k] - ah[k-1]
+        bh[k] = 2*b[k] - bh[k-1]
+    ph = _ml2pl_full2full( ah, bh, surface_air_pressure)
+    return ph
 def ml2pl( ap, b, surface_air_pressure, inputlevel="full", returnlevel="full"):
     """
     Check if pressure is on half or full levels, and calls the appropriate function for this.
@@ -539,64 +715,35 @@ def ml2pl( ap, b, surface_air_pressure, inputlevel="full", returnlevel="full"):
     Source: https://github.com/metno/NWPdocs/wiki/Calculating-model-level-height/_compare/041362b7f5fdc02f5e1ee3dea00ffc9d8d47c2bc...f0b453779e547d96f44bf17803d845061627f7a8
     """
     if inputlevel=="full" and returnlevel=="full":
-        p = ml2pl_full2full( ap, b, surface_air_pressure)
-    elif inputlevel=="half" and returnlevel=="half":
-        p = ml2pl_half2half(ap, b, surface_air_pressure)
-    elif inputlevel=="half" and returnlevel=="full":
-        p = ml2pl_half2full(ap, b, surface_air_pressure)
-    elif inputlevel=="full" and returnlevel=="half":
-        p = ml2pl_full2half(ap, b, surface_air_pressure)
-
+        p = _ml2pl_full2full( ap, b, surface_air_pressure)
     return p
 
-#model levels to geopotential height
-def tmp_aina( air_temperature_ml, specific_humidity_ml, p):
-    print("CALCUl")
-    Rd = 287.06 #[J/kg K] Gas constant for dry air
-    g = 9.80665
-    z_h = 0  # 0 since geopotential is 0 at sea level
-    #if p == None:
-    #    p = ml2plhalf( ap, b, surface_air_pressure )
+#model/pressure levels to geopotential height
+def _cheat_alt(m_level):
+    """
+    Predifened heights that I belive is on half levels.
+    """
+    H = [24122.6894480669, 20139.2203688489, 17982.7817599549, 16441.7123200128,
+     15221.9607620438, 14201.9513633491, 13318.7065659522, 12535.0423836784,
+     11827.0150898454, 11178.2217936245, 10575.9136768674, 10010.4629764989,
+     9476.39726730647, 8970.49319005479, 8490.10422494626, 8033.03285976169,
+     7597.43079283063, 7181.72764002209, 6784.57860867911, 6404.82538606181,
+     6041.46303718354, 5693.61312218488, 5360.50697368367, 5041.46826162131,
+     4735.90067455394, 4443.27792224573, 4163.13322354697, 3895.05391218293,
+     3638.67526925036, 3393.67546498291, 3159.77069480894, 2936.71247430545,
+     2724.28467132991, 2522.30099074027, 2330.60301601882, 2149.05819142430,#30=2149
+     1977.55945557602, 1816.02297530686, 1664.38790901915, 1522.61641562609,
+     1390.69217292080, 1268.36594816526, 1154.95528687548, 1049.75817760629,
+     952.260196563843, 861.980320753114, 778.466725603312, 701.292884739207,
+     630.053985133223, 564.363722589458, 503.851644277509, 448.161118360263,
+     396.946085973573, 349.869544871297, 306.601457634038, 266.817025119099,
+     230.194566908004, 196.413229972062, 165.151934080260, 136.086183243070,
+     108.885366240509, 83.2097562375566, 58.7032686584901, 34.9801888163106,
+     11.6284723290378]
 
-
-    timeSize, levelSize, ySize, xSize = np.shape(p)
-    geotoreturn_m = np.zeros(shape=(timeSize, levelSize, ySize, xSize))
-    t_v_level = np.zeros(shape=(timeSize, levelSize, ySize, xSize))
-
-    levels = np.arange(0, levelSize)  #index of heighlevels from top(lvl = 0) to bottom(lvl=64)
-    levels_r = levels[::-1]           #index of heighlevels from bottom(lvl=64) to top(lvl = 0)
-    p_low = p[:, levelSize - 1, :, :] # Pa lowest modelcell is 64
-    
-    #print(levelSize - 1)
-    for k in levels_r:                #loops through all levels from bottom to top #64,63,63.....3,2,1,0 #
-        #print(k-1)
-        p_top = p[:, k - 1, :, :]     #Pressure at the top of that layer
-        t_v_level[:, k, :, :] = air_temperature_ml[:, k, :, :] * (1. + 0.609133 * specific_humidity_ml[:, k, :, :])
-
-        z_f = Rd*t_v_level*np.log(np.divide(p_low, p_top))
-
-        #if k == 0:  # top of atmos, last loop round
-        #    dlogP = np.log(p_low / 0.1)
-        #    alpha = np.log(2)
-        #else:
-        #    dlogP = np.log(np.divide(p_low, p_top))
-        #    dP = p_low - p_top  #positive
-        #    alpha = 1. - ((p_top / dP) * dlogP)
-
-        #TRd = t_v_level[:, k, :, :] * Rd
-        #z_f = z_h + (TRd * alpha)
-
-        geotoreturn_m[:, k, :, :] = z_f[:] #+ surface_geopotential[:, 0, :, :]
-
-        geotoreturn_m[:, k, :, :] = geotoreturn_m[:, k, :, :]/g
-
-        # update for next level
-        z_h = z_h + (TRd * dlogP)
-        p_low = p_top
-
-    return geotoreturn_m
-
-def pl2alt_half2full_gl( air_temperature_ml, specific_humidity_ml, p): #or heighttoreturn
+    alt = np.array([H[i] for i in m_level])
+    return alt
+def _pl2alt_half2full_gl( air_temperature_ml, specific_humidity_ml, p): #or heighttoreturn
     """
     Parameters
     ----------
@@ -647,7 +794,7 @@ def pl2alt_half2full_gl( air_temperature_ml, specific_humidity_ml, p): #or heigh
     geotoreturn_m = np.zeros(shape=(timeSize, levelSize, ySize, xSize))
     t_v_level = np.zeros(shape=(timeSize, levelSize, ySize, xSize))
 
-    levels = np.arange(0, levelSize)  #index of heighlevels from top(lvl = 0) to bottom(lvl=64)
+    levels = np.arange(0, levelSize-1)  #index of heighlevels from top(lvl = 0) to bottom(lvl=64)
     levels_r = levels[::-1]           #index of heighlevels from bottom(lvl=64) to top(lvl = 0)
     p_low = p[:, levelSize - 1, :, :] # Pa lowest modelcell is 64
 
@@ -664,6 +811,7 @@ def pl2alt_half2full_gl( air_temperature_ml, specific_humidity_ml, p): #or heigh
             alpha = 1. - ((p_top / dP) * dlogP)
 
         TRd = t_v_level[:, k, :, :] * Rd
+        
         z_f = z_h + (TRd * alpha)
 
         geotoreturn_m[:, k, :, :] = z_f #+ surface_geopotential[:, 0, :, :]
@@ -671,233 +819,59 @@ def pl2alt_half2full_gl( air_temperature_ml, specific_humidity_ml, p): #or heigh
         geotoreturn_m[:, k, :, :] = geotoreturn_m[:, k, :, :]/g
 
         # update for next level
+        #print(np.shape(z_h))
+        #print(np.shape(TRd))
+        #print(np.shape(dlogP))
         z_h = z_h + (TRd * dlogP)
         p_low = p_top
-
+    print("")
     return geotoreturn_m
-def cheat_alt2(m_level):
-    H= [30254.03, 22374.994, 19414.523, 17423.322, 15911.396,
-        14693.562, 13670.168, 12784.939, 12000.771, 11295.67,
-        10656.154, 10069.697, 9526.749, 9020.606, 8545.329,
-        8095.622, 7666.621, 7255.261, 6860.647, 6482.6475,
-        6120.2114, 5772.5386, 5439.24, 5119.7266, 4812.9917,
-        4518.409, 4235.814 , 3964.8125, 3705.2158, 3456.7522,
-        3219.1904,2992.2742, 2775.997, 2570.1826, 2374.75,
-        2189.7134,2015.0089, 1850.947, 1697.3981, 1553.8344,
-        1420.1567,1296.0018, 1180.7799, 1073.8468, 974.616,
-        882.6627,797.4953, 718.768, 645.9938, 578.859,
-        516.9622,459.96664, 407.48972, 359.2168, 314.86404,
-        274.01758,236.40355, 201.70901, 169.60783, 139.73337,
-        111.75843,85.367226,60.206, 35.87707, 11.923808]
-
-    print(m_level)
-    print(type(m_level))
-    #m_level = map(int, m_level)
-    #print(m_level)
-    #print(type(m_level))
-    alt = np.array([H[i] for i in m_level])
-    #alt = H[m_level]
-    return alt
-def cheat_alt(m_level):
-    H = [24122.6894480669, 20139.2203688489, 17982.7817599549, 16441.7123200128,
-     15221.9607620438, 14201.9513633491, 13318.7065659522, 12535.0423836784,
-     11827.0150898454, 11178.2217936245, 10575.9136768674, 10010.4629764989,
-     9476.39726730647, 8970.49319005479, 8490.10422494626, 8033.03285976169,
-     7597.43079283063, 7181.72764002209, 6784.57860867911, 6404.82538606181,
-     6041.46303718354, 5693.61312218488, 5360.50697368367, 5041.46826162131,
-     4735.90067455394, 4443.27792224573, 4163.13322354697, 3895.05391218293,
-     3638.67526925036, 3393.67546498291, 3159.77069480894, 2936.71247430545,
-     2724.28467132991, 2522.30099074027, 2330.60301601882, 2149.05819142430,#30=2149
-     1977.55945557602, 1816.02297530686, 1664.38790901915, 1522.61641562609,
-     1390.69217292080, 1268.36594816526, 1154.95528687548, 1049.75817760629,
-     952.260196563843, 861.980320753114, 778.466725603312, 701.292884739207,
-     630.053985133223, 564.363722589458, 503.851644277509, 448.161118360263,
-     396.946085973573, 349.869544871297, 306.601457634038, 266.817025119099,
-     230.194566908004, 196.413229972062, 165.151934080260, 136.086183243070,
-     108.885366240509, 83.2097562375566, 58.7032686584901, 34.9801888163106,
-     11.6284723290378]
-
-    print(m_level)
-    print(type(m_level))
-    #m_level = map(int, m_level)
-    #print(m_level)
-    #print(type(m_level))
-    alt = np.array([H[i] for i in m_level])
-    #alt = H[m_level]
-    return alt
-
-def pl2alt_full2half_gl( air_temperature_ml, specific_humidity_ml, p): #or heighttoreturn
-    print("not implemented yet")
-def pl2alt_full2full_gl( air_temperature_ml, specific_humidity_ml,p): #or heighttoreturn
+def _pl2alt_full2full_gl(ap, b, surface_air_pressure, air_temperature_ml, specific_humidity_ml,pressure=None): #or heighttoreturn
     """
-    Parameters
-    ----------
-    p: [Pa] pressure on each FULL modellevel:
-    surface_geopotential:[m^2/s^2] Surface geopotential (fis)
-    air_temperature_ml: [K] temperature on every model level.
-    specific_humidity_ml: [kg/kg] specific humidity on everymodellevel
-
-    Returns
-    --------
-
-   ###################################################################################################################
-    Sources:
-    ------------------
-    https://github.com/metno/NWPdocs/wiki/Calculating-model-level-height
+    when pressure comes in full levels, this works best anyway. 50 meter difference at highest levels. 
     """
+    timeSize, levelSize, ySize, xSize = np.shape(air_temperature_ml)
+
 
     Rd = 287.06 #[J/kg K] Gas constant for dry air
-    g = 9.80665
+    g0 = 9.80665
     z_h = 0  # 0 since geopotential is 0 at sea level
+    Tv = virtual_temp(air_temperature_ml, specific_humidity_ml)
+    p = ml2pl( ap, b, surface_air_pressure, inputlevel="full", returnlevel="full") if pressure == None else pressure
+    h = np.zeros(shape = np.shape(air_temperature_ml)) #p = np.zeros(shape = (timeSize, levelSize, ySize, xSize))
+    print(np.shape(surface_air_pressure))
+    print(np.shape(p))
+    print(np.shape(Tv))
 
-    timeSize, levelSize, ySize, xSize = np.shape(p)
-    geotoreturn_m = np.zeros(shape=(timeSize, levelSize, ySize, xSize))
-    t_v_level = np.zeros(shape=(timeSize, levelSize, ySize, xSize))
+    h[:,64,:,:] = Rd*Tv[:,64,:,:]/g0 * np.log(surface_air_pressure[:,:,:]/p[:,64,:,:]) + z_h
 
-    levels = np.arange(0, levelSize-1)  #index of heighlevels from top(lvl = 0) to bottom(lvl=64)
-    levels_r = levels[::-1]  # bottom (lvl=64) to top(lvl = 0) of atmos
-    p_lowf = p[:, levelSize-1, :, :]  # Pa lowest modellecel is 64
-    t_v_level= virtual_temp(air_temperature_ml, specific_humidity_ml)
-    #     geotoreturn_m[:,k,:,:] = geotoreturn_m[:,k+1,:,:] + (Rd * t_v_level[:,k,:,:] / g)* ln(p[:,k+1,:,:] / p[:,k,:,:])
+    #Tv = Tv.squeeze()
+    #p=p.squeeze()
+    #surface_air_pressure = surface_air_pressure.squeeze()
 
-    for k in levels_r: #64, 63, 63
-        p_topf = p[:, k - 1, :, :]     #Pressure at the top of that layer63
+    for i in range(0,64):
+        i =63-i
+        Tv_mean = np.average([Tv[:,i+1,:,:],Tv[:,i,:,:]], axis=0)
 
-        p_top= (p_lowf-p_topf)/np.log(p_lowf/p_topf)
-        p_low=p_lowf
-        tv_top = t_v_level[:, k - 1, :, :]
-        tv_low= t_v_level[:, k , :, :]
-
-        if k == 0:  # top of atmos, last loop round
-            dlogP = np.log(p_low / 0.1)
-            alpha = np.log(2)
-        else:
-            dlogP = np.log(np.divide(p_low, p_top))
-            tv = tv_top
-            TRd = tv * Rd
-            dP = p_low - p_top
-            alpha = 1. - ((p_top / dP) * dlogP)
-        #for t in range(0, np.shape(t_v_level)[0]):  # 0,1,2
-        #    t_v_level[t, 0:idx_tk[t]] = np.nan
-        #    dp[t, 0:idx_tk[t]] = np.nan
-        #    dlogP[t, 0:idx_tk[t]] = np.nan
-
-        #tvdlogP = np.multiply(tv_low, alpha)
-        #T_vmean = np.divide(np.nansum(tvdlogP, axis=1), np.nansum(dlogP, axis=1))
-        #H = Rd * T_vmean / g  # scale height
-        #p_low = pp[:, levelSize - 1:, :, :]
-        #p_top = pp[:, levelSize - 2:, :, :]
-        #z_f = z_h + H * np.log(p_low / p_top)
-
-
-        z_f = z_h + (TRd * alpha)
-
-        #psi_lower = geotoreturn_m[:, k + 1, :, :] + (TRd * dlogP)
-
-        geotoreturn_m[:, k, :, :] = z_f
-        geotoreturn_m[:, k, :, :] = geotoreturn_m[:, k, :, :] / g
-
-        z_h = z_f#z_h + (TRd * dlogP)
-        p_low = p_top
-
-    #geotoreturn_m[:, k, :, :] = geotoreturn_m[:, k, :, :]/g #convert to meter
-    return geotoreturn_m
-def pl2alt_half2half_gl( air_temperature_ml, specific_humidity_ml,p): #or heighttoreturn
-    """
-    Parameters
-    ----------
-    p: [Pa] pressure on each FULL modellevel:
-    surface_geopotential:[m^2/s^2] Surface geopotential (fis)
-    air_temperature_ml: [K] temperature on every model level.
-    specific_humidity_ml: [kg/kg] specific humidity on everymodellevel
-
-    Returns
-    --------
-
-   ###################################################################################################################
-    Sources:
-    ------------------
-    https://github.com/metno/NWPdocs/wiki/Calculating-model-level-height
-    """
-    geotoreturn_m = pl2alt_full2full_gl(air_temperature_ml, specific_humidity_ml, p)
-    return geotoreturn_m
-
-def ml2alt_gl( air_temperature_ml, specific_humidity_ml, ap, b, surface_air_pressure, inputlevel="full", returnlevel="full"):     #https://confluence.ecmwf.int/pages/viewpage.action?pageId=68163209
-
-    if inputlevel == "full" and returnlevel == "full":
-        p     = ml2pl_full2full( ap, b, surface_air_pressure )
-        gph_m = pl2alt_full2full_gl( air_temperature_ml, specific_humidity_ml, p )
-    elif inputlevel == "half" and returnlevel == "half":
-        p     = ml2pl_half2half(ap, b, surface_air_pressure)
-        gph_m = pl2alt_half2half_gl( air_temperature_ml, specific_humidity_ml, p )
-    elif inputlevel == "half" and returnlevel == "full":
-        p     = ml2pl_full2full( ap, b, surface_air_pressure )
-
-        gph_m = pl2alt_half2full_gl( air_temperature_ml, specific_humidity_ml, p )
-        #gph_m = tmp_aina( air_temperature_ml, specific_humidity_ml, p )
-
-    elif inputlevel == "full" and returnlevel == "half":
-        p     = ml2pl_full2half( ap, b, surface_air_pressure )
-        gph_m = pl2alt_full2full_gl( air_temperature_ml, specific_humidity_ml, p )
-
-        #gph_m = pl2alt_full2half_gl( air_temperature_ml, specific_humidity_ml, p)
-
+        g = g0*(1-2*h[:,i+1,:,:]/6378137) #just for fun. no effect
+        h[:,i,:,:] = Rd*Tv_mean/g * np.log(p[:,i+1,:,:]/p[:,i,:,:]) + h[:,i+1,:,:]
+    gph = h
+    return gph
+def ml2alt( air_temperature_ml, specific_humidity_ml, ap, b, surface_air_pressure, surface_geopotential=None, inputlevel="full", returnlevel="full",pressure=None ):     #https://confluence.ecmwf.int/pages/viewpage.action?pageId=68163209
+    if inputlevel == "full" and returnlevel == "full": #default
+        p     = _ml2pl_full2full( ap, b, surface_air_pressure ) if pressure==None else pressure
+        gph_m = _pl2alt_full2full_gl( ap, b, surface_air_pressure, air_temperature_ml, specific_humidity_ml, p ) #
+    if inputlevel == "half" and returnlevel == "full": #If staggered
+        p     = _ml2pl_full2half( ap, b, surface_air_pressure ) if pressure==None else pressure
+        gph_m = _pl2alt_half2full_gl( air_temperature_ml, specific_humidity_ml, p ) #
+    gph_m = gph_m + surface_geopotential/9.81 if surface_geopotential !=None else gph_m
     return gph_m
-def ml2alt_sl( surface_geopotential, air_temperature_ml, specific_humidity_ml, ap, b, surface_air_pressure, inputlevel="full", returnlevel="full"):     #https://confluence.ecmwf.int/pages/viewpage.action?pageId=68163209
-    gph_m_gl = ml2alt_gl(air_temperature_ml, specific_humidity_ml, ap, b, surface_air_pressure, inputlevel, returnlevel)
-    gph_m_sl = gph_m_gl + surface_geopotential
-    return gph_m_sl
 
-def ml2alt_mk(surface_geopotential, m_levels):
-    H = [24122.6894480669, 20139.2203688489, 17982.7817599549, 16441.7123200128,
-     15221.9607620438, 14201.9513633491, 13318.7065659522, 12535.0423836784,
-     11827.0150898454, 11178.2217936245, 10575.9136768674, 10010.4629764989,
-     9476.39726730647, 8970.49319005479, 8490.10422494626, 8033.03285976169,
-     7597.43079283063, 7181.72764002209, 6784.57860867911, 6404.82538606181,
-     6041.46303718354, 5693.61312218488, 5360.50697368367, 5041.46826162131,
-     4735.90067455394, 4443.27792224573, 4163.13322354697, 3895.05391218293,
-     3638.67526925036, 3393.67546498291, 3159.77069480894, 2936.71247430545,
-     2724.28467132991, 2522.30099074027, 2330.60301601882, 2149.05819142430,#30=2149
-     1977.55945557602, 1816.02297530686, 1664.38790901915, 1522.61641562609,
-     1390.69217292080, 1268.36594816526, 1154.95528687548, 1049.75817760629,
-     952.260196563843, 861.980320753114, 778.466725603312, 701.292884739207,
-     630.053985133223, 564.363722589458, 503.851644277509, 448.161118360263,
-     396.946085973573, 349.869544871297, 306.601457634038, 266.817025119099,
-     230.194566908004, 196.413229972062, 165.151934080260, 136.086183243070,
-     108.885366240509, 83.2097562375566, 58.7032686584901, 34.9801888163106,
-     11.6284723290378]
-    re = 6.3781 * 10**6
-    gph = surface_geopotential[0, 0, :, :]
-    g = 9.81  # gravitational acceleration in m s^-2
-    hsurf = re * gph / (g * re - gph)
-    dimz = np.shape(m_levels)[0]
-    HH = np.zeros( (np.shape(m_levels)[0], np.shape(gph)[0],np.shape(gph)[1]) )
-    for i, z in enumerate(H[65 - dimz : 65]):
-            HH[i, :, :] = z
-    
-    return H+hsurf
-    
+def pl2alt(ap, b, surface_air_pressure, air_temperature_ml, specific_humidity_ml,pressure,surface_geopotential=None):
+    alt = _pl2alt_full2full_gl(ap, b, surface_air_pressure, air_temperature_ml, specific_humidity_ml,pressure=None)
+    alt = alt + surface_geopotential/9.81 if surface_geopotential is not None else alt
+    return alt
 
-def pl2alt_gl( air_temperature_ml, specific_humidity_ml, p, inputlevel="full", returnlevel="full"):
-    if inputlevel == "full" and returnlevel == "full":
-        gph_m = pl2alt_full2full_gl( air_temperature_ml, specific_humidity_ml, p )
-    elif inputlevel == "half" and returnlevel == "half":
-        gph_m = pl2alt_half2half_gl( air_temperature_ml, specific_humidity_ml, p )
-    elif inputlevel == "half" and returnlevel == "full":
-        gph_m = pl2alt_half2full_gl( air_temperature_ml, specific_humidity_ml, p )
-    elif inputlevel == "full" and returnlevel == "half":
-        gph_m = pl2alt_full2half_gl( air_temperature_ml, specific_humidity_ml, p)
-    return gph_m
-def pl2alt_sl( surface_geopotential, air_temperature_ml, specific_humidity_ml, p, inputlevel="full", returnlevel="full"):     #https://confluence.ecmwf.int/pages/viewpage.action?pageId=68163209
-    g = 9.80665
-    gph_m_gl = pl2alt_gl(air_temperature_ml, specific_humidity_ml, p, inputlevel, returnlevel)
-    gph_m_sl = gph_m_gl + surface_geopotential/g
-    return gph_m_sl
-def standard_pl2alt( surface_geopotential, air_temperature_ml, specific_humidity_ml, p, inputlevel="full", returnlevel="full"):     #https://confluence.ecmwf.int/pages/viewpage.action?pageId=68163209
-    g = 9.80665
-    gph_m_gl = pl2alt_gl(air_temperature_ml, specific_humidity_ml, p, inputlevel, returnlevel)
-    gph_m_sl = gph_m_gl + surface_geopotential/g
-    return gph_m_sl
 #ground level to sealevel and vicaverca
 def gl2sl(surface_geopotential, gph_m_gl):
     g = 9.80665
@@ -1009,6 +983,10 @@ def BL_height_sl(atmosphere_boundary_layer_thickness, surface_geopotential):
     hgl = atmosphere_boundary_layer_thickness #groundlevel
     hsl = hgl + (surface_geopotential / g)    #
     return hsl
+
+
+
+
 
 ####################################################################################################################
 # WIND HANDLING
