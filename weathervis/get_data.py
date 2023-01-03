@@ -131,6 +131,8 @@ class get_data():
         #print(self.url)
         #exit(1)
         self.units = self.dummyobject()
+        self.dim = self.dummyobject()
+        self.attr = self.dummyobject()
         self.FillValue = self.dummyobject()
         self.use_latest=use_latest
         self.indexidct = None #updated later Contains the indexes for the dimentions we want, see adjust_user_url()
@@ -399,9 +401,11 @@ class get_data():
                 newlist1 = [self.indexidct[i] for i in
                             dimlist]  # convert dependent variable name to our set values. E.g: time = step = [0:1:0]
                 startsub = ','.join(newlist1)  # ex
-
+            #dimlist
+            self.dim.__dict__[prm] = dimlist
             if "units" in dataset.variables[prm].__dict__.keys():
                 self.units.__dict__[prm] = dataset.variables[prm].__dict__["units"]
+            
             if "_FillValue" in dataset.variables[prm].__dict__.keys():
                 self.FillValue.__dict__[prm] = int(dataset.variables[prm].__dict__["_FillValue"])
             else:
@@ -410,6 +414,9 @@ class get_data():
                 for k in dataset.variables[prm].__dict__.keys():
                     ss = f"{k}_{prm}"
                     self.__dict__[ss] = dataset.variables[prm].__dict__[k]
+                    self.attr.__dict__[ss] = dataset.variables[prm].__dict__[k] #wish this takes over, and delete the one above at one point
+                    #if ss not in self.param: 
+                    #    self.param = np.append(self.param, ss)
             
             
             varvar = f"dataset.variables['{prm}'][{startsub}]" ##

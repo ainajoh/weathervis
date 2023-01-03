@@ -31,6 +31,8 @@ import numpy as np
 import gc
 from weathervis.utils import * #domain_input_handler
 import traceback
+from netCDF4 import Dataset
+
 #from memory_profiler import profile
 
 #@profile
@@ -183,10 +185,15 @@ def retrievenow(our_choice,model,step, date,fileobj,m_level,p_level, domain_name
 
     return dmet, data_domain,bad_param
 #@profile
-def checkget_data_handler(all_param, date=None,  model=None, num_point=1,step=[0], p_level= None, m_level=None, mbrs=None, domain_name=None, domain_lonlat=None, point_name=None,point_lonlat=None,use_latest=False,delta_index=None, url=None):
+def checkget_data_handler(all_param, date=None, save=False, read_from_saved=False, model=None, num_point=1,step=[0], p_level= None, m_level=None, mbrs=None, domain_name=None, domain_lonlat=None, point_name=None,point_lonlat=None,use_latest=False,delta_index=None, url=None):
     print("################ checkget_data_handler in checkget_data_handler.py #############################")
     #step = [step] if type(step) == int else step #isinstance(<var>, int)
     step = [step] if not isinstance(step, list) else step #
+    
+    if read_from_saved:
+        dmet = read_data()
+        return dmet, "", ""
+
     if url != None:
         print("AINA rmv")
         fileobj = check_data(url=url, model=model, date=date, step=step, use_latest=use_latest,p_level=p_level, m_level=m_level).file
@@ -231,9 +238,62 @@ def checkget_data_handler(all_param, date=None,  model=None, num_point=1,step=[0
             print(traceback.format_exc())
             print("Next entry.")
             print(" ")
+    if save: 
+        save_data(dmet,data_domain,bad_param)
     return dmet,data_domain,bad_param
 
 
+def save_data(dmet,data_domain,bad_param):
+    print("in save_data")
+    #print(dmet.param)#print(dir(dmet.dim))#print(vars(dmet.attr))
+    ncid = Dataset('buffer.nc', 'w')
+    for key, val in vars(dmet.attr).items():
+        print(key)
+        setattr(ncid, key, val )         
+    for param_nom in dmet.param:
+            print(param_nom)
+            expression_data = f"dmet.{param_nom}"
+            expression_data_unit = f"dmet.units.{param_nom}"
+            expression_data_dim = f"dmet.dim.{param_nom}"
+            data = getattr(dmet, param_nom) #eval(expression_data)
+            dim = eval(expression_data_dim)
+            try:
+                units = eval(expression_data_unit)
+            except:
+                units=None
+            excisting_dim = ncid.dimensions.keys() #dimensions.values():
+            for _dim in dim:
+                if _dim not in excisting_dim:
+                    ncid.createDimension(_dim, len(getattr(dmet, _dim)))
+            vid = ncid.createVariable(param_nom, 'f4',(dim[:]),zlib=True)
+            vid.units = units if units else " "
+            vid.dim = dim if dim else " "
+            #vid.description = dmet[param_nom]['description']
+            vid[:] = data
+    ncid.close()
+    gc.collect()
+
+def read_data():
+    print("in read data")
+    data = Dataset("buffer.nc","a")
+    dmet = dummyobject()
+    dmet.units=dummyobject()
+    dmet.dims=dummyobject()    
+    for k,v in vars(data).items():
+        setattr( dmet, k, v )
+    for k,v in data.variables.items():
+        setattr( dmet, k, data.variables[k][:])
+        setattr( dmet.units, k, v.units)
+        setattr( dmet.dims, k, v.dim)
+    data.close()
+    gc.collect()
+    return dmet
+
+class dummyobject(object):pass
+
+def time_handler():
+    #depending on your forecast retrieval request
+    pass
 
 if __name__ == "__main__": #todo add more for test functionality
     args = default_arguments()
