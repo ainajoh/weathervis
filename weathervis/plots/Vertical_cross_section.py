@@ -39,15 +39,25 @@ def plot_Vertical_cross_section():
     pass
 
 def Vertical_cross_section(kwargs):
+    #types_Hgrid = nearest neigbour, interpolation of 4 closest
+    #types_position = exact, derived
+    #types Zgrid = asmodel, interpolated
+    #types_Ttime = from 1 modelrun, from multiple modelruns glue
+
+
+
     param = ["air_temperature_ml","surface_geopotential","surface_air_pressure","specific_humidity_ml"]
     kwargs.m_level = np.arange(0, 65, 1) #[0,1,2]
     nya = (78.9243,11.9312)
     ands = (69.310, 16.120)
     coos2 = [((nya[1], nya[0]), (ands[1], ands[0]))]
 
+    
     dmet, data_domain, bad_param = checkget_data_handler(all_param=param, model=kwargs.model,  date=kwargs.datetime,
                                                          step=kwargs.steps, m_level=kwargs.m_level,
                                                          point_name=kwargs.point_name, num_point=kwargs.num_point)
+    
+    
     parallels = dmet.standard_parallel_projection_lambert
     center_longitude = dmet.longitude_of_central_meridian_projection_lambert
     center_latitude = dmet.latitude_of_projection_origin_projection_lambert
@@ -69,6 +79,7 @@ def Vertical_cross_section(kwargs):
                     "p": P / 100.0
                 },
                 coo = coos2[0],
+                nbre=1000,
                 pressure = heights,
                 version="rotated",#"rotated",
                 pollon=None,

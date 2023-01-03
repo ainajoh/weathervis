@@ -319,9 +319,6 @@ def interpolate_grid(**kwargs):
     intfunc = Intergrid(**kwargs)
     return intfunc
 
-
-
-
 def CAO_index(air_temperature_pl, pressure, SST,air_pressure_at_sea_level, p_level=850):
     #pressure in hpa
     #pt = potential_temperatur(air_temperature_pl, pressure)
@@ -837,20 +834,20 @@ def _pl2alt_full2full_gl(ap, b, surface_air_pressure, air_temperature_ml, specif
     g0 = 9.80665
     z_h = 0  # 0 since geopotential is 0 at sea level
     Tv = virtual_temp(air_temperature_ml, specific_humidity_ml)
-    p = ml2pl( ap, b, surface_air_pressure, inputlevel="full", returnlevel="full") if pressure == None else pressure
+    p = ml2pl( ap, b, surface_air_pressure, inputlevel="full", returnlevel="full") if pressure is None else pressure
     h = np.zeros(shape = np.shape(air_temperature_ml)) #p = np.zeros(shape = (timeSize, levelSize, ySize, xSize))
     print(np.shape(surface_air_pressure))
     print(np.shape(p))
     print(np.shape(Tv))
 
-    h[:,64,:,:] = Rd*Tv[:,64,:,:]/g0 * np.log(surface_air_pressure[:,:,:]/p[:,64,:,:]) + z_h
+    h[:,-1,:,:] = Rd*Tv[:,-1,:,:]/g0 * np.log(surface_air_pressure[:,:,:]/p[:,-1,:,:]) + z_h
 
     #Tv = Tv.squeeze()
     #p=p.squeeze()
     #surface_air_pressure = surface_air_pressure.squeeze()
 
-    for i in range(0,64):
-        i =63-i
+    for i in range(0,levelSize):
+        i =levelSize-2-i
         Tv_mean = np.average([Tv[:,i+1,:,:],Tv[:,i,:,:]], axis=0)
 
         g = g0*(1-2*h[:,i+1,:,:]/6378137) #just for fun. no effect
@@ -859,12 +856,12 @@ def _pl2alt_full2full_gl(ap, b, surface_air_pressure, air_temperature_ml, specif
     return gph
 def ml2alt( air_temperature_ml, specific_humidity_ml, ap, b, surface_air_pressure, surface_geopotential=None, inputlevel="full", returnlevel="full",pressure=None ):     #https://confluence.ecmwf.int/pages/viewpage.action?pageId=68163209
     if inputlevel == "full" and returnlevel == "full": #default
-        p     = _ml2pl_full2full( ap, b, surface_air_pressure ) if pressure==None else pressure
+        p     = _ml2pl_full2full( ap, b, surface_air_pressure ) if pressure is None else pressure
         gph_m = _pl2alt_full2full_gl( ap, b, surface_air_pressure, air_temperature_ml, specific_humidity_ml, p ) #
     if inputlevel == "half" and returnlevel == "full": #If staggered
-        p     = _ml2pl_full2half( ap, b, surface_air_pressure ) if pressure==None else pressure
+        p     = _ml2pl_full2half( ap, b, surface_air_pressure ) if pressure is None else pressure
         gph_m = _pl2alt_half2full_gl( air_temperature_ml, specific_humidity_ml, p ) #
-    gph_m = gph_m + surface_geopotential/9.81 if surface_geopotential !=None else gph_m
+    gph_m = gph_m + surface_geopotential/9.81 if surface_geopotential is not None else gph_m
     return gph_m
 
 def pl2alt(ap, b, surface_air_pressure, air_temperature_ml, specific_humidity_ml,pressure,surface_geopotential=None):

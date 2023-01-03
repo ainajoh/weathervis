@@ -195,7 +195,6 @@ def VC_get_model_data(obs_data, datetime, model):
         if dmet_old: #if we have an older retrieval then do: 
             for prm in dmet.param: #for every parameter retrieve
                 if prm != "pressure": #as long as it is not the pressure param: we glue them together
-                    #setattr(dmet, prm,  np.array( np.append( np.array([getattr(dmet, prm)]), np.array([getattr(dmet_old, prm)])))   )
                     setattr(dmet, prm,  np.array( np.append( np.array([getattr(dmet_old, prm)]), np.array([getattr(dmet, prm)])))   )
 
         dmet_old = deepcopy(dmet)  #update old retieval
@@ -214,7 +213,7 @@ def VC_get_model_data(obs_data, datetime, model):
     setattr(dmet, "pressure", pressurefromml)
 
     #Calculate Altitude from modellevels
-    altitudefromml = ml2alt_gl( dmet.air_temperature_ml, dmet.specific_humidity_ml, dmet.ap, dmet.b, dmet.surface_air_pressure,  inputlevel="half", returnlevel="full") #ml2pl( dmet.ap, dmet.b, dmet.surface_air_pressure)
+    altitudefromml = ml2alt( dmet.air_temperature_ml, dmet.specific_humidity_ml, dmet.ap, dmet.b, dmet.surface_air_pressure) #ml2pl( dmet.ap, dmet.b, dmet.surface_air_pressure)
     #pl2alt_half2full_gl( air_temperature_ml, specific_humidity_ml, p)
     setattr(dmet, "altitude", altitudefromml)
     #setattr(dmet, "altitude", np.tile(getattr(dmet, "altitude"), (10,1)) )
