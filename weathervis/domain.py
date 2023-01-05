@@ -16,7 +16,9 @@ if __name__ == "__main__":
 def lonlat2idx(lonlat, lon, lat, num_point=1):
     #Todo: add like, when u have a domain outside region of data then return idx= Only the full data.
     # DOMAIN FOR SHOWING GRIDPOINT:: MANUALLY ADJUSTED
-
+    print(lonlat)
+    print(len(lonlat))
+    #exit(1)
     if len(lonlat)>2:
         idx = np.where((lat > lonlat[2]-0.11) & (lat < lonlat[3]+0.09) & \
                        (lon >= lonlat[0]-0.32) & (lon <= lonlat[1]+0.28))
@@ -78,7 +80,9 @@ class domain():
         if self.lonlat and not self.idx:
             self.idx = lonlat2idx(self.lonlat, self.lon, self.lat)
 
-        if self.point_name != None and self.domain_name == None:
+        print(self.point_lonlat)
+        
+        if self.point_name != None and self.domain_name == None and self.point_lonlat==None:
             sites = pd.read_csv(f"{package_path}/data/sites.csv", sep=";", header=0, index_col=0)
             plon = float(sites.loc[self.point_name].lon)
             plat = float(sites.loc[self.point_name].lat)
@@ -95,9 +99,9 @@ class domain():
             #    self.idx = (ii,jj)
 
         if self.point_lonlat != None and self.domain_name == None:
-            plon = float(point_lonlat[0])
-            plat = float(point_lonlat[1])
-            self.lonlat = [plon, plat]
+            #plon = float(self.point_lonlat[0])
+            #plat = float(self.point_lonlat[1])
+            self.lonlat = self.point_lonlat
             self.idx = lonlat2idx(self.lonlat, self.lon, self.lat, num_point)
             if self.delta_index != None:
                 ii_max = int(self.idx[0] + self.delta_index[0] / 2)

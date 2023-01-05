@@ -378,9 +378,8 @@ def domain_input_handler(dt=None, model=None, domain_name=None, domain_lonlat=No
             print(f"\n####### Setting up domain for coordinates: {domain_lonlat} ##########")
             data_domain = domain(dt, model, file=file, lonlat=domain_lonlat,use_latest=use_latest,delta_index=delta_index, url=url, num_point=num_point)
         else:
-            
             data_domain = domain(dt, model, file=file, use_latest=use_latest,delta_index=delta_index, url=url, num_point=num_point)#
-            
+        #exit(1)  
         if domain_name != None and domain_name in dir(data_domain):
             print(f"\n####### Setting up domain: {domain_name} ##########")
             domain_name = domain_name.strip()
@@ -452,14 +451,14 @@ def nice_legend(dict, ax1):
 def default_arguments():
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument("--datetime", help="YYYYMMDDHH for modelrun", default=None,  type=str)
+    parser.add_argument("--datetime", help="YYYYMMDDHH for modelrun", default=None,  type=str, nargs="+")
     parser.add_argument("--steps", default=["0"], nargs="+", type=str,
                         help="forecast times example --steps 0 3 gives time 0 and 3 \n --steps 0:1:3 gives timestep 0, 1, 2")
     parser.add_argument("--model", default=None, help="MEPS or AromeArctic")
     parser.add_argument("--domain_name", default=None, nargs="+", type= none_or_str)
     parser.add_argument("--domain_lonlat", default=None, help="[ lonmin, lonmax, latmin, latmax]")
     parser.add_argument("--point_name", default=None, nargs="+")
-    parser.add_argument("--point_lonlat", default=None, help="[ lonmin, lonmax, latmin, latmax]")
+    parser.add_argument("--point_lonlat", default=None, help="[lon, lat]", type=str, nargs="+")
     parser.add_argument("--num_point", default=1, type=int)
     parser.add_argument("--legend", default=True, help="Display legend")
     parser.add_argument("--grid", default=True, help="Display legend")
@@ -479,6 +478,11 @@ def default_arguments():
     global OUTPUTPATH
     if args.outpath != None:
         OUTPUTPATH = args.outpath
+    if args.point_lonlat != None: #aina
+        splitted_lonlat= re.split("]",  "".join(args.point_lonlat))
+        s = re.split(",",  "".join(splitted_lonlat).replace("[", ""))        
+        lonlat = np.reshape(s, (int(len(s)/2), 2)).astype(float).tolist()
+        args.point_lonlat = lonlat
 
     step_together = "".join(args.steps[0:])
     if ":" in step_together:
@@ -552,7 +556,8 @@ def find_subdomains(domain_name, datetime=None, model=None, num_point=1, domain_
 def plot_by_subdomains(plt_func, checkget_data_handler, datetime, steps, model, domain_name, domain_lonlat, legend, info, grid, url, point_lonlat, use_latest,
         delta_index, coast_details=None, param=None, p_level=None, overlays=None, runid=None, point_name=None):
 
-    domains_with_subdomains = find_subdomains(domain_name=domain_name, datetime=datetime, model=model,
+    datetime_start = datetime[0] if type(datetime) is list else datetime
+    domains_with_subdomains = find_subdomains(domain_name=domain_name, datetime=datetime_start, model=model,
                                               domain_lonlat=domain_lonlat,
                                               point_lonlat=point_lonlat, use_latest=use_latest, delta_index=delta_index,
                                               url=url)
@@ -565,6 +570,7 @@ def plot_by_subdomains(plt_func, checkget_data_handler, datetime, steps, model, 
         subdom = domains_with_subdomains.loc[domain_name]
         ii = subdom[subdom == True]
         subdom_list = list(ii.index.values)
+        
         if subdom_list:
             for sub in subdom_list:
                 plt_func(datetime=datetime, steps=steps, model=model, domain_name=sub, data_domain=data_domain,
@@ -592,3 +598,9 @@ def chunck_func_call(func= None, chunktype="steps", chunk=6, **kwargs):
                 func(**kwargs)
 
 
+def point_name2point_lonlat(point_name):
+    sites = pd.read_csv(f"{package_path}/data/sites.csv", sep=";", header=0, index_col=0)
+    plon = float(sites.loc[point_name].lon)
+    plat = float(sites.loc[point_name].lat)
+    lonlat = [plon,plat]
+    return lonlat

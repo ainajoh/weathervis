@@ -32,6 +32,8 @@ import gc
 from weathervis.utils import * #domain_input_handler
 import traceback
 from netCDF4 import Dataset
+from copy import deepcopy
+
 
 #from memory_profiler import profile
 
@@ -171,6 +173,19 @@ def retrievenow(our_choice,model,step, date,fileobj,m_level,p_level, domain_name
                 if ap_next < ap_prev:  # if next is bigger dont overwrite with old one
                     continue
             setattr(dmet, pm, getattr(dmet_next, pm))
+            try:
+                setattr(dmet.units, pm, getattr(dmet_next.units, pm))
+                setattr(dmet.dim, pm, getattr(dmet_next.dim, pm))
+                #setattr(dmet.idx, pm, getattr(dmet_next.idx, pm))
+            except:
+                pass
+
+
+        param_set = set(dmet.param)
+        param_set.update(dmet_next.param)
+        param_set = list(param_set)
+        dmet.param = param_set
+        #setattr(dmet.param, dmet_next, pm))
         del(dmet_next)
 
     for bparam in bad_param:
@@ -185,14 +200,53 @@ def retrievenow(our_choice,model,step, date,fileobj,m_level,p_level, domain_name
 
     return dmet, data_domain,bad_param
 #@profile
-def checkget_data_handler(all_param, date=None, save=False, read_from_saved=False, model=None, num_point=1,step=[0], p_level= None, m_level=None, mbrs=None, domain_name=None, domain_lonlat=None, point_name=None,point_lonlat=None,use_latest=False,delta_index=None, url=None):
+def checkget_data_handler(all_param, date=None, save=False, read_from_saved=False, model=None, num_point=1,step=[0], p_level= None, m_level=None, mbrs=None, domain_name=None, domain_lonlat=None, point_name=None,point_lonlat=None,use_latest=False,delta_index=None, url=None,first_run=True):
     print("################ checkget_data_handler in checkget_data_handler.py #############################")
     #step = [step] if type(step) == int else step #isinstance(<var>, int)
-    step = [step] if not isinstance(step, list) else step #
     
+    step = [step] if not isinstance(step, list) else step #
+    date=[date] if type(date) != list and first_run else date
+
+    print(date)
+    print(step)
+    print(point_lonlat)
+
     if read_from_saved:
-        dmet = read_data()
+        dmet = read_data(read_from_saved)
         return dmet, "", ""
+    
+    if (point_name or point_lonlat) and first_run:
+        dmet,data_domain,bad_param = points_handler(all_param=all_param, date=date, save=save, 
+                                                    read_from_saved=read_from_saved, model=model,
+                                                    num_point=num_point,step=step, p_level= p_level, 
+                                                    m_level=m_level, mbrs=mbrs, domain_name=domain_name,
+                                                    domain_lonlat=domain_lonlat, point_name=point_name,
+                                                    point_lonlat=point_lonlat,use_latest=use_latest,
+                                                    delta_index=delta_index, url= url)
+        if save: 
+            save_data(dmet,data_domain,bad_param, save)  
+
+        return dmet,data_domain,bad_param
+
+    if type(date) is list:
+        print("date list")
+        dmet,data_domain,bad_param = time_handler( all_param=all_param, date=date, save=save, 
+                                                    read_from_saved=read_from_saved, model=model,
+                                                    num_point=num_point,step=step, p_level= p_level, 
+                                                    m_level=m_level, mbrs=mbrs, domain_name=domain_name,
+                                                    domain_lonlat=domain_lonlat, point_name=point_name,
+                                                    point_lonlat=point_lonlat,use_latest=use_latest,
+                                                    delta_index=delta_index, url= url)
+        
+        #if save: 
+        #    save_data(dmet,data_domain,bad_param, save)   
+        # 
+        if not (point_name or point_lonlat): 
+            if save: 
+                save_data(dmet,data_domain,bad_param, save)
+        return dmet,data_domain,bad_param
+
+    #exit(1)
 
     if url != None:
         print("AINA rmv")
@@ -204,12 +258,11 @@ def checkget_data_handler(all_param, date=None, save=False, read_from_saved=Fals
                          p_level=p_level, data_domain=data_domain, use_latest=use_latest)
         dmet.retrieve()
         bad_param=None
+        #if save: 
+        #    save_data(dmet,data_domain,bad_param)
         return dmet, data_domain, bad_param
 
     date=str(date)
-    print(model)
-    print(date)
-    print(step)
     fileobj = check_data(model=model, date=date, step=step, use_latest=use_latest).file
     all_choices, bad_param  = find_best_combinationoffiles(all_param=all_param, fileobj=fileobj,m_level=m_level,p_level=p_level)
 
@@ -238,60 +291,220 @@ def checkget_data_handler(all_param, date=None, save=False, read_from_saved=Fals
             print(traceback.format_exc())
             print("Next entry.")
             print(" ")
-    if save: 
-        save_data(dmet,data_domain,bad_param)
+    #if save: 
+    #    save_data(dmet,data_domain,bad_param, save)
     return dmet,data_domain,bad_param
 
+def make_dimdict(dmet):
+    pass
 
-def save_data(dmet,data_domain,bad_param):
+def save_data(dmet,data_domain,bad_param, save="Buffer.nc"):
     print("in save_data")
     #print(dmet.param)#print(dir(dmet.dim))#print(vars(dmet.attr))
-    ncid = Dataset('buffer.nc', 'w')
+    file =save
+    ncid = Dataset(file, 'w')
     for key, val in vars(dmet.attr).items():
         print(key)
-        setattr(ncid, key, val )         
+        setattr(ncid, key, val ) 
+    #print(dmet.point)
+    #print(vars(dmet))
+    #print(vars(dmet.dim.keys()))
+    #exit(1)
+    #ppp =  dmet.param.append(dmet.param)     
     for param_nom in dmet.param:
             print(param_nom)
             expression_data = f"dmet.{param_nom}"
             expression_data_unit = f"dmet.units.{param_nom}"
             expression_data_dim = f"dmet.dim.{param_nom}"
             data = getattr(dmet, param_nom) #eval(expression_data)
-            dim = eval(expression_data_dim)
+            dims = eval(expression_data_dim)
             try:
                 units = eval(expression_data_unit)
             except:
                 units=None
             excisting_dim = ncid.dimensions.keys() #dimensions.values():
-            for _dim in dim:
+            for _dim in dims: # gows through dimension parameter names
                 if _dim not in excisting_dim:
+                    print(_dim) #point
+                    print(getattr(dmet, _dim)) 
+                    print(len(getattr(dmet, _dim))) #2
+                    print(np.shape(getattr(dmet, _dim)))
                     ncid.createDimension(_dim, len(getattr(dmet, _dim)))
-            vid = ncid.createVariable(param_nom, 'f4',(dim[:]),zlib=True)
+                    #vid_dim = ncid.createVariable(_dim, 'f4',(_dim),zlib=True)
+
+            print(dims[:]) #('point',)
+            vid = ncid.createVariable(param_nom, 'f4',(dims[:]),zlib=True)
             vid.units = units if units else " "
-            vid.dim = dim if dim else " "
+            vid.dim = dims if dims else " "
+            for _dim in dims:
+                try:
+                    setattr(vid.dim, _dim,  getattr(dmet, _dim)) 
+                except:
+                    pass
             #vid.description = dmet[param_nom]['description']
             vid[:] = data
+    #exit(1)
     ncid.close()
     gc.collect()
 
-def read_data():
+def read_data(read_from_saved="Buffer.nc"):
     print("in read data")
-    data = Dataset("buffer.nc","a")
+    file=read_from_saved
+    data = Dataset(file,"a")
+
+    print(data)
+    #exit(1)
     dmet = dummyobject()
     dmet.units=dummyobject()
-    dmet.dims=dummyobject()    
+    dmet.dim=dummyobject()    
     for k,v in vars(data).items():
         setattr( dmet, k, v )
     for k,v in data.variables.items():
         setattr( dmet, k, data.variables[k][:])
         setattr( dmet.units, k, v.units)
-        setattr( dmet.dims, k, v.dim)
+        setattr( dmet.dim, k, v.dim)
     data.close()
     gc.collect()
     return dmet
 
 class dummyobject(object):pass
 
-def time_handler():
+
+def conicide_time_with_location():
+    pass
+
+def points_handler(**args): #if point_lonlat = many (later if point_name is many)
+    #for index, row in obs_data.iloc[:num_p].iterrows()
+    print("in points_handler")
+    
+    points = len(args["point_name"]) if args["point_name"] !=None else len(args["point_lonlat"])
+    #print(points) 
+    all_points = args["point_lonlat"] if args["point_lonlat"] else args["point_name"]
+    initial_point_lonlat = args["point_lonlat"]
+    print("in points_handler")
+    dmet_old = False
+    num_locrun=0
+    
+    for p in range(0,points):
+        num_locrun+=1
+        point_lonlat = point_name2point_lonlat(args["point_name"][p]) if args["point_name"] else initial_point_lonlat[p]
+        args["point_lonlat"] = point_lonlat
+        dmet,data_domain,bad_param = time_handler(**args)
+        setattr( dmet, "point", all_points) #str(point_lonlat)
+
+        if dmet_old: #if we have an older retrieval then do: 
+            print("dmet_old = true")
+            
+            for prm in dmet.param: #for every parameter 
+                print(prm)
+                
+                prev_orig_shape = list(np.shape(getattr(dmet, prm)))
+                try:
+                    dims = getattr(dmet.dim, prm)
+                except:
+                    dims=[]
+                    continue
+                print(dims)
+                if "x" in dims or "y" in dims:
+                    prev_orig_shape[-1] =prev_orig_shape[-1]* num_locrun
+                    joint = np.append( getattr(dmet_old, prm), getattr(dmet, prm),axis=-1)
+                    setattr( dmet, prm,  np.array( joint )) 
+                    prev_dim = getattr(dmet.dim, prm)
+
+                    import re
+                    regex = re.compile(r'^x.?$|^y.?$')
+                    dim_new = [i for i in prev_dim if not regex.match(i)]
+                    dim_new.append("point")
+                    setattr( dmet.dim, prm, tuple(dim_new ))                    
+
+
+                    fill_all = False
+                    if fill_all:
+                        orig_shape=prev_orig_shape.copy() 
+                        orig_shape[-1] =prev_orig_shape[-1]* num_locrun
+                        if len(orig_shape)>1:
+                            orig_shape[-2] =prev_orig_shape[-2]* num_locrun
+                        #Indent out of if statement if u want more dim
+                        #orig_shape = np.append(int(num_modelrun),np.array(orig_shape, dtype=np.int)) #add more dimentions
+                        print(prev_orig_shape) #[1, 65, 1, 1]
+                        print(orig_shape)     #[1, 65, 2, 2]
+
+                        orig_shape = tuple(orig_shape)
+                        old_shape = list(np.shape(getattr(dmet_old, prm)))   ##[1, 65, 1, 1]
+
+                        numdim=1
+                        numdim_act=1
+                        numdim_act2=1
+                        for di in range(0,len(orig_shape)):
+                            numdim = numdim*orig_shape[di] #shape we want
+                            numdim_act= numdim_act*prev_orig_shape[di] #one fill
+                            numdim_act2 = numdim_act2*old_shape[di]    #other fill
+            
+                        #numdim_act = 0 if numdim_act==1 else numdim_act
+                        fillnum = numdim - (numdim_act + numdim_act2) #shape we want  - shape we fill it
+                        setattr( dmet, prm,  np.array( np.append( np.array([getattr(dmet_old, prm)]), np.array([getattr(dmet, prm)]) )) )
+                        fill_array = np.full([int(fillnum )], np.nan)
+                        if len(orig_shape)>1: setattr( dmet, prm,  np.array( np.append( fill_array,         np.array([getattr(dmet, prm)]) )) ) 
+                        setattr( dmet, prm, getattr(dmet, prm).reshape(orig_shape[:] ))
+                        print("af reshape")
+                        print(np.shape(getattr(dmet, prm)))
+                    #exit(1)
+
+        dmet_old = deepcopy(dmet)
+
+    #print("here")
+    #exit(1)
+
+    return dmet_old,data_domain,bad_param
+
+def time_handler(**args):
+
+    print("in timehandler")
+    print(args["point_lonlat"])
+
+    #exit(1)
+    date_list = args["date"]
+    dmet_old = False
+    args["first_run"]=False
+    num_modelrun =0
+    for dt in date_list:
+        num_modelrun +=1
+        args["date"]=dt
+        print("loop in timehandler")
+        print(dt)
+        dmet, data_domain, bad_param = checkget_data_handler(**args)
+        if dmet_old: #if we have an older retrieval then do: 
+            
+            for prm in dmet.param: #for every parameter 
+                print(prm)
+                orig_shape = list(np.shape(getattr(dmet, prm)))
+                print(orig_shape)
+                try:
+                    dims = getattr(dmet.dim, prm)
+                except:
+                    dims=[]
+                    continue
+                print(dims)
+                if "time" in dims:
+                    orig_shape[0] =orig_shape[0]* num_modelrun
+                    #Indent out of if statement if u want more dim
+                    #orig_shape = np.append(int(num_modelrun),np.array(orig_shape, dtype=np.int)) #add more dimentions
+                    orig_shape = tuple(orig_shape)
+                    print(orig_shape)
+                    print("bf set")
+                    joint=np.append( getattr(dmet_old, prm), getattr(dmet, prm), axis=0)
+                    print(np.shape(joint))
+                    setattr( dmet, prm,  np.array( joint ))
+                    print("af set")
+                    #setattr(dmet, prm, getattr(dmet, prm).reshape(orig_shape[:] ))
+                    print("af reshape")
+                    print(np.shape(getattr(dmet, prm)))
+
+        dmet_old = deepcopy(dmet)
+            
+    return dmet,data_domain,bad_param
+
+    #if datetime == a list. 
     #depending on your forecast retrieval request
     pass
 

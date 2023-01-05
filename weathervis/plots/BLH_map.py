@@ -37,6 +37,7 @@ def plot_BLH(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", mod
 
     eval(f"data_domain.{domain_name}()")  # get domain info
     ## CALCULATE AND INITIALISE ####################
+
     scale = (
         data_domain.scale
     )  # scale is larger for smaller domains in order to scale it up.
@@ -46,6 +47,7 @@ def plot_BLH(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", mod
         dmet.surface_geopotential[:], dmet.air_pressure_at_sea_level[:]
     )
     BLH = dmet.atmosphere_boundary_layer_thickness[:, :, :]
+    print(np.shape(BLH))
     # if domain is large then filter noisy W values that often are over mountains.
     W = (
         filter_values_over_mountain(
@@ -58,105 +60,106 @@ def plot_BLH(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", mod
     crs = default_map_projection(dmet)
     fig1, ax1 = plt.subplots(1, 1, figsize=(7, 9), subplot_kw={"projection": crs})
     itim = 0
-    for leadtime in np.array(steps):
-        print("Plotting {0} + {1:02d} UTC".format(datetime, leadtime))
-        ax1 = default_mslp_contour(
-            dmet.x, dmet.y, MSLP[itim, 0, :, :], ax1, scale=scale
-        )
-        # vertical velocity
-        ax1.contour(
-            dmet.x,
-            dmet.y,
-            W[itim, 0, :, :],
-            zorder=3,
-            alpha=1.0,
-            levels=np.linspace(0.07, 2.0, 4 * scale),
-            colors="red",
-            linewidths=0.7,
-        )
-        ax1.contour(
-            dmet.x,
-            dmet.y,
-            W[itim, 0, :, :],
-            zorder=3,
-            alpha=1.0,
-            levels=np.linspace(-2.0, -0.07, 4 * scale),
-            colors="blue",
-            linewidths=0.7,
-        )
-        # boundary layer thickness
-        CF_BLH = ax1.contourf(
-            dmet.x,
-            dmet.y,
-            BLH[itim, 0, :, :],
-            zorder=1,
-            alpha=0.5,
-            levels=np.arange(50, 5000, 200),
-            linewidths=0.7,
-            label="BLH",
-            cmap="summer",
-            extend="both",
-        )
-        # coastline
-        ax1.add_feature(cfeature.GSHHSFeature(scale=coast_details))
+    for dt in datetime:
+        for leadtime in np.array(steps):
+            print("Plotting {0} + {1:02d} UTC".format(dt, leadtime))
+            ax1 = default_mslp_contour(
+                dmet.x, dmet.y, MSLP[itim, 0, :, :], ax1, scale=scale
+            )
+            # vertical velocity
+            ax1.contour(
+                dmet.x,
+                dmet.y,
+                W[itim, 0, :, :],
+                zorder=3,
+                alpha=1.0,
+                levels=np.linspace(0.07, 2.0, 4 * scale),
+                colors="red",
+                linewidths=0.7,
+            )
+            ax1.contour(
+                dmet.x,
+                dmet.y,
+                W[itim, 0, :, :],
+                zorder=3,
+                alpha=1.0,
+                levels=np.linspace(-2.0, -0.07, 4 * scale),
+                colors="blue",
+                linewidths=0.7,
+            )
+            # boundary layer thickness
+            CF_BLH = ax1.contourf(
+                dmet.x,
+                dmet.y,
+                BLH[itim, 0, :, :],
+                zorder=1,
+                alpha=0.5,
+                levels=np.arange(50, 5000, 200),
+                linewidths=0.7,
+                label="BLH",
+                cmap="summer",
+                extend="both",
+            )
+            # coastline
+            ax1.add_feature(cfeature.GSHHSFeature(scale=coast_details))
 
-        # Done plotting, now adjusting
-        ax_cb = adjustable_colorbar_cax(fig1, ax1)
-        fig1.colorbar(
-            CF_BLH,
-            fraction=0.046,
-            pad=0.01,
-            aspect=25,
-            cax=ax_cb,
-            label="Boundary layer thickness [m]",
-            extend="both",
-        )  ##__N
-        ax1.text(
-            0,
-            1,
-            "{0}_BLH_{1}+{2:02d}".format(model, datetime, leadtime),
-            ha="left",
-            va="bottom",
-            transform=ax1.transAxes,
-            color="dimgrey",
-        )
-        if legend:
-            pressure_dim = list(
-                filter(re.compile(f"press*").match, dmet.__dict__.keys())
-            )  # need to find the correcvt pressure name
-            llg = {
-                "W_over": {
-                    "color": "red",
-                    "linestyle": None,
-                    "legend": f"W [m s-1]>0.07 m/s at {dmet.__dict__[pressure_dim[0]][plev]:.0f} hPa",
-                },
-                "W_under": {
-                    "color": "blue",
-                    "linestyle": "dashed",
-                    "legend": f"W [m s-1]<0.07 m/s at {dmet.__dict__[pressure_dim[0]][plev]:.0f} hPa",
-                },
-                "MSLP": {"color": "gray", "linestyle": None, "legend": "MSLP [hPa]"},
-            }
-            nice_legend(llg, ax1)
-        if grid:
-            nicegrid(ax=ax1)
+            # Done plotting, now adjusting
+            ax_cb = adjustable_colorbar_cax(fig1, ax1)
+            fig1.colorbar(
+                CF_BLH,
+                fraction=0.046,
+                pad=0.01,
+                aspect=25,
+                cax=ax_cb,
+                label="Boundary layer thickness [m]",
+                extend="both",
+            )  ##__N
+            ax1.text(
+                0,
+                1,
+                "{0}_BLH_{1}+{2:02d}".format(model, dt, leadtime),
+                ha="left",
+                va="bottom",
+                transform=ax1.transAxes,
+                color="dimgrey",
+            )
+            if legend:
+                pressure_dim = list(
+                    filter(re.compile(f"press*").match, dmet.__dict__.keys())
+                )  # need to find the correcvt pressure name
+                llg = {
+                    "W_over": {
+                        "color": "red",
+                        "linestyle": None,
+                        "legend": f"W [m s-1]>0.07 m/s at {dmet.__dict__[pressure_dim[0]][plev]:.0f} hPa",
+                    },
+                    "W_under": {
+                        "color": "blue",
+                        "linestyle": "dashed",
+                        "legend": f"W [m s-1]<0.07 m/s at {dmet.__dict__[pressure_dim[0]][plev]:.0f} hPa",
+                    },
+                    "MSLP": {"color": "gray", "linestyle": None, "legend": "MSLP [hPa]"},
+                }
+                nice_legend(llg, ax1)
+            if grid:
+                nicegrid(ax=ax1)
 
-        print(data_domain.lonlat)  # [15.8, 16.4, 69.2, 69.4]
-        if domain_name != model and data_domain != None:  #
-            ax1.set_extent(data_domain.lonlat)
+            print(data_domain.lonlat)  # [15.8, 16.4, 69.2, 69.4]
+            if domain_name != model and data_domain != None:  #
+                ax1.set_extent(data_domain.lonlat)
 
-        # runid == "" if runid == None else runid
-        # make_modelrun_folder = setup_directory(OUTPUTPATH, "{0}-{1}".format(dt, runid))
+            # runid == "" if runid == None else runid
+            # make_modelrun_folder = setup_directory(OUTPUTPATH, "{0}-{1}".format(dt, runid))
 
-        make_modelrun_folder = setup_directory(OUTPUTPATH, "{0}".format(datetime))
-        file_path = "{0}/{1}_{2}_{3}_{4}+{5:02d}.png".format(
-            make_modelrun_folder, model, domain_name, "BLH", datetime, leadtime
-        )
+            make_modelrun_folder = setup_directory(OUTPUTPATH, "{0}".format(dt))
+            file_path = "{0}/{1}_{2}_{3}_{4}+{5:02d}.png".format(
+                make_modelrun_folder, model, domain_name, "BLH", dt, leadtime
+            )
 
-        print(f"filename: {file_path}")
-        fig1.savefig(file_path, bbox_inches="tight", dpi=200)
-        ax1.cla()
-        itim += 1
+            print(f"filename: {file_path}")
+            fig1.savefig(file_path, bbox_inches="tight", dpi=200)
+            ax1.cla()
+            itim += 1
     plt.close(fig1)
     plt.close("all")
     del MSLP, scale, itim, legend, grid, overlays, domain_name, ax_cb, W, BLH

@@ -488,7 +488,7 @@ def dexcess(mslp,SST, q2m):
     d = 48.2 - 0.54 * RH
     return d#.squeeze()
 
-def virtual_temp(air_temperature_ml, specific_humidity_ml):
+def virtual_temp(air_temperature_ml=None, specific_humidity_ml=None, dmet=None):
     """
 
     Parameters
@@ -502,20 +502,23 @@ def virtual_temp(air_temperature_ml, specific_humidity_ml):
     """
     #todo: adjust so u can send in either multidim array, lesser dim, or just point numbers
     #https://confluence.ecmwf.int/pages/viewpage.action?pageId=68163209
-
-    if len(np.shape(air_temperature_ml)) == 4:
-        timeSize, levelSize, ySize, xSize = np.shape(air_temperature_ml)
+    if dmet:
+        dim_dict = dict( zip(dmet.dim.air_temperature_ml, np.shape(dmet.air_temperature_ml)))
+        levelSize = np.shape(dmet.air_temperature_ml)[1]
     else:
-        levelSize, ySize, xSize = np.shape(air_temperature_ml)
-        timeSize=0
+        timeSize, levelSize, ySize, xSize = np.shape(air_temperature_ml)
 
-    t_v_level = np.zeros(shape=(timeSize, levelSize, ySize, xSize))
+
+    t_v_level = np.zeros(shape= np.shape(dmet.air_temperature_ml))
     levels = np.arange(0, levelSize)
     levels_r = levels[::-1]  # bottom (lvl=64) to top(lvl = 0) of atmos
     Rd = 287.06
+    #for idx in np.ndindex(t_v_level.shape):
+        #t_v_level[idx] = air_temperature_ml[idx] * (1. + 0.609133 * specific_humidity_ml[idx])
     for k in levels_r:
-        t_v_level[:, k, :, :] = air_temperature_ml[:, k, :, :] * (1. + 0.609133 * specific_humidity_ml[:, k, :, :])
-
+        print(k)
+        print( air_temperature_ml[:, k, :])
+        t_v_level[:, k, :] = air_temperature_ml[:, k, :] * (1. + 0.609133 * specific_humidity_ml[:, k, :])
     return t_v_level
 def lapserate(T_ml, z, srf_T = None):
     """
@@ -688,7 +691,7 @@ def _ml2pl_full2half( ap, b, surface_air_pressure ):
         bh[k] = 2*b[k] - bh[k-1]
     ph = _ml2pl_full2full( ah, bh, surface_air_pressure)
     return ph
-def ml2pl( ap, b, surface_air_pressure, inputlevel="full", returnlevel="full"):
+def ml2pl( ap=None, b=None, surface_air_pressure=None, inputlevel="full", returnlevel="full", dmet=None, dim=None):
     """
     Check if pressure is on half or full levels, and calls the appropriate function for this.
 
@@ -815,44 +818,44 @@ def _pl2alt_half2full_gl( air_temperature_ml, specific_humidity_ml, p): #or heig
 
         geotoreturn_m[:, k, :, :] = geotoreturn_m[:, k, :, :]/g
 
-        # update for next level
-        #print(np.shape(z_h))
-        #print(np.shape(TRd))
-        #print(np.shape(dlogP))
         z_h = z_h + (TRd * dlogP)
         p_low = p_top
     print("")
     return geotoreturn_m
-def _pl2alt_full2full_gl(ap, b, surface_air_pressure, air_temperature_ml, specific_humidity_ml,pressure=None): #or heighttoreturn
+
+def _pl2alt_full2full_gl(dmet=None, dim=None, ap=None, b=None, surface_air_pressure=None, air_temperature_ml=None, specific_humidity_ml=None,pressure=None): #or heighttoreturn
     """
     when pressure comes in full levels, this works best anyway. 50 meter difference at highest levels. 
     """
-    timeSize, levelSize, ySize, xSize = np.shape(air_temperature_ml)
-
+    if dmet:
+        dim_dict = dict( zip(dmet.dim.air_temperature_ml, np.shape(dmet.air_temperature_ml)))
+    levelSize = np.shape(dmet.air_temperature_ml)[1]
+    #if len(np.shape(air_temperature_ml)) ==4:
+    #    timeSize, levelSize, ySize, xSize = np.shape(air_temperature_ml)
+    #else:
+    #    timeSize, levelSize, point= np.shape(air_temperature_ml)
 
     Rd = 287.06 #[J/kg K] Gas constant for dry air
     g0 = 9.80665
     z_h = 0  # 0 since geopotential is 0 at sea level
-    Tv = virtual_temp(air_temperature_ml, specific_humidity_ml)
+    Tv = virtual_temp(dmet.air_temperature_ml, dmet.specific_humidity_ml, dmet)
     p = ml2pl( ap, b, surface_air_pressure, inputlevel="full", returnlevel="full") if pressure is None else pressure
     h = np.zeros(shape = np.shape(air_temperature_ml)) #p = np.zeros(shape = (timeSize, levelSize, ySize, xSize))
     print(np.shape(surface_air_pressure))
     print(np.shape(p))
     print(np.shape(Tv))
-
-    h[:,-1,:,:] = Rd*Tv[:,-1,:,:]/g0 * np.log(surface_air_pressure[:,:,:]/p[:,-1,:,:]) + z_h
-
-    #Tv = Tv.squeeze()
-    #p=p.squeeze()
-    #surface_air_pressure = surface_air_pressure.squeeze()
-
-    for i in range(0,levelSize):
+    #exit(1)
+    #h[:,-1,:,:] = Rd*Tv[:,-1,:,:]/g0 * np.log(surface_air_pressure[:,:,:,:]/p[:,-1,:,:]) + z_h
+    h[:,-1,:] = Rd*Tv[:,-1,:]/g0 * np.log(surface_air_pressure[:,0,:]/p[:,-1,:]) + z_h #(3, 3, 1, 1)
+    
+    for i in range(0,levelSize-1):
         i =levelSize-2-i
-        Tv_mean = np.average([Tv[:,i+1,:,:],Tv[:,i,:,:]], axis=0)
-
-        g = g0*(1-2*h[:,i+1,:,:]/6378137) #just for fun. no effect
-        h[:,i,:,:] = Rd*Tv_mean/g * np.log(p[:,i+1,:,:]/p[:,i,:,:]) + h[:,i+1,:,:]
+        print(i)
+        Tv_mean = (Tv[:,i+1,...]+ Tv[:,i,...]) /2#np.average([Tv[:,i+1,...],Tv[:,i,...]], axis=0)
+        g = g0*(1-2*h[:,i+1,...]/6378137) #just for fun. no effect
+        h[:,i,...] = Rd*Tv_mean/g * np.log(p[:,i+1,...]/p[:,i,...]) + h[:,i+1,...]
     gph = h
+    #exit(1)
     return gph
 def ml2alt( air_temperature_ml, specific_humidity_ml, ap, b, surface_air_pressure, surface_geopotential=None, inputlevel="full", returnlevel="full",pressure=None ):     #https://confluence.ecmwf.int/pages/viewpage.action?pageId=68163209
     if inputlevel == "full" and returnlevel == "full": #default
@@ -864,8 +867,8 @@ def ml2alt( air_temperature_ml, specific_humidity_ml, ap, b, surface_air_pressur
     gph_m = gph_m + surface_geopotential/9.81 if surface_geopotential is not None else gph_m
     return gph_m
 
-def pl2alt(ap, b, surface_air_pressure, air_temperature_ml, specific_humidity_ml,pressure,surface_geopotential=None):
-    alt = _pl2alt_full2full_gl(ap, b, surface_air_pressure, air_temperature_ml, specific_humidity_ml,pressure=None)
+def pl2alt(ap=None, b=None, surface_air_pressure=None, air_temperature_ml=None, specific_humidity_ml=None,pressure=None,surface_geopotential=None, dmet=None):
+    alt = _pl2alt_full2full_gl(ap=ap, b=b, surface_air_pressure=surface_air_pressure, air_temperature_ml=air_temperature_ml, specific_humidity_ml=specific_humidity_ml,pressure=None, dmet=dmet)
     alt = alt + surface_geopotential/9.81 if surface_geopotential is not None else alt
     return alt
 

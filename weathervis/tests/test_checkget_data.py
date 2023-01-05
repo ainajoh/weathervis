@@ -15,8 +15,8 @@ class checkgetdata(unittest.TestCase):
     def setUp(self):
         warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-        self.to_old_date = "1999010100"
-        self.archive_date = "2020010100" #strftime('%Y%m%d')
+        self.to_old_date = ["1999010100"]
+        self.archive_date = ["2020010100"] #strftime('%Y%m%d')
         self.latest_date =  (datetime.today() - timedelta(hours=12)).strftime('%Y%m%d%H') #+ "00"
         self.latest_date = self.latest_date[:-2] + str(int(self.latest_date[-2:])-int(self.latest_date[-2:])%6).zfill(2)
         self.to_futuristic_date = "2030010100"
@@ -173,7 +173,6 @@ class checkgetdata(unittest.TestCase):
         self.assertEqual(np.shape(dmet.mass_fraction_of_graupel_in_air_ml), (1, 3, 949, 739))
         self.assertEqual(np.shape(dmet.SIC), (1,1, 949, 739))
         #self.assertEqual(np.shape(dmet.LE_SEA), (1, 1,949, 739)) = () error
-
 
 
 
