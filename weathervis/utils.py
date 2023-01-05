@@ -409,7 +409,7 @@ def domain_input_handler(dt=None, model=None, domain_name=None, domain_lonlat=No
     
     return data_domain
 
-def default_map_projection(dmet):
+def default_map_projection(dmet ):
     lon0 = dmet.longitude_of_central_meridian_projection_lambert
     lat0 = dmet.latitude_of_projection_origin_projection_lambert
     parallels = dmet.standard_parallel_projection_lambert
@@ -598,9 +598,20 @@ def chunck_func_call(func= None, chunktype="steps", chunk=6, **kwargs):
                 func(**kwargs)
 
 
-def point_name2point_lonlat(point_name):
-    sites = pd.read_csv(f"{package_path}/data/sites.csv", sep=";", header=0, index_col=0)
-    plon = float(sites.loc[point_name].lon)
-    plat = float(sites.loc[point_name].lat)
-    lonlat = [plon,plat]
+def point_name2point_lonlat(point_name, site_file=f"{package_path}/data/sites.csv"):
+    sites = pd.read_csv(site_file, sep=";", header=0, index_col=0)
+
+    if type(point_name) is list or tuple:
+        print("hello")
+        lonlat = []
+        for ppn in point_name:
+            plon = float(sites.loc[ppn].lon)
+            plat = float(sites.loc[ppn].lat)
+            ll = tuple([plon,plat]) if type(point_name) is tuple else [plon,plat]
+            lonlat.append(ll)
+    else:
+        sites = pd.read_csv(f"{package_path}/data/sites.csv", sep=";", header=0, index_col=0)
+        plon = float(sites.loc[point_name].lon)
+        plat = float(sites.loc[point_name].lat)
+        lonlat = [plon,plat]
     return lonlat

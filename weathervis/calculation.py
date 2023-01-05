@@ -516,8 +516,8 @@ def virtual_temp(air_temperature_ml=None, specific_humidity_ml=None, dmet=None):
     #for idx in np.ndindex(t_v_level.shape):
         #t_v_level[idx] = air_temperature_ml[idx] * (1. + 0.609133 * specific_humidity_ml[idx])
     for k in levels_r:
-        print(k)
-        print( air_temperature_ml[:, k, :])
+        #print(k)
+        #print( air_temperature_ml[:, k, :])
         t_v_level[:, k, :] = air_temperature_ml[:, k, :] * (1. + 0.609133 * specific_humidity_ml[:, k, :])
     return t_v_level
 def lapserate(T_ml, z, srf_T = None):
@@ -841,16 +841,16 @@ def _pl2alt_full2full_gl(dmet=None, dim=None, ap=None, b=None, surface_air_press
     Tv = virtual_temp(dmet.air_temperature_ml, dmet.specific_humidity_ml, dmet)
     p = ml2pl( ap, b, surface_air_pressure, inputlevel="full", returnlevel="full") if pressure is None else pressure
     h = np.zeros(shape = np.shape(air_temperature_ml)) #p = np.zeros(shape = (timeSize, levelSize, ySize, xSize))
-    print(np.shape(surface_air_pressure))
-    print(np.shape(p))
-    print(np.shape(Tv))
+    #print(np.shape(surface_air_pressure))
+    #print(np.shape(p))
+    #print(np.shape(Tv))
     #exit(1)
     #h[:,-1,:,:] = Rd*Tv[:,-1,:,:]/g0 * np.log(surface_air_pressure[:,:,:,:]/p[:,-1,:,:]) + z_h
     h[:,-1,:] = Rd*Tv[:,-1,:]/g0 * np.log(surface_air_pressure[:,0,:]/p[:,-1,:]) + z_h #(3, 3, 1, 1)
     
     for i in range(0,levelSize-1):
         i =levelSize-2-i
-        print(i)
+        #print(i)
         Tv_mean = (Tv[:,i+1,...]+ Tv[:,i,...]) /2#np.average([Tv[:,i+1,...],Tv[:,i,...]], axis=0)
         g = g0*(1-2*h[:,i+1,...]/6378137) #just for fun. no effect
         h[:,i,...] = Rd*Tv_mean/g * np.log(p[:,i+1,...]/p[:,i,...]) + h[:,i+1,...]

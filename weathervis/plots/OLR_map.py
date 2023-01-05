@@ -16,21 +16,28 @@ from weathervis.checkget_data_handler import *
 import gc
 from weathervis.plots.add_overlays import add_overlay
 
+global OLR_map
+MyObject = type('MyObject', (object,), {})
+OLR_map = MyObject()
+_param = ["air_pressure_at_sea_level", "surface_geopotential", "toa_outgoing_longwave_flux", "SIC"]
+setattr(OLR_map, "param", _param)
 
 warnings.filterwarnings("ignore", category=UserWarning) # suppress matplotlib warning
 
-def plot_OLR(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", model=None, domain_name=None,
-             domain_lonlat=None, legend=True, info=False, grid=True,runid=None, outpath=None, url = None, save= True, overlays=None, **kwargs):
-  eval(f"data_domain.{domain_name}()")  # get domain info
+def plot_OLR(datetime,dmet,figax=None, scale=1, lonlat=None, steps=[0,2], coast_details="auto", model=None, domain_name=None,
+             domain_lonlat=None, legend=True, info=False, grid=True,runid=None, outpath=None, url = None, save= True, overlays=None,  data_domain=None, **kwargs):
+
+  #if data_domain is not None: eval(f"data_domain.{domain_name}()")  # get domain info
+
   ## CALCULATE AND INITIALISE ####################
-  scale = data_domain.scale  #scale is larger for smaller domains in order to scale it up.
+  #scale = data_domain.scale  #scale is larger for smaller domains in order to scale it up.
   dmet.air_pressure_at_sea_level /= 100
   MSLP = filter_values_over_mountain(dmet.surface_geopotential[:], dmet.air_pressure_at_sea_level[:])
   # PLOTTING ROUTNE ######################
   crs = default_map_projection(dmet) #change if u want another projection
-  fig1, ax1 = plt.subplots(1, 1, figsize=(7*3, 9*3), subplot_kw={'projection': crs})
+  fig1, ax1 = plt.subplots(1, 1, figsize=(7*3, 9*3), subplot_kw={'projection': crs}) if figax is None else figax
   itim = 0
-  for leadtime in np.array(steps):
+  for leadtime in np.array(steps): #
       print('Plotting {0} + {1:02d} UTC'.format(datetime, leadtime))
       ax1 = default_mslp_contour(dmet.x, dmet.y, MSLP[itim, 0, :, :], ax1, scale=scale)
       x,y = np.meshgrid(dmet.x, dmet.y)
@@ -63,24 +70,30 @@ def plot_OLR(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", mod
       make_modelrun_folder = setup_directory(OUTPUTPATH, "{0}".format(datetime))
       file_path = "{0}/{1}_{2}_{3}_{4}+{5:02d}.png".format(make_modelrun_folder, model, domain_name, "OLR", datetime,leadtime)
       print(f"filename: {file_path}")
-      fig1.savefig(file_path, bbox_inches="tight", dpi=300)
-      ax1.cla()
+      if save: 
+        fig1.savefig(file_path, bbox_inches="tight", dpi=300) 
+      else:
+        pass
+        #plt.show()
+      #ax1.cla()
       itim += 1
-  plt.close(fig1)
-  plt.close("all")
   del MSLP, scale, itim, legend, grid, overlays, domain_name, data, mask, x, y,nx,ny
-  del dmet, data_domain
-  del fig1, ax1, crs
   del make_modelrun_folder, file_path
+  if figax is None:
+    plt.close(fig1)
+    plt.close("all")
+    del dmet, data_domain
+    del fig1, ax1, crs
   gc.collect()
 
 def OLR(datetime,use_latest, delta_index, coast_details, steps=0, model="MEPS", domain_name=None, domain_lonlat=None, legend=False, info=False, grid=True,
         runid=None, outpath=None, url=None, point_lonlat =None,overlays=None, point_name=None):
-    param = ["air_pressure_at_sea_level", "surface_geopotential", "toa_outgoing_longwave_flux", "SIC"]
+    param = OLR_map.param #["air_pressure_at_sea_level", "surface_geopotential", "toa_outgoing_longwave_flux", "SIC"]
     p_level = None
     plot_by_subdomains(plot_OLR, checkget_data_handler, datetime, steps, model, domain_name, domain_lonlat, legend,
                        info, grid, url, point_lonlat, use_latest,
                        delta_index, coast_details, param, p_level,overlays, runid, point_name)
+
 
 
 if __name__ == "__main__":

@@ -99,6 +99,8 @@ def plot_CAO(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", mod
             frame = lg.get_frame()
             frame.set_facecolor('white')
             frame.set_alpha(1)
+        ax1.text(0, 1, "{0}_CAOindex_{1}+{2:02d}".format(model, datetime, leadtime), ha='left', va='bottom', transform=ax1.transAxes,color='dimgrey')
+
         if grid:
             nicegrid(ax=ax1)
         if overlays:

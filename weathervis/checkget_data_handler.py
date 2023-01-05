@@ -167,15 +167,27 @@ def retrievenow(our_choice,model,step, date,fileobj,m_level,p_level, domain_name
         dmet_next.retrieve()
 
         for pm in dmet_next.param:
+            print(pm)
             if pm in fixed_var:
                 ap_prev = len(getattr(dmet, pm)) if pm in dmet.param else 0
                 ap_next = len(getattr(dmet_next, pm)) if pm in dmet_next.param else 0
                 if ap_next < ap_prev:  # if next is bigger dont overwrite with old one
                     continue
             setattr(dmet, pm, getattr(dmet_next, pm))
+            #***************
+            #if pm=="SIC":
+            #    print("SIC here ")
+            #    print(getattr(dmet.dim, pm))
+            #    print(getattr(dmet_next.dim, pm))
+            #    exit(1)
+            #***************
+            try:
+                setattr(dmet.dim, pm, getattr(dmet_next.dim, pm))
+            except:
+                pass
+
             try:
                 setattr(dmet.units, pm, getattr(dmet_next.units, pm))
-                setattr(dmet.dim, pm, getattr(dmet_next.dim, pm))
                 #setattr(dmet.idx, pm, getattr(dmet_next.idx, pm))
             except:
                 pass
@@ -303,21 +315,34 @@ def save_data(dmet,data_domain,bad_param, save="Buffer.nc"):
     #print(dmet.param)#print(dir(dmet.dim))#print(vars(dmet.attr))
     file =save
     ncid = Dataset(file, 'w')
-    for key, val in vars(dmet.attr).items():
+
+    #print(vars(dmet).keys())
+    print(dmet.lonlat)
+    for key, val in vars(dmet).items():
+        if key in dmet.param:
+            continue
         print(key)
-        setattr(ncid, key, val ) 
-    #print(dmet.point)
-    #print(vars(dmet))
-    #print(vars(dmet.dim.keys()))
-    #exit(1)
-    #ppp =  dmet.param.append(dmet.param)     
+        print(val)
+        if type(val) ==bool:
+            val=int(val)
+        print(type(val))
+        if val is None: #type(val) is None:
+            val = -999999
+        try:
+            setattr(ncid, key, val )
+        except:
+            pass
+    
     for param_nom in dmet.param:
             print(param_nom)
             expression_data = f"dmet.{param_nom}"
             expression_data_unit = f"dmet.units.{param_nom}"
             expression_data_dim = f"dmet.dim.{param_nom}"
             data = getattr(dmet, param_nom) #eval(expression_data)
-            dims = eval(expression_data_dim)
+            try:
+                dims = eval(expression_data_dim)
+            except:
+                dims=[]
             try:
                 units = eval(expression_data_unit)
             except:
@@ -342,7 +367,16 @@ def save_data(dmet,data_domain,bad_param, save="Buffer.nc"):
                 except:
                     pass
             #vid.description = dmet[param_nom]['description']
-            vid[:] = data
+            #exit(1)
+            print("bf data")
+            try:
+                vid[:] = data
+            except:
+                pass
+            #if param_nom=="SIC":
+            #    print("SIC here ")
+            #    print(dims)
+            #    exit(1)
     #exit(1)
     ncid.close()
     gc.collect()
@@ -365,6 +399,13 @@ def read_data(read_from_saved="Buffer.nc"):
         setattr( dmet.dim, k, v.dim)
     data.close()
     gc.collect()
+    #fileobj = check_data(url=url, model=model, date=date, step=step, use_latest=use_latest,p_level=p_level, m_level=m_level).file
+    #data_domain = domain_input_handler(file = fileobj, url=url, dt=date, model=model, domain_name=domain_name, domain_lonlat=domain_lonlat,
+    #                                      point_name=point_name, point_lonlat=point_lonlat, delta_index=delta_index, num_point=num_point)
+
+    print(dir(dmet))
+    print(dir(dmet.__getattribute__))
+    #data_domain = domain(dt, dmet.model, file=file, use_latest=dmet.use_latest,delta_index=dmet.delta_index, url=url, num_point=num_point)
     return dmet
 
 class dummyobject(object):pass
