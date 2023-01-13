@@ -12,12 +12,12 @@ from datetime import datetime, timedelta
 class plots(unittest.TestCase):
     def setUp(self):
         warnings.filterwarnings("ignore", category=DeprecationWarning)
-        self.to_old_date = "1999010100"
-        self.archive_date = "2020010100" #strftime('%Y%m%d')
+        self.to_old_date = ["1999010100"]
+        self.archive_date = ["2020010100"] #strftime('%Y%m%d')
         self.latest_date = (datetime.today() - timedelta(hours=12)).strftime('%Y%m%d') + "00"
-        self.to_futuristic_date = "2030010100"
-        self.bad_format_date = "20200100"
-        self.any_type_date = 2020010100
+        self.to_futuristic_date = ["2030010100"]
+        self.bad_format_date = ["20200100"]
+        self.any_type_date = [2020010100]
 
         self.model_meps="MEPS"
         self.model_aa="AromeArctic"
@@ -44,16 +44,16 @@ class plots(unittest.TestCase):
     def test_BLH_map(self):
         #self.archive_date
         from plots import BLH_map
-        BLH_map.BLH(datetime="2022030300", model="AromeArctic", domain_name=["Svalbard"], coast_details="auto", use_latest = None, delta_index=None,steps=[0], domain_lonlat=None, legend=False, info=False, grid=True,
+        BLH_map.BLH(datetime=self.archive_date , model="AromeArctic", domain_name=["Svalbard"], coast_details="auto", use_latest = None, delta_index=None,steps=[0], domain_lonlat=None, legend=False, info=False, grid=True,
         runid=None, outpath=None, url=None, point_lonlat =None,overlays=None, point_name=None)
 
-        BLH_map.BLH(datetime="2022030300", model="MEPS", domain_name=["South_Norway"], coast_details="auto", use_latest = None, delta_index=None,steps=[0], domain_lonlat=None, legend=False, info=False, grid=True,
+        BLH_map.BLH(datetime=self.archive_date , model="MEPS", domain_name=["South_Norway"], coast_details="auto", use_latest = None, delta_index=None,steps=[0], domain_lonlat=None, legend=False, info=False, grid=True,
         runid=None, outpath=None, url=None, point_lonlat =None,overlays=None, point_name=None)
 
     def test_BLH_map_anymodelformat(self):
         #self.archive_date
         from plots import BLH_map
-        BLH_map.BLH(datetime="2022030300", model="aromeArctic", domain_name=["Svalbard"], coast_details="auto", use_latest = None, delta_index=None,steps=[0], domain_lonlat=None, legend=False, info=False, grid=True,
+        BLH_map.BLH(datetime=self.archive_date , model="aromeArctic", domain_name=["Svalbard"], coast_details="auto", use_latest = None, delta_index=None,steps=[0], domain_lonlat=None, legend=False, info=False, grid=True,
         runid=None, outpath=None, url=None, point_lonlat =None,overlays=None, point_name=None)
 
         #BLH_map.BLH(datetime="2022030300", model="MEPS", domain_name=["South_Norway"], coast_details="auto", use_latest = None, delta_index=None,steps=[0], domain_lonlat=None, legend=False, info=False, grid=True,
@@ -63,19 +63,19 @@ class plots(unittest.TestCase):
     def test_OLR_map(self):
         #self.archive_date
         from plots import OLR_map
-        OLR_map.OLR(datetime="2022030300", model="AromeArctic", domain_name=["Svalbard"], coast_details="auto", use_latest = None, delta_index=None,steps=[0], domain_lonlat=None, legend=False, info=False, grid=True,
+        OLR_map.OLR(datetime=self.archive_date , model="AromeArctic", domain_name=["Svalbard"], coast_details="auto", use_latest = None, delta_index=None,steps=[0], domain_lonlat=None, legend=False, info=False, grid=True,
         runid=None, outpath=None, url=None, point_lonlat =None,overlays=None, point_name=None)
 
-        OLR_map.OLR(datetime="2022030300", model="MEPS", domain_name=["South_Norway"], coast_details="auto", use_latest = None, delta_index=None,steps=[0], domain_lonlat=None, legend=False, info=False, grid=True,
+        OLR_map.OLR(datetime=self.archive_date , model="MEPS", domain_name=["South_Norway"], coast_details="auto", use_latest = None, delta_index=None,steps=[0], domain_lonlat=None, legend=False, info=False, grid=True,
         runid=None, outpath=None, url=None, point_lonlat =None,overlays=None, point_name=None)
 
     def test_CAOindex_map(self):
         #self.archive_date
         from plots import CAOindex_map
-        CAOindex_map.CAO(datetime="2022030300", model="AromeArctic", domain_name=["Svalbard"], coast_details="auto", use_latest = None, delta_index=None,steps=[0], domain_lonlat=None, legend=False, info=False, grid=True,
+        CAOindex_map.CAO(datetime=self.archive_date , model="AromeArctic", domain_name=["Svalbard"], coast_details="auto", use_latest = None, delta_index=None,steps=[0], domain_lonlat=None, legend=False, info=False, grid=True,
         runid=None, outpath=None, url=None, point_lonlat =None,overlays=None, point_name=None)
 
-        CAOindex_map.CAO(datetime="2022030300", model="MEPS", domain_name=["South_Norway"], coast_details="auto", use_latest = None, delta_index=None,steps=[0], domain_lonlat=None, legend=False, info=False, grid=True,
+        CAOindex_map.CAO(datetime=self.archive_date , model="MEPS", domain_name=["South_Norway"], coast_details="auto", use_latest = None, delta_index=None,steps=[0], domain_lonlat=None, legend=False, info=False, grid=True,
         runid=None, outpath=None, url=None, point_lonlat =None,overlays=None, point_name=None)
 
 

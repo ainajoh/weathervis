@@ -63,8 +63,11 @@ def plot_BLH(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", mod
     for dt in datetime:
         for leadtime in np.array(steps):
             print("Plotting {0} + {1:02d} UTC".format(dt, leadtime))
+            print(np.shape(MSLP))
+            print(np.shape(default_mslp_contour))
+            print(itim)
             ax1 = default_mslp_contour(
-                dmet.x, dmet.y, MSLP[itim, 0, :, :], ax1, scale=scale
+                dmet.x, dmet.y, MSLP[itim,0, :, :], ax1, scale=scale
             )
             # vertical velocity
             ax1.contour(
@@ -178,6 +181,7 @@ def BLH(datetime,use_latest, delta_index, coast_details, steps=0, model="MEPS", 
         "upward_air_velocity_pl",
     ]
     p_level = [850]
+
     plot_by_subdomains(plot_BLH,checkget_data_handler, datetime, steps, model, domain_name, domain_lonlat, legend,
                        info, grid, url, point_lonlat, use_latest,
                        delta_index, coast_details, param, p_level,overlays, runid, point_name)
@@ -185,7 +189,7 @@ def BLH(datetime,use_latest, delta_index, coast_details, steps=0, model="MEPS", 
 
 if __name__ == "__main__":
     args = default_arguments()
-
+    
     chunck_func_call(
             func=BLH,chunktype= args.chunktype, chunk=args.chunks, datetime=args.datetime, steps=args.steps, model=args.model,
             domain_name=args.domain_name, domain_lonlat=args.domain_lonlat, legend=args.legend, info=args.info, grid=args.grid, runid=args.id,

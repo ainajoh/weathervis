@@ -722,7 +722,7 @@ def ml2pl( ap=None, b=None, surface_air_pressure=None, inputlevel="full", return
     return p
 
 #model/pressure levels to geopotential height
-def _cheat_alt(m_level):
+def cheat_alt(m_level):
     """
     Predifened heights that I belive is on half levels.
     """
