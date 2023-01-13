@@ -502,14 +502,15 @@ def virtual_temp(air_temperature_ml=None, specific_humidity_ml=None, dmet=None):
     """
     #todo: adjust so u can send in either multidim array, lesser dim, or just point numbers
     #https://confluence.ecmwf.int/pages/viewpage.action?pageId=68163209
-    if dmet:
+    if dmet is not None:
         dim_dict = dict( zip(dmet.dim.air_temperature_ml, np.shape(dmet.air_temperature_ml)))
         levelSize = np.shape(dmet.air_temperature_ml)[1]
+        air_temperature_ml=dmet.air_temperature_ml
     else:
         timeSize, levelSize, ySize, xSize = np.shape(air_temperature_ml)
 
 
-    t_v_level = np.zeros(shape= np.shape(dmet.air_temperature_ml))
+    t_v_level = np.zeros(shape= np.shape(air_temperature_ml))
     levels = np.arange(0, levelSize)
     levels_r = levels[::-1]  # bottom (lvl=64) to top(lvl = 0) of atmos
     Rd = 287.06
@@ -520,6 +521,8 @@ def virtual_temp(air_temperature_ml=None, specific_humidity_ml=None, dmet=None):
         #print( air_temperature_ml[:, k, :])
         t_v_level[:, k, :] = air_temperature_ml[:, k, :] * (1. + 0.609133 * specific_humidity_ml[:, k, :])
     return t_v_level
+
+
 def lapserate(T_ml, z, srf_T = None):
     """
     AINA:todo IDEA look at the diana code for comparison. They make dt/dz, but from specific arome files vc I think.
@@ -827,18 +830,19 @@ def _pl2alt_full2full_gl(dmet=None, dim=None, ap=None, b=None, surface_air_press
     """
     when pressure comes in full levels, this works best anyway. 50 meter difference at highest levels. 
     """
-    if dmet:
+
+    if dmet is not None:
         dim_dict = dict( zip(dmet.dim.air_temperature_ml, np.shape(dmet.air_temperature_ml)))
-    levelSize = np.shape(dmet.air_temperature_ml)[1]
-    #if len(np.shape(air_temperature_ml)) ==4:
-    #    timeSize, levelSize, ySize, xSize = np.shape(air_temperature_ml)
-    #else:
-    #    timeSize, levelSize, point= np.shape(air_temperature_ml)
+        levelSize = np.shape(dmet.air_temperature_ml)[1]
+    if len(np.shape(air_temperature_ml)) ==4:
+        timeSize, levelSize, ySize, xSize = np.shape(air_temperature_ml)
+    else:
+        timeSize, levelSize, point= np.shape(air_temperature_ml)
 
     Rd = 287.06 #[J/kg K] Gas constant for dry air
     g0 = 9.80665
     z_h = 0  # 0 since geopotential is 0 at sea level
-    Tv = virtual_temp(dmet.air_temperature_ml, dmet.specific_humidity_ml, dmet)
+    Tv = virtual_temp(air_temperature_ml, specific_humidity_ml, dmet)
     p = ml2pl( ap, b, surface_air_pressure, inputlevel="full", returnlevel="full") if pressure is None else pressure
     h = np.zeros(shape = np.shape(air_temperature_ml)) #p = np.zeros(shape = (timeSize, levelSize, ySize, xSize))
     #print(np.shape(surface_air_pressure))
@@ -859,8 +863,8 @@ def _pl2alt_full2full_gl(dmet=None, dim=None, ap=None, b=None, surface_air_press
     return gph
 def ml2alt( air_temperature_ml, specific_humidity_ml, ap, b, surface_air_pressure, surface_geopotential=None, inputlevel="full", returnlevel="full",pressure=None ):     #https://confluence.ecmwf.int/pages/viewpage.action?pageId=68163209
     if inputlevel == "full" and returnlevel == "full": #default
-        p     = _ml2pl_full2full( ap, b, surface_air_pressure ) if pressure is None else pressure
-        gph_m = _pl2alt_full2full_gl( ap, b, surface_air_pressure, air_temperature_ml, specific_humidity_ml, p ) #
+        p     = _ml2pl_full2full( ap=ap, b=b,surface_air_pressure= surface_air_pressure ) if pressure is None else pressure
+        gph_m = _pl2alt_full2full_gl( ap=ap, b=b,surface_air_pressure= surface_air_pressure, air_temperature_ml=air_temperature_ml, specific_humidity_ml=specific_humidity_ml, pressure=p ) #
     if inputlevel == "half" and returnlevel == "full": #If staggered
         p     = _ml2pl_full2half( ap, b, surface_air_pressure ) if pressure is None else pressure
         gph_m = _pl2alt_half2full_gl( air_temperature_ml, specific_humidity_ml, p ) #
@@ -1048,33 +1052,21 @@ def wind_dir(xwind,ywind, alpha=None):
     #source: https://www-k12.atmos.washington.edu/~ovens/wrfwinds.html
     #https://github.com/metno/NWPdocs/wiki/From-x-y-wind-to-wind-direction
     #https://stackoverflow.com/questions/21484558/how-to-calculate-wind-direction-from-u-and-v-wind-components-in-r
-    u = np.zeros(shape=np.shape(xwind))
-    v = np.zeros(shape=np.shape(ywind))
+    #u = np.zeros(shape=np.shape(xwind))
+    #v = np.zeros(shape=np.shape(ywind))
     wdir = np.empty( shape=np.shape(xwind) )
 
-    if len(np.shape(xwind)) <= 1:
+    if len(np.shape(xwind)) <= 1: #if calculate for just one dimless value
 
         a = np.arctan2(ywind, xwind) #radianse
-        #a= a % (2*np.pi)
         b = a + np.pi
-        #b = b % (2*np.pi)
         c = np.pi/2. - b
-        #c = c % (2*np.pi)
         wdir = np.degrees(c)
         wdir = wdir % 360
-        #print(wdir)
         eps = 0.5 * 10**(-10)
         wdir[(abs(xwind) < eps) & (abs(ywind) < eps) ] = np.nan
 
-        #while (wdir >= 360):
-        #    wdir = wdir - 360
-        #b = np.rad2deg(a) + 180
-        #b=b% 360
-        #b = (a * 180. / np.pi) + 180.
-        #c = 90. - b
-        #wdir = c % 360
-
-    if len(np.shape(xwind)) > 1:
+    if len(np.shape(xwind)) > 1:  #if wind has multiple dimentions
         for t in range(0,np.shape(wdir)[0]):
             for k in range(0, np.shape(wdir)[1]):
                 #websais:#wdir[t,k,:,:] =  alpha[:,:] + 90 - np.arctan2(ywind[t,k,:,:],xwind[t,k,:,:])
@@ -1084,7 +1076,7 @@ def wind_dir(xwind,ywind, alpha=None):
                 #a =  np.mod(a,np.pi)
                 b = a*180./np.pi + 180.  # mathematical wind angle pointing where the wind comes FROM
                 c = 90. - b   # math coordinates(North is 90) to cardinal coordinates(North is 0).
-                if alpha !=None or alpha !=0:
+                if alpha !=None: #or alpha !=0:
                     wdir[t,k,:,:] =  c[:,:] - alpha[:,:] #add rotation of modelgrid(alpha).
                     #wdir[t,k,:,:] = np.subtract(c%360, alpha%360)
                 wdir = wdir % 360  # making sure is between 0 and 360 with Modulo

@@ -601,9 +601,10 @@ def chunck_func_call(func= None, chunktype="steps", chunk=6, **kwargs):
 def point_name2point_lonlat(point_name, site_file=f"{package_path}/data/sites.csv"):
     sites = pd.read_csv(site_file, sep=";", header=0, index_col=0)
 
-    if type(point_name) is list or tuple:
+    if type(point_name) is not str:
         print("hello")
         lonlat = []
+        print(type(point_name))
         for ppn in point_name:
             plon = float(sites.loc[ppn].lon)
             plat = float(sites.loc[ppn].lat)

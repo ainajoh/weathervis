@@ -419,7 +419,7 @@ def points_handler(**args): #if point_lonlat = many (later if point_name is many
     print("in points_handler")
     
     points = len(args["point_name"]) if args["point_name"] !=None else len(args["point_lonlat"])
-    #print(points) 
+    
     all_points = args["point_lonlat"] if args["point_lonlat"] else args["point_name"]
     initial_point_lonlat = args["point_lonlat"]
     print("in points_handler")
@@ -428,7 +428,9 @@ def points_handler(**args): #if point_lonlat = many (later if point_name is many
     
     for p in range(0,points):
         num_locrun+=1
+        
         point_lonlat = point_name2point_lonlat(args["point_name"][p]) if args["point_name"] else initial_point_lonlat[p]
+        
         args["point_lonlat"] = point_lonlat
         dmet,data_domain,bad_param = time_handler(**args)
         setattr( dmet, "point", all_points) #str(point_lonlat)
