@@ -373,12 +373,16 @@ def domain_input_handler(dt=None, model=None, domain_name=None, domain_lonlat=No
     
     print("######## domain_input_handler in utils.py ################### ")
     print(domain_name)
+   
     if domain_name or domain_lonlat:
         if domain_lonlat:
+            
             print(f"\n####### Setting up domain for coordinates: {domain_lonlat} ##########")
             data_domain = domain(dt, model, file=file, lonlat=domain_lonlat,use_latest=use_latest,delta_index=delta_index, url=url, num_point=num_point)
         else:
             data_domain = domain(dt, model, file=file, use_latest=use_latest,delta_index=delta_index, url=url, num_point=num_point)#
+            
+
         #exit(1)  
         if domain_name != None and domain_name in dir(data_domain):
             print(f"\n####### Setting up domain: {domain_name} ##########")
@@ -399,7 +403,7 @@ def domain_input_handler(dt=None, model=None, domain_name=None, domain_lonlat=No
     if (point_lonlat != None and domain_name == None and domain_lonlat == None):
         data_domain = domain(dt, model, file=file, point_lonlat= point_lonlat, use_latest=use_latest,
                                 delta_index=delta_index, url=url,num_point=num_point)
-
+    
         #import os
         #os._exit(0)
 
@@ -509,7 +513,7 @@ def find_subdomains(domain_name, datetime=None, model=None, num_point=1, domain_
     dom1 = domain_input_handler(dt = datetime, model = model, domain_name = domain_name[0], domain_lonlat = domain_lonlat,
                                 file=file, point_name=point_name, point_lonlat=point_lonlat,
                                 use_latest=use_latest, delta_index=delta_index, url=url, num_point=num_point)
-    
+   
     for dom in domain_name:
         eval(f"dom1.{dom}()")
         idx_domain_name.append(dom1.idx)
@@ -584,6 +588,7 @@ def none_or_str(value):
 
 
 def chunck_func_call(func= None, chunktype="steps", chunk=6, **kwargs):
+    
     if chunktype==None: # do not split
         func(**kwargs)
     elif chunktype=="steps":
@@ -596,6 +601,7 @@ def chunck_func_call(func= None, chunktype="steps", chunk=6, **kwargs):
             for c in chunks:
                 kwargs["steps"] = list(c)
                 func(**kwargs)
+    
 
 
 def point_name2point_lonlat(point_name, site_file=f"{package_path}/data/sites.csv"):

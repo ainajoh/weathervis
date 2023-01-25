@@ -61,18 +61,22 @@ class domain():
         self.scale = find_scale(self.lonlat) if self.lonlat else 1
         
         if (file is not None and isinstance(file, pd.DataFrame) ):  #type(file)==pd.core.frame.DataFrame):
+            
             self.url = file.loc[0,'url']
         elif (file is not None):
+            
             self.url = file.loc['url']
         elif (url is not None):
+            
             self.url = url
         else:
+            
             self.url = self.make_url_base()
         
         self.url = self.url + "?latitude,longitude"
         
         dataset = Dataset(self.url)
-
+        
         self.lon = dataset.variables["longitude"][:]
         self.lat = dataset.variables["latitude"][:]
         dataset.close()  # self.lonlat = [0,30, 73, 82]  #
@@ -136,14 +140,18 @@ class domain():
         date = str(self.date)
         YYYY = date[0:4]; MM = date[4:6]; DD = date[6:8] #HH = date[8:10]
         archive_url = "latest" if self.use_latest else f"archive/{YYYY}/{MM}/{DD}/"
+        #exit(1)
         check=check_data()
-        #print(check.url)
+        
+        print(check.url)
+    
         meta_df = check.filter_metadata(check.load_metadata(), model=self.model, use_latest=self.use_latest)
+        
         base_url = meta_df[meta_df.modelinfotype]
         base_urlfile=meta_df[meta_df.source]
         base_url = base_url + "catalog.html" if self.use_latest else base_url + YYYY+"/"+MM+"/"+DD+ "/catalog.html"
         base_urlfile = base_urlfile if self.use_latest else base_urlfile + YYYY+"/"+MM+"/"+DD + "/"
-
+        
         print(base_url)
 
         #if self.model.lower() == "aromearctic":

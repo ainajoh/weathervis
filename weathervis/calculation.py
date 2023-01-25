@@ -522,7 +522,6 @@ def virtual_temp(air_temperature_ml=None, specific_humidity_ml=None, dmet=None):
         t_v_level[:, k, :] = air_temperature_ml[:, k, :] * (1. + 0.609133 * specific_humidity_ml[:, k, :])
     return t_v_level
 
-
 def lapserate(T_ml, z, srf_T = None):
     """
     AINA:todo IDEA look at the diana code for comparison. They make dt/dz, but from specific arome files vc I think.

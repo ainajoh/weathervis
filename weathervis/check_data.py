@@ -280,7 +280,9 @@ class check_data():
         #self.clean_all()
     def load_metadata(self):
         metafile=f"{package_path}/data/metadata/supported_model_info.csv"
+        
         meta_df=pd.read_csv(metafile, comment='#', sep=",",skipinitialspace=True)
+        
         return meta_df
 
     def filter_metadata(self, meta_df, model=None, use_latest=None):
@@ -289,10 +291,14 @@ class check_data():
         archive_url = "latest" if self.use_latest else "archive"
         #print(meta_df.Name.str.contains(self.model, case=False))
         #exit(1)
+        print(meta_df)
         meta_df = meta_df[(meta_df.Name.str.contains(self.model, case=False)) & (meta_df.source.str.contains(archive_url))]
+        print(meta_df)
+        
         if len(meta_df) !=1: 
             SomeError(ValueError,f"too many / non options found for metadata: {meta_df}")
         #meta_df = meta_df#.head(1)
+       
         #print(meta_df[meta_df.source])
         return meta_df.squeeze()
 

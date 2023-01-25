@@ -181,7 +181,8 @@ def BLH(datetime,use_latest, delta_index, coast_details, steps=0, model="MEPS", 
         "upward_air_velocity_pl",
     ]
     p_level = [850]
-
+    print(datetime)
+    
     plot_by_subdomains(plot_BLH,checkget_data_handler, datetime, steps, model, domain_name, domain_lonlat, legend,
                        info, grid, url, point_lonlat, use_latest,
                        delta_index, coast_details, param, p_level,overlays, runid, point_name)
@@ -189,6 +190,7 @@ def BLH(datetime,use_latest, delta_index, coast_details, steps=0, model="MEPS", 
 
 if __name__ == "__main__":
     args = default_arguments()
+    print(args.datetime)
     
     chunck_func_call(
             func=BLH,chunktype= args.chunktype, chunk=args.chunks, datetime=args.datetime, steps=args.steps, model=args.model,
