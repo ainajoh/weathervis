@@ -43,7 +43,7 @@ def VC_plot(model_data, adj_obs_data, raw_obs_data):
     norm = matplotlib.colors.Normalize(vmin=mi, vmax=ma)
     #norm = matplotlib.colors.Normalize(vmin=200, vmax=350)
 
-    colormap = "cividis_r"
+    colormap = "coolwarm"       #cividis_r
     obs_datetime = adj_obs_data.index[:num_p]
     lx, tx = np.meshgrid(model_data.m_level, obs_datetime)
     fig, ax = plt.subplots(figsize=(12, 3))
@@ -60,6 +60,7 @@ def VC_plot(model_data, adj_obs_data, raw_obs_data):
     pres_cmet = adj_obs_data['P[Pa]'][:num_p].values / 100.
     Z_cmet = adj_obs_data['Zp[m]'][:num_p].values
     T_cmet = adj_obs_data['T[K]'][:num_p].values
+    RH_cmet = adj_obs_data['RH[%]'][:num_p].values
     if y_axis == "altitude":
         cmetf = ax.scatter(obs_datetime, Z_cmet, c=T_cmet, marker="8", s=250, norm=norm, cmap=colormap, edgecolor="k",
                           zorder=3)
@@ -70,7 +71,8 @@ def VC_plot(model_data, adj_obs_data, raw_obs_data):
     raw_obs_data = raw_obs_data[raw_obs_data.index <= adj_obs_data.index[:num_p].values[-1]]
     pres_cmet = raw_obs_data['P[Pa]'].values / 100  # [:num_p].values / 100.
     Z_cmet = raw_obs_data['Zp[m]'].values  # [:num_p].values / 100.
-    T_cmet = raw_obs_data['T[K]'].values  # [:num_p].values
+    T_cmet = raw_obs_data['T[K]'].values# [:num_p].values
+    RH_cmet = raw_obs_data['RH[%]'].values
     obs_datetime = raw_obs_data.index  # [:num_p]
     if y_axis == "altitude":
         cmetf = ax.scatter(obs_datetime, Z_cmet, c=T_cmet, s=100, norm=norm, cmap=colormap, zorder=2)  # , edgecolor="k")
