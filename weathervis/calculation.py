@@ -69,8 +69,17 @@ def nearest_neighbour_idx(plon,plat, longitudes, latitudes, nmin=1):
 
     dlat = np.radians(latitudes - plat) ##lat2 - lat1
     dlon = np.radians(longitudes - plon) #lon2 - lon1
-
+    
+    if len(dlat) != len(dlon):
+        dlat, dlon = np.meshgrid(dlat,dlon)
+    
     platm = np.full(np.shape(latitudes), plat)
+    #a1 = (np.sin(dlat / 2) * np.sin(dlat / 2))
+    #a2 = np.cos(np.radians(plat)) * np.cos(np.radians(latitudes))
+    #a3 =  np.sin(dlon / 2) * np.sin(dlon / 2)
+    #
+    #a4 = np.multiply(a2,a3)
+    
     a = (np.sin(dlat / 2) * np.sin(dlat / 2) +
          np.cos(np.radians(plat)) * np.cos(np.radians(latitudes)) *
          np.sin(dlon / 2) * np.sin(dlon / 2))
