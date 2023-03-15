@@ -218,6 +218,7 @@ def checkget_data_handler(all_param, date=None, save=False, read_from_saved=Fals
     step = step.tolist() if type(step).__module__ == np.__name__ else step
     step = [step] if not isinstance(step, list) else step #
     date=[date] if type(date) != list and first_run else date
+    point_lonlat = point_lonlat.tolist() if type(point_lonlat).__module__ == np.__name__ else point_lonlat
 
     print(date)
     print(step)
@@ -417,7 +418,12 @@ def conicide_time_with_location():
 def points_handler(**args): #if point_lonlat = many (later if point_name is many)
     #for index, row in obs_data.iloc[:num_p].iterrows()
     print("in points_handler")
-    
+    print(args["point_lonlat"])
+    print(np.shape(args["point_lonlat"]))
+
+    if args["point_lonlat"] !=None and np.shape(args["point_lonlat"]) == (2,):# or np.shape(point_lonlat) == (2,1)):
+        args["point_lonlat"] = np.array(args["point_lonlat"]).reshape(1,2).tolist()
+
     points = len(args["point_name"]) if args["point_name"] !=None else len(args["point_lonlat"])
     
     all_points = args["point_lonlat"] if args["point_lonlat"] else args["point_name"]
@@ -428,10 +434,11 @@ def points_handler(**args): #if point_lonlat = many (later if point_name is many
     
     for p in range(0,points):
         num_locrun+=1
-        
         point_lonlat = point_name2point_lonlat(args["point_name"][p]) if args["point_name"] else initial_point_lonlat[p]
-        
+    
         args["point_lonlat"] = point_lonlat
+        
+        print(args["point_lonlat"])
         dmet,data_domain,bad_param = time_handler(**args)
         setattr( dmet, "point", all_points) #str(point_lonlat)
 

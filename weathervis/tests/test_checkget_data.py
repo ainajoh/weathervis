@@ -39,7 +39,14 @@ class checkgetdata(unittest.TestCase):
         self.multiple_goodandbad_param = ['air_pressure_at_sea_level', 'coffeepot', 'dog',' pressure' ]
         self.multiple_good_param_pl_ml_sfx_sfc = ["specific_humidity_pl","air_pressure_at_sea_level", "mass_fraction_of_graupel_in_air_ml", "SIC","LE_SEA"]
 
-        self.one_point_name=["Tromso"]
+        self.one_point_name=["Tromso"] #69.6538;18.9095
+        self.one_point_lonlat=[18.9095,69.6538]
+        self.one_point_lonlat_double=[[18.9095, 69.6538]]
+        self.one_point_lonlat_double_array=np.array([[18.9095, 69.6538]])
+        self.one_point_lonlat_array=np.array([18.9095, 69.6538])
+
+        self.multiple_point_lonlat_AA=[[18.9095,69.6538],[16.120, 69.310],[11.9312,78.9243]]
+        self.multiple_point_name_AA=[["Tromso"],["Bodo"],["NYA_WMO"]]
 
         self.one_step=0
         self.int64_step = np.int64(self.one_step)
@@ -48,15 +55,17 @@ class checkgetdata(unittest.TestCase):
 
         self.multiple_step_in_list = [0,1,2,3,4,7]
         self.multiple_step_in_array = np.array(self.multiple_step_in_list)
-
-
         self.two_step_far_appart = [3,9]
-
         self.url_base = "https://thredds.met.no/thredds/dodsC/alertness/users/marvink/CAO2015/fc2015122400_fp.nc"
 
+    def test_one_point_lonlat_double(self):
+        dataname, bad, no = checkget_data_handler(model=self.model_aa, date=self.archive_date, all_param=self.one_good_param, step= self.one_step, use_latest=False, point_name=self.one_point_name)
+        data_dbl_lonlat, bad, no = checkget_data_handler(model=self.model_aa, date=self.archive_date, all_param=self.one_good_param, step= self.one_step, use_latest=False, point_lonlat=self.one_point_lonlat_double)
+        datalonlat, bad, no = checkget_data_handler(model=self.model_aa, date=self.archive_date, all_param=self.one_good_param, step= self.one_step, use_latest=False, point_lonlat=self.one_point_lonlat)
+        datalonlat, bad, no = checkget_data_handler(model=self.model_aa, date=self.archive_date, all_param=self.one_good_param, step= self.one_step, use_latest=False, point_lonlat=self.one_point_lonlat)
+        datalonlat, bad, no = checkget_data_handler(model=self.model_aa, date=self.archive_date, all_param=self.one_good_param, step= self.one_step, use_latest=False, point_lonlat=self.one_point_lonlat_double_array)
+        datalonlat, bad, no = checkget_data_handler(model=self.model_aa, date=self.archive_date, all_param=self.one_good_param, step= self.one_step, use_latest=False, point_lonlat=self.one_point_lonlat_array)
 
-
-        #self.checkMEPSonDate = check_data(model="MEPS", date="2020010100")
     #TESTING STEP INPUT TYPES
     def test_one_step_type(self):
         dataint64, bad, no = checkget_data_handler(model=self.model_aa, date=self.archive_date, all_param=self.one_good_param, step= self.int64_step, use_latest=False, point_name=self.one_point_name)
@@ -77,12 +86,7 @@ class checkgetdata(unittest.TestCase):
         datanparray, bad, no = checkget_data_handler(model=self.model_aa, date=self.archive_date, all_param=self.one_good_param, step= self.multiple_step_in_array, use_latest=False,point_name=self.one_point_name)
         valuelist = getattr(datalist, self.one_good_param[0])
         valuearray = getattr(datanparray, self.one_good_param[0])
-        print(valuearray.tolist())
-        print(valuelist.tolist())
-        print(type(valuearray))
-        print(type(valuelist))
         self.assertEqual(valuelist.tolist(),valuearray.tolist(), "array problem")
-
 
     def test_array_step_type(self):
         step = np.array([0,1])
