@@ -266,12 +266,13 @@ class check_data():
             date = str(date); YYYY = date[0:4]; MM = date[4:6]; DD = date[6:8]; HH = date[8:10]
             # find out where to look for data
             archive_url = "latest" if self.use_latest else "archive"
+            add_url = "latest/" if self.use_latest else ""
             if model.lower()=="meps":
                 base_url = "https://thredds.met.no/thredds/catalog/meps25eps{0}/".format(archive_url)   #info about date, years and filname of our model
                 base_urlfile = "https://thredds.met.no/thredds/dodsC/meps25eps{0}/".format(archive_url) #info about variables in each file
             elif model.lower() == "aromearctic":
-                base_url = "https://thredds.met.no/thredds/catalog/aromearctic{0}/".format(archive_url)
-                base_urlfile = "https://thredds.met.no/thredds/dodsC/aromearctic{0}/".format(archive_url)
+                base_url = "https://thredds.met.no/thredds/catalog/aromearctic{0}/{1}".format(archive_url,add_url)
+                base_urlfile = "https://thredds.met.no/thredds/dodsC/aromearctic{0}/{1}".format(archive_url,add_url)
             else:
                 SomeError(ValueError, f"Cannot recognise the model")
 
@@ -282,7 +283,7 @@ class check_data():
             rawfiles = soup.table.find_all("a")
             ff =[str(i.text) for i in rawfiles]
             ff= pd.DataFrame( data = list(filter(re.compile(f'.*{YYYY}{MM}{DD}T{HH}Z.nc').match, ff )), columns=["File"])
-            drop_files = ["_vc_", "thunder", "_kf_", "_ppalgs_", "_pp_", "t2myr", "wbkz", "vtk","_preop_"]
+            drop_files = ["_vc_", "thunder", "_kf_", "_ppalgs_", "_pp_", "t2myr", "wbkz", "vtk","_preop_","_lagged_"]
             df = ff.copy()[~ff["File"].str.contains('|'.join(drop_files))] #(drop_files)])
             df.reset_index(inplace=True, drop=True)
             df["url"] = base_urlfile + df['File'] if self.use_latest else f"{base_urlfile}/{YYYY}/{MM}/{DD}/" + df['File']
@@ -311,6 +312,7 @@ class check_data():
         i=0
         while i<len(df):
             #For every file in dataframe, read metadata.
+            print(df["url"][i])
             dataset = Dataset(df["url"][i]) #metadata
 
             # Make a dataframe containing dimention variables (time, pressure, etc)
@@ -385,6 +387,7 @@ class check_data():
         file = filter_step(file,self.maxstep)
 
 
+        print(param)
         if len(file) ==0 and len(df) !=0:#SomeError(ValueError, f'Type not found: c
             SomeError( ValueError,  f"Not able to find file at {self.date} for model {self.model} for these parameters. Available files are: \n {df}")
         elif len(file) ==0 and len(df) ==0:
@@ -410,7 +413,7 @@ class check_data():
 
         df = pd.read_csv(f"{package_path}/data/{model}_filesandvar.csv")
         dfc = df.copy()  # df['base_name'] = [re.sub(r'_[0-9]*T[0-9]*Z.nc','', str(x)) for x in df['File']]
-        drop_files = ["_vc_", "thunder", "_kf_", "_ppalgs_", "_pp_", "t2myr", "wbkz", "vtk","_preop_"]
+        drop_files = ["_vc_", "thunder", "_kf_", "_ppalgs_", "_pp_", "t2myr", "wbkz", "vtk","_preop_","_lagged_"]
         df_base = pd.DataFrame([re.sub(r'_[0-9]*T[0-9]*Z.nc', '', str(x)) for x in df['File']], columns=["base_name"])
         dfc["base_name"] = df_base["base_name"]
 
@@ -449,7 +452,7 @@ class check_data():
 
         df = pd.read_csv(f"{package_path}/data/{model}_filesandvar.csv")
         dfc = df.copy()  # df['base_name'] = [re.sub(r'_[0-9]*T[0-9]*Z.nc','', str(x)) for x in df['File']]
-        drop_files = ["_vc_", "thunder", "_kf_", "_ppalgs_", "_pp_", "t2myr", "wbkz", "vtk","_preop_"]
+        drop_files = ["_vc_", "thunder", "_kf_", "_ppalgs_", "_pp_", "t2myr", "wbkz", "vtk","_preop_","_lagged_"]
         df_base = pd.DataFrame([re.sub(r'_[0-9]*T[0-9]*Z.nc', '', str(x)) for x in df['File']], columns=["base_name"])
         dfc["base_name"] = df_base["base_name"]
         dfc = dfc[~dfc["base_name"].str.contains('|'.join(drop_files))]  # (drop_files)])
@@ -477,7 +480,7 @@ class check_data():
         # Todo: update R scripts to only add new lines in filevar info
         df = pd.read_csv(f"bin/{model}_filesandvar.csv")
         dfc = df.copy()
-        drop_files = ["_vc_", "thunder", "_kf_", "_ppalgs_", "_pp_", "t2myr", "wbkz", "vtk","_preop_"]
+        drop_files = ["_vc_", "thunder", "_kf_", "_ppalgs_", "_pp_", "t2myr", "wbkz", "vtk","_preop_","_lagged_"]
         df_base = pd.DataFrame([re.sub(r'_[0-9]*T[0-9]*Z.nc', '', str(x)) for x in df['File']], columns=["base_name"])
         dfc["base_name"] = df_base["base_name"]
         dfc = dfc[~dfc["base_name"].str.contains('|'.join(drop_files))]  # (drop_files)])

@@ -210,7 +210,7 @@ class get_data():
             pressure_dim = list(filter(re.compile(f'press*').match, dimlist))
             model_dim = list(filter(re.compile(f'.*hybrid*').match, dimlist))
             height_dim = list(filter(re.compile(f'.*height*').match, dimlist))
-            other_dim = list(filter(re.compile(f'.*top_of_atmosphere*|.*mean_sea_level*').match, dimlist))
+            other_dim = list(filter(re.compile(f'.*top_of_atmosphere*|.*mean_sea_level*|.*surface*').match, dimlist))
             ens_mbr_dim = list(filter(re.compile(f'.*ensemble*').match, dimlist))
             x_dim = list(filter(re.compile(f'x.*?(\d+)/*').match, dimlist))
             y_dim = list(filter(re.compile(f'y.*?(\d+)/*').match, dimlist))
@@ -329,7 +329,7 @@ class get_data():
         if self.use_latest==False and self.model.lower() =="aromearctic":
               url = f"https://thredds.met.no/thredds/dodsC/aromearcticarchive/{YYYY}/{MM}/{DD}/{file.loc['File']}"
         elif self.use_latest==True and self.model.lower()  =="aromearctic":
-              url = f"https://thredds.met.no/thredds/dodsC/aromearcticlatest/{file.loc['File']}"
+              url = f"https://thredds.met.no/thredds/dodsC/aromearcticlatest/latest/{file.loc['File']}"
         elif self.use_latest==False and self.model.lower()  =="meps":
               url = f"https://thredds.met.no/thredds/dodsC/meps25epsarchive/{YYYY}/{MM}/{DD}/{file.loc['File']}"
         elif self.use_latest==True and self.model.lower()  =="meps":
