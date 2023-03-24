@@ -17,7 +17,9 @@ class checkgetdata(unittest.TestCase):
 
         self.to_old_date = "1999010100"
         self.archive_date = "2020010100" #strftime('%Y%m%d')
-        self.latest_date = (datetime.today() - timedelta(days=1)).strftime('%Y%m%d') + "00"
+        self.latest_date =  (datetime.today() - timedelta(hours=12)).strftime('%Y%m%d%H') #+ "00"
+        self.latest_date = self.latest_date[:-2] + str(int(self.latest_date[-2:])-int(self.latest_date[-2:])%6).zfill(2)
+
         self.to_futuristic_date = "2030010100"
         self.bad_format_date = "20200100"
         self.any_type_date = 2020010100
@@ -49,6 +51,25 @@ class checkgetdata(unittest.TestCase):
         #self.checkMEPSonDate = check_data(model="MEPS", date="2020010100")
 
     #DATES
+    def test_read_metadata_supported_model_info(self):
+
+        check = check_data(model=self.model_aa)
+        metadf = check.load_metadata()
+        print(metadf)
+
+    def test_filter_metadata_supported_model_info(self):
+        check = check_data(model=self.model_aa)
+        metadf = check.load_metadata()
+        filtermeta= check.filter_metadata(metadf)
+        print(filtermeta)
+    def test_url(self):
+        check = check_data(model=self.model_aa, date=self.archive_date) 
+        check = check_data(model=self.model_meps, date=self.archive_date)
+
+        check = check_data(model=self.model_aa, date=self.latest_date, use_latest=True) 
+        check = check_data(model=self.model_meps, date=self.latest_date, use_latest=True)
+
+
     def test_most_used_variables(self):
         check = check_data(model=self.model_aa, numbervar=5)
         print(check)

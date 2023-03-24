@@ -128,17 +128,22 @@ class get_data():
 
         #If No member is wanted, we take the control (mbr=0)
         self.url = url
+        #print(self.url)
+        #exit(1)
         self.units = self.dummyobject()
+        self.dim = self.dummyobject()
+        self.attr = self.dummyobject()
         self.FillValue = self.dummyobject()
         self.use_latest=use_latest
         self.indexidct = None #updated later Contains the indexes for the dimentions we want, see adjust_user_url()
 
         #Check and filter for valid settings. If any of these result in a error, this script stops
-        check_if_thredds_is_down("https://thredds.met.no/thredds/catalog/meps25epsarchive/catalog.html")
+        #check_if_thredds_is_down("https://thredds.met.no/thredds/catalog/meps25epsarchive/catalog.html")
 
 
 
         if self.url is None:
+            #print(self.file)
             filter_function_for_file(self.file)
 
             if self.model: filter_function_for_models(self.model)
@@ -197,10 +202,8 @@ class get_data():
         i=0# loop that updates the url to include each parameter with its dimensions
         while i < len(list_p):
             prm = param[i]
-            print(prm)
             url += f"{prm}"  # example:  url =url+x_wind_pl
             dimlist = list( file["var"][prm]["dim"] )  # List of the variables the param depends on ('time', 'pressure', 'ensemble_member', 'y', 'x')
-            print(dimlist)
             #########################
             # Find different dimention related to either pressure, model levels, height levels or ens members.
             # Then adjust retrieve url to only include upper and lower limit of these variables.
@@ -326,17 +329,18 @@ class get_data():
         DD = date[6:8]
         HH = date[8:10]
 
-        if self.use_latest==False and self.model.lower() =="aromearctic":
-              url = f"https://thredds.met.no/thredds/dodsC/aromearcticarchive/{YYYY}/{MM}/{DD}/{file.loc['File']}"
-        elif self.use_latest==True and self.model.lower()  =="aromearctic":
-              url = f"https://thredds.met.no/thredds/dodsC/aromearcticlatest/latest/{file.loc['File']}"
-        elif self.use_latest==False and self.model.lower()  =="meps":
-              url = f"https://thredds.met.no/thredds/dodsC/meps25epsarchive/{YYYY}/{MM}/{DD}/{file.loc['File']}"
-        elif self.use_latest==True and self.model.lower()  =="meps":
-              url = f"https://thredds.met.no/thredds/dodsC/meps25epslatest/{file.loc['File']}"
-        else:
-              url = self.url
+        #if self.use_latest==False and self.model.lower() =="aromearctic":
+        #      url = f"https://thredds.met.no/thredds/dodsC/aromearcticarchive/{YYYY}/{MM}/{DD}/{file.loc['File']}"
+        #elif self.use_latest==True and self.model.lower()  =="aromearctic":
+        #      url = f"https://thredds.met.no/thredds/dodsC/aromearcticlatest/latest/{file.loc['File']}"
+        #elif self.use_latest==False and self.model.lower()  =="meps":
+        #      url = f"https://thredds.met.no/thredds/dodsC/meps25epsarchive/{YYYY}/{MM}/{DD}/{file.loc['File']}"
+        #elif self.use_latest==True and self.model.lower()  =="meps":
+        #      url = f"https://thredds.met.no/thredds/dodsC/meps25epslatest/{file.loc['File']}"
+        #else:
+        #      url = self.url
 
+        url = file.url if self.url==None else self.url
         logging.info(url)
         return url #returns the url that will be set to global url.
 
@@ -355,17 +359,27 @@ class get_data():
         print(url)
         dataset = Dataset(url)
         self.indexidct = dict.fromkeys(self.indexidct, ":")  #reset the index dictionary
+        
         for k in dataset.__dict__.keys(): #info of the file
             ss = f"{k}"
             self.__dict__[ss] = dataset.__dict__[k]
         logging.info("-------> Getting variable: ")
         iteration =-1
+    
+        iindx = self.idx[1] # 218 219 218]
+        jindx = self.idx[0] 
+        point = [(x,y) for x,y in zip(iindx,jindx)]
+        point2 = [(x, y) for x in np.arange(min(iindx),max(iindx)+1) for y in np.arange(min(jindx),max(jindx)+1)]
+        main_list = list(set(point2) - set(point)) 
+
         for prm in self.param:
             iteration += 1
             logging.info(prm)
             dimlist = list(file["var"][prm]["dim"])  # List of the variables the param depends on ('time', 'pressure', 'ensemble_member', 'y', 'x')
             pressure_dim = list(filter(re.compile(f'press*').match, dimlist))
             model_dim = list(filter(re.compile(f'.*hybrid*').match, dimlist))
+            x_dim = list(filter(re.compile(f'x*').match, dimlist))
+
             #height_dim = list(filter(re.compile(f'.*height*').match, dimlist))
             #mbrs_dim = list(filter(re.compile(f'.*ensemble*').match, dimlist))
 
@@ -398,9 +412,11 @@ class get_data():
                 newlist1 = [self.indexidct[i] for i in
                             dimlist]  # convert dependent variable name to our set values. E.g: time = step = [0:1:0]
                 startsub = ','.join(newlist1)  # ex
-
+            #dimlist
+            self.dim.__dict__[prm] = dimlist
             if "units" in dataset.variables[prm].__dict__.keys():
                 self.units.__dict__[prm] = dataset.variables[prm].__dict__["units"]
+            
             if "_FillValue" in dataset.variables[prm].__dict__.keys():
                 self.FillValue.__dict__[prm] = int(dataset.variables[prm].__dict__["_FillValue"])
             else:
@@ -409,7 +425,11 @@ class get_data():
                 for k in dataset.variables[prm].__dict__.keys():
                     ss = f"{k}_{prm}"
                     self.__dict__[ss] = dataset.variables[prm].__dict__[k]
-
+                    self.attr.__dict__[ss] = dataset.variables[prm].__dict__[k] #wish this takes over, and delete the one above at one point
+                    #if ss not in self.param: 
+                    #    self.param = np.append(self.param, ss)
+            
+            
             varvar = f"dataset.variables['{prm}'][{startsub}]" ##
             varvar = eval(varvar)
             dimlist = np.array(list(file["var"][prm]["dim"]))  # ('time', 'pressure', 'ensemble_member', 'y', 'x')
@@ -417,6 +437,15 @@ class get_data():
             if not self.mbrs_bool and any(np.isin(dimlist, "ensemble_member")):#"ensemble_member" in dimlist:
                 indxmember = np.where(dimlist == "ensemble_member")[0][0]
                 varvar = dataset.variables[prm][:].squeeze(axis=indxmember)
+            if x_dim:
+                pass
+                #print(prm)
+                #Todo: remove unwanted indeices that is in main_list. When we ask for 3 gridpoint it gives 4 due to retrieving min to max, so retrieving odd values gives one more than intended. But also asking for 300 gives 400 values so probably this bug increses. 
+                #for x,y in main_list:
+                #    #varrem = f"dataset.variables['{prm}'][{startsub}]" ##
+                    
+
+                
 
             self.__dict__[prm] = varvar
         dataset.close()

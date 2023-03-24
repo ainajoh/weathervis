@@ -2,7 +2,7 @@ Name;lat;lon;height;StationId;WMOID;Description
 OldPier;78.93030;11.91929;None;None;None;None
 OldPierG;78.929994;11.918122;None;None;None;None
 ZeppelinObservatory;78.90722;11.88604;472;None;None;None
-MetBergen;60.383669;5.331850;None;None;None;None
+Bergen;60.383669;5.331850;None;None;None;None
 Osteroy;60.52;5.55;None;None;None;None
 NyAlesund;78.9243;11.9312;None;SN99910;None;None
 Andenes;69.310;16.120;10;SN87110;None;None
@@ -16,7 +16,19 @@ Varlegenhuken;80.0592;16.25;8;99927;01002;None
 Olsnesnipa;60.48684;5.65150;653;None;None;ParagliderstartinBergen
 JanMayen;71.161223;-8.008265;None;None;None
 NorwegianSea;72.953497;5.112194;0;None;None
-CAO;70.824218;3.994802;0;None;None
+NYA_Base;78.92733;11.93066;2;None;None;Precipsampleforislas2020
+NYA_WMO;78.9243;11.9312;8;None;None;SN99910
+NYA_Pier;78.92867;11.93504;0;None;None;end_of_old_pier_measurement_picarro
+NYA_PSnow;78.92117;11.91361;27;None;None;snow_picarro_samplingsite
+NYA_Zepp;78.90722;11.88604;472;None;None;None
+NYA_imetStart;78.91539;11.88991;52;None;None;StartofCablecarforimetmeasurements
+NYA_Sea;78.94727;11.98862;0;None;None;middleofthefjordinthesea
+CAOic;81.0;10.0;0;None;None;None
+CAO0;79.0;10.0;0;None;None;WestofNYAinocean
+CAO1;77.0;10.0;0;None;None;None
+CAO2;75.0;10.0;0;None;None;None
+CAO3;73.0;10.0;0;None;None;None
+CAO4;71.0;10.0;0;None;None;None
 GEOF322;60.2;5.41667;60;None;None;OS_HORDALAND
 T#5;68.4983;16.8541;None;None;None;None
 T#4;68.4857;15.8869;None;None;None;None
@@ -26,4 +38,8 @@ T#1;69.0563;15.8148;None;None;None;None
 pcmet1;78.90722;11.88604;472;None;None;None
 pcmet2;80.65710;12.22460;None;None;None
 AIAI;70.824218;3.994802;0;None;None
+Arcticocean;76.03397;15.20778;None;None;None;None
+ice_cross;84.0;7.0;None;None;None;None
+end_cross;67.0;7.0;None;None;None;None
+plmeasure;78.9243;11.9312;7;None;None;None
 
