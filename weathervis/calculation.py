@@ -327,7 +327,16 @@ def CAO_index(air_temperature_pl, pressure, SST,air_pressure_at_sea_level, p_lev
     #dpt_sst = pt_sst[:, :, :] - pt[:, np.where(pressure == p_level)[0], :, :].squeeze()
     
     pt = potential_temperatur(air_temperature_pl, pressure*100)  #4, 2, 36, 36)
+    pt_sst = potential_temperatur(SST, air_pressure_at_sea_level)
 
+    print(np.shape(air_temperature_pl))
+    print(np.shape(pt)) #(50, 102)
+    print(np.shape(pt_sst)) #(102)
+    print(pressure)
+    #dpt_sst = pt_sst[:] - pt[np.where(pressure == p_level)[0],:].squeeze() #
+    #print(np.shape(dpt_sst)) #(50, 102)
+
+    #exit(1)
     #try: 
     #     air_pressure_at_sea_level= air_pressure_at_sea_level.squeeze(axis=1)
     #except: 
@@ -368,6 +377,43 @@ def get_samplesize(q, rho, a=0.5, b = 0.95, acc = 3):
         samplesize_acc[step,:,:,:] = s_acc #g
 
     return samplesize_acc#.squeeze()# samplesize_acc.squeeze()
+
+def richardson_bulk(potential_temperature, height, u, v):
+    b=100; ust = 0.1 #just to play with flexpart addons
+    g=9.81
+    #potential_temperature = potential_temperature.squeeze()
+    #u = u.squeeze()
+    #v = v.squeeze()
+    #height = height.squeeze()
+
+
+    pt_ref = potential_temperature[:,-1,:,:]
+    height_ref = height[:,-1,:,:]
+    u_ref = u[:,-1,:,:]
+    v_ref = v[:,-1,:,:]
+    
+    buoy =  g/pt_ref * (potential_temperature-pt_ref)* (height-height_ref) 
+    shear = (u - u_ref)**2 + (v-v_ref)**2
+    shear_addon =  b*ust**2
+    ri = buoy/shear
+    #*(height(indzp)-height(indzp-1))/ g/pt_ref * 
+    #max((uprof(indzp)-uprof(indzp-1))**2 + (vprof(indzp)-vprof(indzp-1))**2 + b*ust**2, 0.1)
+    return ri
+
+def richardson(potential_temperature, height, u, v):
+    g=9.81
+    ri = np.zeros(np.shape(potential_temperature))
+    print(len(height[0,:,0,0]))
+    print(np.shape(height))
+    for k in range(0, len( height[0,:,0,0] )-1): #remember k direction is from top to down so k=0 is top
+        #so k+1 is under k
+        buoy =  (g/potential_temperature[:,k+1,:,:]) * (potential_temperature[:,k,:,:]-potential_temperature[:,k+1,:,:])* ( height[:,k,:,:] - height[:,k+1,:,:] ) 
+        shear = ( u[:,k,:,:] - u[:,k+1,:,:])**2 + ( v[:,k,:,:] - v[:,k+1,:,:] )**2
+        ri[:,k,:,:] = buoy/shear
+    #*(height(indzp)-height(indzp-1))/ g/pt_ref * 
+    #max((uprof(indzp)-uprof(indzp-1))**2 + (vprof(indzp)-vprof(indzp-1))**2 + b*ust**2, 0.1)
+    return ri
+
 def precip_acc(precip, acc=1):
     """
 
@@ -461,7 +507,7 @@ def density(Tv, p):
 def specific_humidity(T, rh,p):
     #T in K
     #p in Pa
-    #rh in frac no %
+    #rh in frac no %ml2alt
     Rd = 287.0
     Rv=461.0
     TC = T-273.15
@@ -513,13 +559,13 @@ def virtual_temp(air_temperature_ml=None, specific_humidity_ml=None, dmet=None):
     t_v_level = np.zeros(shape= np.shape(air_temperature_ml))
     levels = np.arange(0, levelSize)
     levels_r = levels[::-1]  # bottom (lvl=64) to top(lvl = 0) of atmos
-    Rd = 287.06
+    Rd = 287.05
     #for idx in np.ndindex(t_v_level.shape):
         #t_v_level[idx] = air_temperature_ml[idx] * (1. + 0.609133 * specific_humidity_ml[idx])
     for k in levels_r:
         #print(k)
         #print( air_temperature_ml[:, k, :])
-        t_v_level[:, k, :] = air_temperature_ml[:, k, :] * (1. + 0.609133 * specific_humidity_ml[:, k, :])
+        t_v_level[:, k, ...] = air_temperature_ml[:, k, ...] * (1. + 0.609133 * specific_humidity_ml[:, k, ...])
     return t_v_level
 
 def lapserate(T_ml, z, srf_T = None):
@@ -838,10 +884,11 @@ def _pl2alt_full2full_gl(dmet=None, dim=None, ap=None, b=None, surface_air_press
     else:
         timeSize, levelSize, point= np.shape(air_temperature_ml)
 
-    Rd = 287.06 #[J/kg K] Gas constant for dry air
+    Rd = 287.05 #[J/kg K] Gas constant for dry air
     g0 = 9.80665
     z_h = 0  # 0 since geopotential is 0 at sea level
     Tv = virtual_temp(air_temperature_ml, specific_humidity_ml, dmet)
+    #Tv = air_temperature_ml
     p = ml2pl( ap, b, surface_air_pressure, inputlevel="full", returnlevel="full") if pressure is None else pressure
     h = np.zeros(shape = np.shape(air_temperature_ml)) #p = np.zeros(shape = (timeSize, levelSize, ySize, xSize))
     #print(np.shape(surface_air_pressure))
@@ -856,6 +903,11 @@ def _pl2alt_full2full_gl(dmet=None, dim=None, ap=None, b=None, surface_air_press
         #print(i)
         Tv_mean = (Tv[:,i+1,...]+ Tv[:,i,...]) /2#np.average([Tv[:,i+1,...],Tv[:,i,...]], axis=0)
         g = g0*(1-2*h[:,i+1,...]/6378137) #just for fun. no effect
+        #dtv = (Tv[:,i+1,...]- Tv[:,i,...])
+        #logtv = np.log(Tv[:,i+1,...]/Tv[:,i,...])
+        #Tv_mean = dtv/logtv
+
+        #returntv
         h[:,i,...] = Rd*Tv_mean/g * np.log(p[:,i+1,...]/p[:,i,...]) + h[:,i+1,...]
     gph = h
     #exit(1)
@@ -889,6 +941,7 @@ def sl2gl(surface_geopotential, gph_m_sl):
 def alt_gl2pl(surface_air_pressure,tv, alt_gl, outshape=None ):
     Rd = 287.06
     g = 9.80665
+    
     #    hsl = hgl + (surface_geopotential / g)    #
 
     #if type(alt_gl)==float or type(alt_gl) == int or type(alt_gl)==str:#if height is constant with time
@@ -1011,15 +1064,22 @@ def windfromspeed_dir(wind_speed,wind_direction ):
     v = -wind_speed * np.cos(np.deg2rad(wind_direction))  # m/s v wind
 
     return u,v
-def xwind2uwind( xwind, ywind, alpha=None ):
+def xwind2uwind( xwind, ywind, model, alpha=None ):
     # u,v = xwind2uwind( data.xwind, data.ywind, data.alpha )
     #source: https://www-k12.atmos.washington.edu/~ovens/wrfwinds.html
     #source: https://github.com/metno/NWPdocs/wiki/From-x-y-wind-to-wind-direction
+    import os
+    from netCDF4 import Dataset
 
     if alpha==None:
-        os.system('python wind2alpha.py')
-
-
+        #os.system('python wind2alpha.py')
+        if model == "AromeArctic": 
+            alpha_nc = Dataset("../data/alpha_full_AA.nc")
+            alpha = alpha_nc.variables["alpha"][:,:]
+            print(alpha)
+            alpha_nc.close()
+    
+    print(np.shape(alpha))
     u = np.zeros(shape=np.shape(xwind))
     v = np.zeros(shape=np.shape(ywind))
     for t in range(0,np.shape(xwind)[0]):

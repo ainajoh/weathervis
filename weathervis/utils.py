@@ -122,7 +122,7 @@ def remove_pcolormesh_border(xx,yy,data):
     # ax.pcolormesh(x, y, data[ :, :])#, cmap=plt.cm.Greys_r)
     return x,y,data
 
-def nice_vprof_colorbar(CF, ax, lvl=None, ticks=None, label=None, highlight_val=None, highlight_linestyle="k--",format='%.1f', extend="both",x0=0.75,y0=0.86,width=0.26,height=0.13):
+def nice_vprof_colorbar(CF, ax, lvl=None, loc="upper center", ticks=None, label=None, highlight_val=None, highlight_linestyle="k--",format='%.1f', extend="both",x0=0.75,y0=0.86,width=0.26,height=0.13):
     """Makes a nice vertical colorbar where you can highlight specific values in which appear with a specif linestyle on the plot and colorbar
     Input:
         :param CF: colorbar : Required
@@ -145,9 +145,11 @@ def nice_vprof_colorbar(CF, ax, lvl=None, ticks=None, label=None, highlight_val=
     axins = inset_axes(ax, width='80%', height='23%',
                         bbox_to_anchor=(x0, y0, width, height),  # (x0, y0, width, height)
                         bbox_transform=ax.transAxes,
-                        loc="upper center")
+                        loc=loc)
     cbar = plt.colorbar(CF, extend=extend, cax=axins, orientation="horizontal", ticks=ticks, format=format)
-    ax.add_patch(plt.Rectangle((x0, y0), width, height, fc=[1, 1, 1, 0.7],
+    #ax.add_patch(plt.Rectangle((x0, y0), width, height, fc=[1, 1, 1, 0.7],
+    #                             transform=ax.transAxes, zorder=1000))
+    ax.add_patch(plt.Rectangle((x0, y0), width, height, fc=[1, 1, 1, 1],
                                  transform=ax.transAxes, zorder=1000))
 
     if ticks is not None:

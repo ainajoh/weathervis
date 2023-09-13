@@ -221,6 +221,13 @@ class domain():
         self.idx = lonlat2idx(self.lonlat, self.lon, self.lat)  # RIUGHNone#[0, -1, 0, -1]  # Index; y_min,y_max,x_min,x_max such that lat[y_min] = latmin
         self.scale = find_scale(self.lonlat)
 
+    def CAO_fram(self):  # map
+        url = "https://thredds.met.no/thredds/dodsC/aromearcticlatest/arome_arctic_sfx_2_5km_latest.nc?latitude,longitude"
+
+        self.lonlat = [10, 10, 75, 80]  #
+        self.idx = lonlat2idx(self.lonlat, self.lon, self.lat)  # RIUGHNone#[0, -1, 0, -1]  # Index; y_min,y_max,x_min,x_max such that lat[y_min] = latmin
+        self.scale = find_scale(self.lonlat)
+
     def Svalbard_z2(self):  # map
         url = "https://thredds.met.no/thredds/dodsC/aromearcticlatest/arome_arctic_sfx_2_5km_latest.nc?latitude,longitude"
 

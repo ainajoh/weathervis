@@ -1,8 +1,13 @@
 # %%
 #python OLR_sat.py --datetime 2022030400 --steps 0 3 --model AromeArctic --domain_name Svalbard North_Norway --use_latest 0
-#
+#The most updatet map plot setup for now. 
 from weathervis.config import *
-from weathervis.utils import filter_values_over_mountain, default_map_projection, default_mslp_contour, plot_by_subdomains
+from weathervis.utils import (
+filter_values_over_mountain, 
+default_map_projection, 
+default_mslp_contour, 
+plot_by_subdomains
+)
 import cartopy.crs as ccrs
 from weathervis.domain import *  # require netcdf4
 from weathervis.check_data import *
@@ -16,21 +21,22 @@ from weathervis.checkget_data_handler import *
 import gc
 from weathervis.plots.add_overlays import add_overlay
 
+#Settings that makes it easy to import the default parameter for this plot from another script
 global OLR_map
 MyObject = type('MyObject', (object,), {})
 OLR_map = MyObject()
 _param = ["air_pressure_at_sea_level", "surface_geopotential", "toa_outgoing_longwave_flux", "SIC"]
 setattr(OLR_map, "param", _param)
-
 warnings.filterwarnings("ignore", category=UserWarning) # suppress matplotlib warning
 
 def plot_OLR(datetime,dmet,figax=None, scale=1, lonlat=None, steps=[0,2], coast_details="auto", model=None, domain_name=None,
              domain_lonlat=None, legend=True, info=False, grid=True,runid=None, outpath=None, url = None, save= True, overlays=None,  data_domain=None, **kwargs):
 
-  #if data_domain is not None: eval(f"data_domain.{domain_name}()")  # get domain info
+  if domain_name != None: 
+     eval(f"data_domain.{domain_name}()")  # get domain info
+     scale = data_domain.scale  #scale is larger for smaller domains in order to scale it up.
 
   ## CALCULATE AND INITIALISE ####################
-  #scale = data_domain.scale  #scale is larger for smaller domains in order to scale it up.
   dmet.air_pressure_at_sea_level /= 100
   MSLP = filter_values_over_mountain(dmet.surface_geopotential[:], dmet.air_pressure_at_sea_level[:])
   # PLOTTING ROUTNE ######################
@@ -61,7 +67,7 @@ def plot_OLR(datetime,dmet,figax=None, scale=1, lonlat=None, steps=[0,2], coast_
                              zorder=2, linewidths=2.0, colors="black", levels=[0.1, 0.5])
       
       if grid:
-        nicegrid(ax=ax1)
+        nicegrid(ax=ax1,color="orange")
       if overlays:
         add_overlay(overlays, ax=ax1, **kwargs)
       if domain_name != model and data_domain != None:
@@ -94,8 +100,6 @@ def OLR(datetime,use_latest, delta_index, coast_details, steps=0, model="MEPS", 
                        info, grid, url, point_lonlat, use_latest,
                        delta_index, coast_details, param, p_level,overlays, runid, point_name)
 
-
-
 if __name__ == "__main__":
     args = default_arguments()
     chunck_func_call(func = OLR, chunktype= args.chunktype, chunk=args.chunks, datetime=args.datetime, steps=args.steps, model=args.model,
@@ -103,3 +107,6 @@ if __name__ == "__main__":
             outpath=args.outpath, use_latest=args.use_latest,delta_index=args.delta_index, coast_details=args.coast_details, url=args.url,
             point_lonlat =args.point_lonlat, overlays= args.overlays, point_name=args.point_name)
     gc.collect()
+
+
+    #python OLR_map.py --datetime 2020031300 --steps 10 --model AromeArctic --domain_name AromeArctic --overlays point_name point_name --point_name P84 P83 P82 P81 P80 P79 P78 P77 P76 P75 P74 P73 P72 P71 P70 P69 P68 P67 

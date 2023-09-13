@@ -415,6 +415,7 @@ class check_data():
                         pass
 
             #print(d_p)
+            
             df.at[i, "p_levels"] = d_p
             df.at[i, "m_levels"] = d_ml
             df.at[i, "h_levels"] = d_hl
@@ -425,11 +426,16 @@ class check_data():
             varlist = list(zip(dv_shape,dv_dim))
 
             varframe = pd.DataFrame(varlist, index = dataset.variables.keys() ,columns=["shape", "dim"])
+            varframe = pd.DataFrame(varlist, index = dataset.variables.keys() ,columns=["shape", "dim"])
             df.loc[i,"var"] = [varframe.to_dict(orient='index')]
             df.loc[i,"dim"] = [dimframe.to_dict(orient='index')]
+
+            #df.at[i,"var"] = [varframe.to_dict(orient='index')] #set
+            #df.at[i,"dim"] = [dimframe.to_dict(orient='index')]
             i+=1
             dataset.close()
-        
+        #print(df)
+        #exit(1)
         file_withparam = filter_param( df.copy(), param)
         print( self.p_level)
         
