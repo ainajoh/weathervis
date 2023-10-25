@@ -13,8 +13,41 @@ from weathervis.domain import *
 #from weathervis.checkget_data_handler import * #checkget_data_handler #add_point_on_map did not like this call..
 import matplotlib.offsetbox as offsetbox  #add_point_on_map
 import re
-import cartopy.crs as ccrs
+import cartopy.crs as ccrs  #add_point_on_map, default_map_projection
+from pyproj import Geod
+import cartopy
 
+#----------------Here is the new code for the website---------------------------
+
+def mslp_contour( x, y, MSLP, ax, scale=1):
+    '''
+    # MSLP with contour labels every 10 hPa
+    C_P = ax1.contour(x, y, MSLP, zorder=1, alpha=1.0,
+                      levels=np.arange(round(np.nanmin(MSLP), -1) - 10, round(np.nanmax(MSLP), -1) + 10, 1/scale),
+                      colors='grey', linewidths=0.5)
+    C_P = ax1.contour( x, y, MSLP, zorder=2, alpha=1.0,
+                      levels=np.arange(round(np.nanmin(MSLP), -1) - 10, round(np.nanmax(MSLP), -1) + 10, 10/scale),
+                      colors='grey', linewidths=1.0, label="MSLP [hPa]")
+    ax1.clabel(C_P, C_P.levels, inline=True, fmt="%3.0f", fontsize=10)
+    '''
+    
+    # MSLP with contour labels every 10 hPa
+    C_P = ax.contour(x, y, MSLP, zorder=10, alpha=0.6,
+                    levels=np.arange(round(np.nanmin(MSLP), -1) - 10, round(np.nanmax(MSLP), -1) + 10, 1),
+                    colors='cyan', linewidths=0.5)
+    C_P = ax.contour(x, y, MSLP, zorder=10, alpha=0.6,
+                    levels=np.arange(round(np.nanmin(MSLP), -1) - 10, round(np.nanmax(MSLP), -1) + 10, 5),
+                    colors='cyan', linewidths=1.0, label="MSLP [hPa]")
+    ax.clabel(C_P, C_P.levels, inline=True, fmt="%3.0f", fontsize=10)
+    return ax
+
+
+
+
+
+
+
+#-------------------------------------------------------------------------------
 
 def to_bool(value):
     """Convert values into bool.
@@ -58,7 +91,7 @@ def setup_directory( path, folder_name):
         print("Directory ", projectpath, " already exists")
     return projectpath
 
-def adjustable_colorbar_cax(fig1,ax1): #,data, **kwargs):
+def adjustable_colorbar_cax(fig1,ax1, orientation="horizontal"): #,data, **kwargs):
     """colorbars do not asjust byitself with set_extent when defining a figure size at the start.
        if u remove figure_size and it adjust, but labels and text will not be consistent.
        returns:
@@ -66,7 +99,10 @@ def adjustable_colorbar_cax(fig1,ax1): #,data, **kwargs):
        usage:
     """
     divider = make_axes_locatable(ax1) ##__N
-    ax_cb = divider.new_horizontal(size="5%", pad=0.1, axes_class=plt.Axes) ##__N
+    if orientation=="horizontal":
+        ax_cb = divider.new_horizontal(size="5%", pad=0.1, axes_class=plt.Axes) ##__N
+    else:
+        ax_cb = divider.new_vertical(size="5%", pad=0.2, axes_class=plt.Axes) ##__N
     fig1.add_axes(ax_cb)
     return ax_cb
 
@@ -161,7 +197,6 @@ def nice_vprof_colorbar(CF, ax, lvl=None, ticks=None, label=None, highlight_val=
 
 def add_distance_circle():
     memory_check="hei"
-    print("test")
 
 def add_point_on_map(ax, lonlat = None, point_name=None, labels=None, colors=None):
     """Add a marker point on a cartopy map either at lonlat input or from a point_name in sites.csv file
@@ -363,15 +398,23 @@ GpsAlt_m = 'GpsAlt_m'):
 #dt, model, domain_name, domain_lonlat, file, point_name, point_lonlat=None, use_latest=True
 #    data_domain = domain_input_handler(dt=date, model=model, domain_name=domain_name, domain_lonlat=domain_lonlat, file =ourfileobj,point_name=point_name,point_lonlat=point_lonlat, use_latest=use_latest,delta_index=delta_index)#
 
-def domain_input_handler(dt=None, model=None, domain_name=None, domain_lonlat=None, file=None, point_name=None, point_lonlat=None, use_latest=True, delta_index=None, url=None):
+def domain_input_handler(dt=None, model=None, domain_name=None, domain_lonlat=None, 
+                        file=None, point_name=None, point_lonlat=None, use_latest=True, 
+                        delta_index=None, url=None,num_point=1):
+    
     print("######## domain_input_handler in utils.py ################### ")
+    print(domain_name)
+   
     if domain_name or domain_lonlat:
         if domain_lonlat:
+            
             print(f"\n####### Setting up domain for coordinates: {domain_lonlat} ##########")
-            data_domain = domain(dt, model, file=file, lonlat=domain_lonlat,use_latest=use_latest,delta_index=delta_index, url=url)
+            data_domain = domain(dt, model, file=file, lonlat=domain_lonlat,use_latest=use_latest,delta_index=delta_index, url=url, num_point=num_point)
         else:
-            data_domain = domain(dt, model, file=file, use_latest=use_latest,delta_index=delta_index, url=url)#
+            data_domain = domain(dt, model, file=file, use_latest=use_latest,delta_index=delta_index, url=url, num_point=num_point)#
+            
 
+        #exit(1)  
         if domain_name != None and domain_name in dir(data_domain):
             print(f"\n####### Setting up domain: {domain_name} ##########")
             domain_name = domain_name.strip()
@@ -383,16 +426,25 @@ def domain_input_handler(dt=None, model=None, domain_name=None, domain_lonlat=No
         else:
             print(f"No domain found with that name; {domain_name}")
     else:
-        data_domain=None
-    print(data_domain)
+        data_domain=None    #domain(dt, model,point_name=point_name, file=file, use_latest=use_latest,delta_index=delta_index, url=url, num_point=num_point)#
 
     if (point_name !=None and domain_name == None and domain_lonlat == None):
-        data_domain = domain(dt, model, file=file, point_name=point_name,use_latest=use_latest,delta_index=delta_index, url=url)
-    if (point_lonlat != None and point_name == None and domain_name == None and domain_lonlat == None):
-        data_domain = domain(dt, model, file=file, lonlat=point_lonlat,use_latest=use_latest,delta_index=delta_index, url=url)
+        data_domain = domain(dt, model, file=file, point_name=point_name,use_latest=use_latest,delta_index=delta_index, url=url,num_point=num_point)
+
+    if (point_lonlat != None and domain_name == None and domain_lonlat == None):
+        data_domain = domain(dt, model, file=file, point_lonlat= point_lonlat, use_latest=use_latest,
+                                delta_index=delta_index, url=url,num_point=num_point)
+    
+        #import os
+        #os._exit(0)
+
+    #if (point_lonlat != None and point_name == None and domain_name == None and domain_lonlat == None):
+    #    data_domain = domain(dt, model, file=file, lonlat=point_lonlat,use_latest=use_latest,delta_index=delta_index, url=url)
+
+    
     return data_domain
 
-def default_map_projection(dmet):
+def default_map_projection(dmet ):
     lon0 = dmet.longitude_of_central_meridian_projection_lambert
     lat0 = dmet.latitude_of_projection_origin_projection_lambert
     parallels = dmet.standard_parallel_projection_lambert
@@ -417,7 +469,7 @@ def default_mslp_contour( x, y, MSLP, ax1, scale=1):
     ax1.clabel(C_P, C_P.levels, inline=True, fmt="%3.0f", fontsize=10)
     return ax1
 
-def nice_legend(dict, ax1):
+def nice_legend(dict, ax1,loc="best"):
     proxy = []
     lg = []
     for k in dict.keys():
@@ -426,7 +478,7 @@ def nice_legend(dict, ax1):
         legend =  dict[k]["legend"]
         proxy.append(plt.axhline(y=0, xmin=1, xmax=1, color=color, linestyle=linestyle))
         lg.append(legend)
-    lg = ax1.legend(proxy, lg)
+    lg = ax1.legend(proxy, lg,loc=loc)
     frame = lg.get_frame()
     frame.set_facecolor('white')
     frame.set_alpha(1)
@@ -434,14 +486,15 @@ def nice_legend(dict, ax1):
 def default_arguments():
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument("--datetime", help="YYYYMMDDHH for modelrun", required=True, type=str)
-    parser.add_argument("--steps", default=0, nargs="+", type=int,
-                        help="forecast times example --steps 0 3 gives time 0 to 3")
+    parser.add_argument("--datetime", help="YYYYMMDDHH for modelrun", default=None,  type=str, nargs="+")
+    parser.add_argument("--steps", default=["0"], nargs="+", type=str,
+                        help="forecast times example --steps 0 3 gives time 0 and 3 \n --steps 0:1:3 gives timestep 0, 1, 2")
     parser.add_argument("--model", default=None, help="MEPS or AromeArctic")
-    parser.add_argument("--domain_name", default=None, nargs="+")
+    parser.add_argument("--domain_name", default=None, nargs="+", type= none_or_str)
     parser.add_argument("--domain_lonlat", default=None, help="[ lonmin, lonmax, latmin, latmax]")
     parser.add_argument("--point_name", default=None, nargs="+")
-    parser.add_argument("--point_lonlat", default=None, help="[ lonmin, lonmax, latmin, latmax]")
+    parser.add_argument("--point_lonlat", default=None, help="[lon, lat]", type=str, nargs="+")
+    parser.add_argument("--num_point", default=1, type=int)
     parser.add_argument("--legend", default=True, help="Display legend")
     parser.add_argument("--grid", default=True, help="Display legend")
     parser.add_argument("--info", default=False, help="Display info")
@@ -449,15 +502,37 @@ def default_arguments():
     parser.add_argument("--use_latest", default=False, type=bool)
     parser.add_argument("--delta_index", default=None, type=str)
     parser.add_argument("--coast_details", default="auto", type=str, help="auto, coarse, low, intermediate, high, or full")
+    parser.add_argument("--id", default=None, help="Display legend", type=str)
+    parser.add_argument("--outpath", default=None, help="Display legend", type=str)
+    parser.add_argument("--overlays", default=None, nargs="+", help="Display legend", type=str)
+    parser.add_argument("--chunktype", default=None,  help="eg steps", type=str)
+    parser.add_argument("--chunks", default=6,  help="Display legend", type=int)
 
     args = parser.parse_args()
 
-    #steps = any_int_range(args.steps)
+    global OUTPUTPATH
+    if args.outpath != None:
+        OUTPUTPATH = args.outpath
+    if args.point_lonlat != None: #aina
+        splitted_lonlat= re.split("]",  "".join(args.point_lonlat))
+        s = re.split(",",  "".join(splitted_lonlat).replace("[", ""))        
+        lonlat = np.reshape(s, (int(len(s)/2), 2)).astype(float).tolist()
+        args.point_lonlat = lonlat
+
+    step_together = "".join(args.steps[0:])
+    if ":" in step_together:
+        splitted_steps= re.split(":",  "".join(args.steps[0:]))
+        sep = int(splitted_steps[2]) if len(splitted_steps) == 3 else 1
+        args.steps = list(np.arange( int(splitted_steps[0]), int(splitted_steps[1]), int(sep) ))
+    else:
+        step = [args.steps] if type(args.steps) == int else args.steps
+        args.steps = [int(i) for i in step]
+
     if args.domain_name == None:
         args.domain_name = [args.model]
     return args
 
-def find_subdomains(domain_name, datetime=None, model=None, domain_lonlat=None, file=None, point_name=None, point_lonlat=None, use_latest=None, delta_index=None, url=None):
+def find_subdomains(domain_name, datetime=None, model=None, num_point=1, domain_lonlat=None, file=None, point_name=None, point_lonlat=None, use_latest=None, delta_index=None, url=None):
     print("###################### find_subdomains in utils.py ##################################")
     idx_domain_name = []
     domain_lonlat = None  # args.domain_lonlat
@@ -465,9 +540,11 @@ def find_subdomains(domain_name, datetime=None, model=None, domain_lonlat=None, 
     point_name = None  # args.point_name
     delta_index = None  # args.delta_index
     file = None
+    
     dom1 = domain_input_handler(dt = datetime, model = model, domain_name = domain_name[0], domain_lonlat = domain_lonlat,
                                 file=file, point_name=point_name, point_lonlat=point_lonlat,
-                                use_latest=use_latest, delta_index=delta_index, url=url)
+                                use_latest=use_latest, delta_index=delta_index, url=url, num_point=num_point)
+   
     for dom in domain_name:
         eval(f"dom1.{dom}()")
         idx_domain_name.append(dom1.idx)
@@ -508,3 +585,71 @@ def find_subdomains(domain_name, datetime=None, model=None, domain_lonlat=None, 
             dom_frame = dom_frame.drop(sub_domains)  # removes what largest domain have
     dom_frame = dom_frame.drop("sum", axis=1)
     return dom_frame
+
+
+
+def plot_by_subdomains(plt_func, checkget_data_handler, datetime, steps, model, domain_name, domain_lonlat, legend, info, grid, url, point_lonlat, use_latest,
+        delta_index, coast_details=None, param=None, p_level=None, overlays=None, runid=None, point_name=None, save=False, read_from_saved=False):
+
+    datetime_start = datetime[0] if type(datetime) is list else datetime
+    domains_with_subdomains = find_subdomains(domain_name=domain_name, datetime=datetime_start, model=model,
+                                              domain_lonlat=domain_lonlat,
+                                              point_lonlat=point_lonlat, use_latest=use_latest, delta_index=delta_index,
+                                              url=url)
+    #print("test")
+    #print(domains_with_subdomains)
+    #exit(1)
+    for domain_name in domains_with_subdomains.index.values:
+        dmet, data_domain, bad_param = checkget_data_handler(p_level=p_level, model=model, step=steps, date=datetime,
+                                                             domain_name=domain_name, all_param=param, save=save,read_from_saved=read_from_saved)
+        subdom = domains_with_subdomains.loc[domain_name]
+        ii = subdom[subdom == True]
+        subdom_list = list(ii.index.values)
+        
+        if subdom_list:
+            for sub in subdom_list:
+                plt_func(datetime=datetime, steps=steps, model=model, domain_name=sub, data_domain=data_domain,
+                         domain_lonlat=domain_lonlat, legend=legend, info=info, grid=grid, url=url,
+                         dmet=dmet, coast_details=coast_details, overlays=overlays, point_name=point_name)
+
+def none_or_str(value):
+    if value == 'None':
+        return None
+    return value
+
+
+def chunck_func_call(func= None, chunktype="steps", chunk=6, **kwargs):
+    
+    if chunktype==None: # do not split
+        func(**kwargs)
+    elif chunktype=="steps":
+        cn = np.int(len(kwargs["steps"]) // chunk)
+        if cn == 0:  # length of chunk size not exceeded; do not have to split
+            func(**kwargs)
+        else:  # lenght of chunk size is exceeded, split in chunks, set by cn+1
+            print(f"\n####### request exceeds {chunk} timesteps, will be chunked to smaller bits due to request limit ##########")
+            chunks = np.array_split(kwargs["steps"], cn + 1)
+            for c in chunks:
+                kwargs["steps"] = list(c)
+                func(**kwargs)
+    
+
+
+def point_name2point_lonlat(point_name, site_file=f"{package_path}/data/sites.csv"):
+    sites = pd.read_csv(site_file, sep=";", header=0, index_col=0)
+
+    if type(point_name) is not str:
+        print("hello")
+        lonlat = []
+        print(type(point_name))
+        for ppn in point_name:
+            plon = float(sites.loc[ppn].lon)
+            plat = float(sites.loc[ppn].lat)
+            ll = tuple([plon,plat]) if type(point_name) is tuple else [plon,plat]
+            lonlat.append(ll)
+    else:
+        sites = pd.read_csv(f"{package_path}/data/sites.csv", sep=";", header=0, index_col=0)
+        plon = float(sites.loc[point_name].lon)
+        plat = float(sites.loc[point_name].lat)
+        lonlat = [plon,plat]
+    return lonlat

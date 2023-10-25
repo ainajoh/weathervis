@@ -25,6 +25,7 @@ from weathervis.calculation import *
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable  ##__N
 from weathervis.checkget_data_handler import checkget_data_handler
+from weathervis.plots.add_overlays_new import add_overlay
 
 import warnings
 import gc
@@ -97,14 +98,15 @@ def plot_BLH(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", mod
                 BLH[itim, 0, :, :],
                 zorder=1,
                 alpha=0.5,
-                levels=np.arange(50, 5000, 200),
+                levels=[100,300,500,750,1000,1250,1500,2000,2500,3000],
                 linewidths=0.7,
                 label="BLH",
-                cmap="summer",
+                cmap="Paired",
                 extend="both",
             )
             # coastline
-            ax1.add_feature(cfeature.GSHHSFeature(scale=coast_details))
+            ax1.add_feature(cfeature.GSHHSFeature(scale='intermediate'),edgecolor="black", linewidth=1)  # ‘auto’, ‘coarse’, ‘low’, ‘intermediate’, ‘high, or ‘full’ (default is ‘auto’).
+            #ax1.add_feature(cfeature.GSHHSFeature(scale=coast_details))
 
             # Done plotting, now adjusting
             ax_cb = adjustable_colorbar_cax(fig1, ax1)
@@ -146,6 +148,8 @@ def plot_BLH(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", mod
                 nice_legend(llg, ax1)
             if grid:
                 nicegrid(ax=ax1)
+            if overlays:
+                add_overlay(overlays,ax=ax1,col="yellow", **kwargs)
 
             print(data_domain.lonlat)  # [15.8, 16.4, 69.2, 69.4]
             if domain_name != model and data_domain != None:  #
@@ -160,7 +164,10 @@ def plot_BLH(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", mod
             )
 
             print(f"filename: {file_path}")
-            fig1.savefig(file_path, bbox_inches="tight", dpi=200)
+            if save:
+                fig1.savefig(file_path, bbox_inches="tight", dpi=200)
+            else:
+                plt.show()
             ax1.cla()
             itim += 1
     plt.close(fig1)
