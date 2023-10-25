@@ -35,7 +35,7 @@ def plot_OLR(datetime,dmet,figax=None, scale=1, lonlat=None, steps=[0,2], coast_
   MSLP = filter_values_over_mountain(dmet.surface_geopotential[:], dmet.air_pressure_at_sea_level[:])
   # PLOTTING ROUTNE ######################
   crs = default_map_projection(dmet) #change if u want another projection
-  fig1, ax1 = plt.subplots(1, 1, figsize=(7*3, 9*3), subplot_kw={'projection': crs}) if figax is None else figax
+  fig1, ax1 = plt.subplots(1, 1, figsize=(5, 7), subplot_kw={'projection': crs}) if figax is None else figax
   itim = 0
   for leadtime in np.array(steps): #
       print('Plotting {0} + {1:02d} UTC'.format(datetime, leadtime))
@@ -55,7 +55,7 @@ def plot_OLR(datetime,dmet,figax=None, scale=1, lonlat=None, steps=[0,2], coast_
       data[mask] = np.nan
       ax1.pcolormesh(x, y, data[ :, :], vmin=-230,vmax=-110, cmap=plt.cm.Greys_r)
       ax1.add_feature(cfeature.GSHHSFeature(scale='intermediate'),edgecolor="brown", linewidth=0.5)  # ‘auto’, ‘coarse’, ‘low’, ‘intermediate’, ‘high, or ‘full’ (default is ‘auto’).
-      ax1.text(0, 1, "{0}_OLR_{1}+{2:02d}".format(model, datetime, leadtime), ha='left', va='bottom', transform=ax1.transAxes,color='dimgrey')
+      ax1.text(0, 1, "{0}_OLR_{1}+{2:02d}".format(model, datetime, leadtime), ha='left', va='bottom', transform=ax1.transAxes,color='k')
       ax1.contour(dmet.x, dmet.y,
                              dmet.SIC[itim, :, :] if len(np.shape(dmet.SIC)) == 3 else dmet.SIC[itim,0, :, :],
                              zorder=2, linewidths=2.0, colors="black", levels=[0.1, 0.5])
@@ -68,14 +68,15 @@ def plot_OLR(datetime,dmet,figax=None, scale=1, lonlat=None, steps=[0,2], coast_
         ax1.set_extent(data_domain.lonlat)
 
       make_modelrun_folder = setup_directory(OUTPUTPATH, "{0}".format(datetime))
+      print(make_modelrun_folder)
       file_path = "{0}/{1}_{2}_{3}_{4}+{5:02d}.png".format(make_modelrun_folder, model, domain_name, "OLR", datetime,leadtime)
       print(f"filename: {file_path}")
       if save: 
-        fig1.savefig(file_path, bbox_inches="tight", dpi=300) 
+        fig1.savefig(file_path, bbox_inches="tight", dpi=200) 
       else:
         pass
         #plt.show()
-      #ax1.cla()
+      ax1.cla()
       itim += 1
   del MSLP, scale, itim, legend, grid, overlays, domain_name, data, mask, x, y,nx,ny
   del make_modelrun_folder, file_path

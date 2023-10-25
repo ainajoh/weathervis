@@ -55,7 +55,7 @@ def setup_directory( path, folder_name):
     projectpath = path + folder_name
     if not os.path.exists(projectpath):
         os.makedirs(projectpath)
-        print("Directory ", projectpath, " Created ")
+        print("Directory ", projectpath, " created ")
     else:
         print("Directory ", projectpath, " already exists")
     return projectpath
@@ -589,6 +589,8 @@ def none_or_str(value):
 
 def chunck_func_call(func= None, chunktype="steps", chunk=6, **kwargs):
     
+    # make datetime non-array
+    kwargs["datetime"]=kwargs["datetime"][0]
     if chunktype==None: # do not split
         func(**kwargs)
     elif chunktype=="steps":

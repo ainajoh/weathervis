@@ -50,12 +50,12 @@ def make_data_uptodate():
                 input_rscript = "MEPS" if file_nn == "MEPS_filesandvar.csv" else "AromeArctic"
                 os.system(f'rscript ../util/scrap4filevariable.R {input_rscript} {last_date}')
             elif Question == ("no") or Question == ("n"):
-                print("NO updates")
+                print("No updates")
 
 def setup_directory_config(OUTPUTPATH):
     if not os.path.exists(OUTPUTPATH):
         os.makedirs(OUTPUTPATH)
-        print("Directory ", OUTPUTPATH, " Created ")
+        print("Directory ", OUTPUTPATH, " created ")
     else:
         print("Directory ", OUTPUTPATH, " already exists")
     return OUTPUTPATH
