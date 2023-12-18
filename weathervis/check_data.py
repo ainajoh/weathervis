@@ -58,57 +58,86 @@ def filter_param(file,param):
     logging.info(file)
     return file
 
-def filter_type(file,mbrs, p_level,m_level):
+def filter_type(file, mbrs, p_level,m_level):
     """Used by check_data: Remove files not having the userdefined mbrs or levels
     Returns only files containing all the user defined preferences."""
     print("################ filter_type in check_data.py #############################")
+    #print("check")
+    #print(file, mbrs, p_level, m_level)
+    #exit()
 
     if mbrs != 0 and mbrs != None:
-        #file = file[file["mbr_bool"] == True] deprecated
-        file = file[~file.mbr_ens.isnull()] #not needed?
-        file.reset_index(inplace=True)      #not needed?
-        def find_mbrs(value):
-            df_val = pd.DataFrame(value).isin(mbrs).sum(axis=0)
-            if len(df_val) >= 1:
-                return True
-            else:
-                return False
-        ll = file["mbr_bool"].apply(find_mbrs)
-        file = file[ll]
-
-
+        filter = "strict"
+        if filter == "strict":
+            def find_mbrs(value):
+                df_val = pd.DataFrame(value).isin(mbrs).sum(axis=0)
+                if df_val.values.any() and df_val.values[0] >= len(mbrs):
+                    #we are strict here saying it has to include all, but perhaps we allow it to iclude some as together they might  be all members:
+                    # IF ANY IS SUFFICIENT, MAKE df_val.values[0] >= 1 instead
+                    return True
+                else:
+                    return False
+            ll = file.mbr_ens.apply(find_mbrs)
+            file = file[ll]
+        if filter == "light": pass
+        if filter == "medium": pass
+        
+    
     if m_level != None:
-        print("FILT")
+        filter="strict"
+        if filter == "strict": #only those files that has all the wanted model levels (nb might not be for all param)
 
-        file = file[~file.m_levels.isnull()] #not needed?
-        file.reset_index(inplace=True)       #not needed?
-        print(file.columns)
-        #file = file[file["ml_bool"] == True]  #deprecated
+            def find_mlevels(value, filter="strict" ):
+                if value:
+                    length_dict = {key: np.arange(1, len(v)+1) for key, v in value.items()}
+                    df_val = pd.DataFrame(length_dict.values()).isin(m_level).sum(axis=1)
+                    boo = df_val>=len(m_level)
+                    if df_val.values.any() and boo.any():
+                        return True
+                    else:
+                        return False
+                else:
+                    return False
+            ll = file.m_levels.apply(find_mlevels)
+            file = file[ll]
+        if filter == "light": #as long as there is some m_levels in it
+            file = file[~file.m_levels.isnull()]  # not needed?
+            file.reset_index(inplace=True)  # not needed?
+            print(file.columns)
+        if filter \
+                == "medium": pass # any files containing one or more of desired mlevels
+    print("stop1")
+    print(p_level)
+    #exit()
+    #raise SystemExit
+    ##import sys
+    #sys.exit()
+    #import os
+    #os._exit(0)
+    if p_level:
+        print("stop")
+        #exit()
+        #raise SystemExit
+        #import sys
+        #sys.exit()
+        #import os
+        #os._exit(0)
+        filter = "strict"
+        if filter == "strict":
+            file = file[~file.p_levels.isnull()]   #not needed?
+            file.reset_index(inplace=True)         #not needed?
+            def find_plevel(value):
+                df_val = pd.DataFrame(value).isin(p_level).sum(axis=0)
+                if df_val.values >= len(p_level):
+                    return True
+                else:
+                    return False
+            ll= file["p_levels"].apply(find_plevel)
+            file = file[ll]
+        if filter == "light": pass
 
+        if filter == "medium": pass
 
-        #print(file.dim)
-
-        #exit(1)
-        #def find_mlevel(value):
-        #   #print()
-        #
-        #    print("find_mlevel")
-        #    val = value.values() #            df_val = pd.DataFrame(value).isin(p_level).sum(axis=0)
-        #
-        #    dd = pd.DataFrame([val])#.index.values
-        #    print(dd)
-
-    elif p_level:
-        file = file[~file.p_levels.isnull()]   #not needed?
-        file.reset_index(inplace=True)         #not needed?
-        def find_plevel(value):
-            df_val = pd.DataFrame(value).isin(p_level).sum(axis=0)
-            if len(df_val) >=1:
-                return True
-            else:
-                return False
-        ll= file["p_levels"].apply(find_plevel)
-        file = file[ll]
     file.reset_index(inplace=True, drop=True)
     return file
 
@@ -125,7 +154,6 @@ def filter_step(file,maxstep):
 
 def filter_function_for_date(value, check_earliest=False, model = "AromeArctic"):
     print("################ filter_function_for_date in check_data.py #############################")
-
     if (value != None) and (len(value) == 10) and (int(value[0:4]) in range(2000, 2030)) and (int(value[4:6]) in range(0, 13)) \
             and (int(value[6:8]) in range(1, 32)) and (int(value[9:10]) in range(0, 25)):
         pass
@@ -134,10 +162,12 @@ def filter_function_for_date(value, check_earliest=False, model = "AromeArctic")
     else:
         SomeError(ValueError, f'Modelrun wrong: Either; "latest or date on the form: YYYYMMDDHH')
 
+    #Todo: CHECK EARLIEST IS NOT DONE: NEED TO BE ADJUSTED
     if check_earliest and value !=None: #deprecated for now as it is a waist of time just to get nice error
-        date_all = check_data.check_available_date(model=model)
+        c = check_data()
+        date_all = c.check_available_date(model=model)
         date_first = pd.to_datetime(date_all.Date[0], format='%Y%m%d')
-        date_req =  pd.to_datetime(date, format='%Y%m%d%H%M')
+        date_req =  pd.to_datetime(value, format='%Y%m%d%H%M')
         if date_req < date_first:
             SomeError(ValueError, f"Your request is for a date earlier than what is available. You requested {date_req}, but the earlies is {date_first}")
 
@@ -198,7 +228,8 @@ class check_data():
         """
         logging.info("# check_data() #\n#################")
         print("################ __init__ in check_data.py #############################")
-
+        
+        
         self.date = str(date) if date != None else None
         self.model = model
         self.url = url
@@ -209,42 +240,31 @@ class check_data():
         self.search = search
         self.p_level = p_level
         self.m_level = m_level
-
-        if step != None and type(step[0]) == str:
-            if len(step) == 1:
-                if ":" in step[0]:
-                    ss = step[0].split(":")
-                    ss = [int(x.strip()) for x in ss]
-                    if len(ss) == 3:
-                        step = list(np.arange(ss[0], ss[1], ss[2]))
-                    else:
-                        step = list(np.arange(ss[0], ss[1], 1))
-                elif "," in step[0]:
-                    ss = step[0].split(",")
-                    step = [int(x.strip()) for x in ss]
-                else:
-                    step = [int(x.strip()) for x in step]
-            else:
-                step = [int(x.strip()) for x in step]
-
+        self.drop_files = []
         self.maxstep = np.max(step) if step != None or type(step) != float or type(step) != int else step
         self.use_latest=use_latest
-
-        self.check_web_connection()
+        print(self.model)
         filter_function_for_date(self.date)
+        self.check_web_connection()
         self.model = filter_function_for_models_ignore_uppercases(self.model) if self.model != None else None
-        self.p_level = [p_level] if p_level != None and type(p_level) != list else p_level
+        self.p_level = list(p_level) if p_level != None else p_level #and type(p_level) != list else p_level
+        #self.p_level = [p_level] if p_level != None and type(p_level) != list else p_level
         self.m_level = [m_level] if m_level != None and type(m_level) != list else m_level
+        if self.model==None and self.url==None: 
+
+            return
+
         if (self.model !=None and self.date !=None) or self.url !=None:
             all_files = self.check_files(date, model, param,  mbrs, url) #the main outcome
             self.file = self.check_file_info(all_files, param, mbrs)
+
+
+
         ###################################################
         # SEARCH OPTIONS UNDER
         ###################################################
         #search for parameter for a specific date or url file
         if self.param == None and (self.date != None or self.url != None):
-            #print("eeee")
-            #print(file)
             self.param = self.check_variable(self.file, self.search, self.url)
 
         #search for parameter for a all dates, only possible for not userdefined url.
@@ -257,8 +277,32 @@ class check_data():
         ##################################################
         ###################################################
 
-        self.clean_all()
+        #self.clean_all()
+    def load_metadata(self):
+        metafile=f"{package_path}/data/metadata/supported_model_info.csv"
+        
+        meta_df=pd.read_csv(metafile, comment='#', sep=",",skipinitialspace=True)
+        
+        return meta_df
 
+    def filter_metadata(self, meta_df, model=None, use_latest=None):
+        self.use_latest=use_latest if use_latest !=None else self.use_latest
+        self.model=model if model !=None else self.model
+        archive_url = "latest" if self.use_latest else "archive"
+        #print(meta_df.Name.str.contains(self.model, case=False))
+        #exit(1)
+        print(meta_df)
+        meta_df = meta_df[(meta_df.Name.str.contains(self.model, case=False)) & (meta_df.source.str.contains(archive_url))]
+        print(meta_df)
+        
+        if len(meta_df) !=1: 
+            SomeError(ValueError,f"too many / non options found for metadata: {meta_df}")
+        #meta_df = meta_df#.head(1)
+       
+        #print(meta_df[meta_df.source])
+        return meta_df.squeeze()
+
+        
     def check_files(self, date, model, param, mbrs, url=None):
         """
         Returns a dataframe containing file name and file url
@@ -266,32 +310,31 @@ class check_data():
         logging.info("--> check_files() <---\n")
         print("################ check_files in check_data.py #############################")
         base_url = ""
-
+        print("YEEE")
         if self.url != None:
             #if a url file is given. we dont need to look for possible files.
             df = pd.DataFrame(data=list([re.search(f'[^/]*nc$', self.url).group(0)]), columns=["File"])
             df["url"] = self.url
         else:
+            meta_df = self.filter_metadata(self.load_metadata())
             date = str(date); YYYY = date[0:4]; MM = date[4:6]; DD = date[6:8]; HH = date[8:10]
-            # find out where to look for data
-            archive_url = "latest" if self.use_latest else "archive"
-            if model.lower()=="meps":
-                base_url = "https://thredds.met.no/thredds/catalog/meps25eps{0}/".format(archive_url)   #info about date, years and filname of our model
-                base_urlfile = "https://thredds.met.no/thredds/dodsC/meps25eps{0}/".format(archive_url) #info about variables in each file
-            elif model.lower() == "aromearctic":
-                base_url = "https://thredds.met.no/thredds/catalog/aromearctic{0}/".format(archive_url)
-                base_urlfile = "https://thredds.met.no/thredds/dodsC/aromearctic{0}/".format(archive_url)
-            else:
-                SomeError(ValueError, f"Cannot recognise the model")
+            base_url = meta_df[meta_df.modelinfotype]
+            base_urlfile=meta_df[meta_df.source]
+            drop_files = re.sub(r'\s+', "", meta_df["exclude_filename"]).split(",")
+            self.drop_files=drop_files
 
             #Find what files exist at that date by scraping thredd web
-            page = requests.get(base_url + "catalog.html") if self.use_latest else requests.get(base_url + YYYY+"/"+MM+"/"+DD+ "/catalog.html")
-            if page.status_code != 200:  SomeError(ConnectionError, f"Error locating site, is the date correct?")
+            our_url = base_url + "catalog.html" if self.use_latest else base_url + YYYY+"/"+MM+"/"+DD+ "/catalog.html"
+            page = requests.get(our_url)
+
+            if page.status_code != 200:  SomeError(ConnectionError, f"\nError locating site: {our_url}. Either; \n The url location might have changed \n Your date might be not correct ")
             soup = BeautifulSoup(page.text, 'html.parser')
             rawfiles = soup.table.find_all("a")
+            #print(rawfiles)
             ff =[str(i.text) for i in rawfiles]
-            ff= pd.DataFrame( data = list(filter(re.compile(f'.*{YYYY}{MM}{DD}T{HH}Z.nc').match, ff )), columns=["File"])
-            drop_files = ["_vc_", "thunder", "_kf_", "_ppalgs_", "_pp_", "t2myr", "wbkz", "vtk","_preop_"]
+            print(ff)
+            #exit()
+            ff= pd.DataFrame( data = list(filter(re.compile(f'.*{YYYY}{MM}{DD}T{HH}Z.*nc').match, ff )), columns=["File"])
             df = ff.copy()[~ff["File"].str.contains('|'.join(drop_files))] #(drop_files)])
             df.reset_index(inplace=True, drop=True)
             df["url"] = base_urlfile + df['File'] if self.use_latest else f"{base_urlfile}/{YYYY}/{MM}/{DD}/" + df['File']
@@ -316,7 +359,7 @@ class check_data():
         df['m_levels'] = object()  # df['m_levels'].astype(object)
         df['mbr_ens'] = object()  # df['mbr_ens'].astype(object)
         df['h_levels'] = object()  # df['h_levels'].astype(object)
-
+        
         i=0
         while i<len(df):
             #For every file in dataframe, read metadata.
@@ -334,6 +377,7 @@ class check_data():
             hybrid_dim = list(filter(re.compile(f'.*hybrid*').match, dimframe.index))
             height_dim = list(filter(re.compile(f'.*height*').match, dimframe.index))
             memb_dim = list(filter(re.compile(f'.*member*').match, dimframe.index))
+            #ap_dim = list(filter(re.compile(f'.*ap*').match, dimframe.index))
 
             #Initiali dict that will be filled with dimention info for every parameter.
             d_p = {}
@@ -371,6 +415,7 @@ class check_data():
                         pass
 
             #print(d_p)
+            
             df.at[i, "p_levels"] = d_p
             df.at[i, "m_levels"] = d_ml
             df.at[i, "h_levels"] = d_hl
@@ -381,13 +426,22 @@ class check_data():
             varlist = list(zip(dv_shape,dv_dim))
 
             varframe = pd.DataFrame(varlist, index = dataset.variables.keys() ,columns=["shape", "dim"])
+            varframe = pd.DataFrame(varlist, index = dataset.variables.keys() ,columns=["shape", "dim"])
             df.loc[i,"var"] = [varframe.to_dict(orient='index')]
             df.loc[i,"dim"] = [dimframe.to_dict(orient='index')]
+
+            #df.at[i,"var"] = [varframe.to_dict(orient='index')] #set
+            #df.at[i,"dim"] = [dimframe.to_dict(orient='index')]
             i+=1
             dataset.close()
-
+        #print(df)
+        #exit(1)
         file_withparam = filter_param( df.copy(), param)
+        print( self.p_level)
+        
         file_corrtype = filter_type( df.copy(), mbrs, self.p_level, self.m_level)
+        print(df.copy())
+        print(file_corrtype)
         file = file_withparam[file_withparam.File.isin(file_corrtype.File)]
         file.reset_index(inplace=True, drop = True)
         file = filter_step(file,self.maxstep)
@@ -416,9 +470,9 @@ class check_data():
         print("################ check_available_date in check_data.py #############################")
 
 
-        df = pd.read_csv(f"{package_path}/data/{model}_filesandvar.csv")
+        df = pd.read_csv(f"{package_path}/data/metadata/{model}_filesandvar.csv")
         dfc = df.copy()  # df['base_name'] = [re.sub(r'_[0-9]*T[0-9]*Z.nc','', str(x)) for x in df['File']]
-        drop_files = ["_vc_", "thunder", "_kf_", "_ppalgs_", "_pp_", "t2myr", "wbkz", "vtk","_preop_"]
+        drop_files = ["_vc_", "thunder", "_kf_", "_ppalgs_", "_pp_", "t2myr", "wbkz", "vtk","_preop_", "_lagged_"]
         df_base = pd.DataFrame([re.sub(r'_[0-9]*T[0-9]*Z.nc', '', str(x)) for x in df['File']], columns=["base_name"])
         dfc["base_name"] = df_base["base_name"]
 
@@ -438,6 +492,7 @@ class check_data():
 
         #url not supported yet in var search
         logging.info("--> check_variable() <---\n")
+        print(file)
         var_dict = file.at[0, "var"]
         param = []
         for n in range(0,len(file)):
@@ -455,7 +510,7 @@ class check_data():
         logging.info("--> check_variable_all <---\n")
         print("################ check_variable_all in check_data.py #############################")
 
-        df = pd.read_csv(f"{package_path}/data/{model}_filesandvar.csv")
+        df = pd.read_csv(f"{package_path}/data/metadata/{model}_filesandvar.csv")
         dfc = df.copy()  # df['base_name'] = [re.sub(r'_[0-9]*T[0-9]*Z.nc','', str(x)) for x in df['File']]
         drop_files = ["_vc_", "thunder", "_kf_", "_ppalgs_", "_pp_", "t2myr", "wbkz", "vtk","_preop_"]
         df_base = pd.DataFrame([re.sub(r'_[0-9]*T[0-9]*Z.nc', '', str(x)) for x in df['File']], columns=["base_name"])
@@ -515,6 +570,7 @@ class check_data():
         print("################ check_web_connection in check_data.py #############################")
 
         url_test = "https://thredds.met.no/thredds/catalog/meps25epsarchive/catalog.html"
+        
         try:
             webcheck = requests.head(url_test, timeout=5)
         except requests.exceptions.Timeout as e:
@@ -530,4 +586,3 @@ class check_data():
 
         webcheck.close()
         gc.collect()
-

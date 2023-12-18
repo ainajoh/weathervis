@@ -17,37 +17,6 @@ import cartopy.crs as ccrs  #add_point_on_map, default_map_projection
 from pyproj import Geod
 import cartopy
 
-#----------------Here is the new code for the website---------------------------
-
-def mslp_contour( x, y, MSLP, ax, scale=1):
-    '''
-    # MSLP with contour labels every 10 hPa
-    C_P = ax1.contour(x, y, MSLP, zorder=1, alpha=1.0,
-                      levels=np.arange(round(np.nanmin(MSLP), -1) - 10, round(np.nanmax(MSLP), -1) + 10, 1/scale),
-                      colors='grey', linewidths=0.5)
-    C_P = ax1.contour( x, y, MSLP, zorder=2, alpha=1.0,
-                      levels=np.arange(round(np.nanmin(MSLP), -1) - 10, round(np.nanmax(MSLP), -1) + 10, 10/scale),
-                      colors='grey', linewidths=1.0, label="MSLP [hPa]")
-    ax1.clabel(C_P, C_P.levels, inline=True, fmt="%3.0f", fontsize=10)
-    '''
-    
-    # MSLP with contour labels every 10 hPa
-    C_P = ax.contour(x, y, MSLP, zorder=10, alpha=0.6,
-                    levels=np.arange(round(np.nanmin(MSLP), -1) - 10, round(np.nanmax(MSLP), -1) + 10, 1),
-                    colors='cyan', linewidths=0.5)
-    C_P = ax.contour(x, y, MSLP, zorder=10, alpha=0.6,
-                    levels=np.arange(round(np.nanmin(MSLP), -1) - 10, round(np.nanmax(MSLP), -1) + 10, 5),
-                    colors='cyan', linewidths=1.0, label="MSLP [hPa]")
-    ax.clabel(C_P, C_P.levels, inline=True, fmt="%3.0f", fontsize=10)
-    return ax
-
-
-
-
-
-
-
-#-------------------------------------------------------------------------------
 
 def to_bool(value):
     """Convert values into bool.
@@ -153,7 +122,7 @@ def remove_pcolormesh_border(xx,yy,data):
     # ax.pcolormesh(x, y, data[ :, :])#, cmap=plt.cm.Greys_r)
     return x,y,data
 
-def nice_vprof_colorbar(CF, ax, lvl=None, ticks=None, label=None, highlight_val=None, highlight_linestyle="k--",format='%.1f', extend="both",x0=0.75,y0=0.86,width=0.26,height=0.13):
+def nice_vprof_colorbar(CF, ax, lvl=None, loc="upper center", ticks=None, label=None, highlight_val=None, highlight_linestyle="k--",format='%.1f', extend="both",x0=0.75,y0=0.86,width=0.26,height=0.13):
     """Makes a nice vertical colorbar where you can highlight specific values in which appear with a specif linestyle on the plot and colorbar
     Input:
         :param CF: colorbar : Required
@@ -176,9 +145,11 @@ def nice_vprof_colorbar(CF, ax, lvl=None, ticks=None, label=None, highlight_val=
     axins = inset_axes(ax, width='80%', height='23%',
                         bbox_to_anchor=(x0, y0, width, height),  # (x0, y0, width, height)
                         bbox_transform=ax.transAxes,
-                        loc="upper center")
+                        loc=loc)
     cbar = plt.colorbar(CF, extend=extend, cax=axins, orientation="horizontal", ticks=ticks, format=format)
-    ax.add_patch(plt.Rectangle((x0, y0), width, height, fc=[1, 1, 1, 0.7],
+    #ax.add_patch(plt.Rectangle((x0, y0), width, height, fc=[1, 1, 1, 0.7],
+    #                             transform=ax.transAxes, zorder=1000))
+    ax.add_patch(plt.Rectangle((x0, y0), width, height, fc=[1, 1, 1, 1],
                                  transform=ax.transAxes, zorder=1000))
 
     if ticks is not None:
@@ -469,7 +440,7 @@ def default_mslp_contour( x, y, MSLP, ax1, scale=1):
     ax1.clabel(C_P, C_P.levels, inline=True, fmt="%3.0f", fontsize=10)
     return ax1
 
-def nice_legend(dict, ax1,loc="best"):
+def nice_legend(dict, ax1):
     proxy = []
     lg = []
     for k in dict.keys():
@@ -478,7 +449,7 @@ def nice_legend(dict, ax1,loc="best"):
         legend =  dict[k]["legend"]
         proxy.append(plt.axhline(y=0, xmin=1, xmax=1, color=color, linestyle=linestyle))
         lg.append(legend)
-    lg = ax1.legend(proxy, lg,loc=loc)
+    lg = ax1.legend(proxy, lg)
     frame = lg.get_frame()
     frame.set_facecolor('white')
     frame.set_alpha(1)
@@ -586,10 +557,8 @@ def find_subdomains(domain_name, datetime=None, model=None, num_point=1, domain_
     dom_frame = dom_frame.drop("sum", axis=1)
     return dom_frame
 
-
-
 def plot_by_subdomains(plt_func, checkget_data_handler, datetime, steps, model, domain_name, domain_lonlat, legend, info, grid, url, point_lonlat, use_latest,
-        delta_index, coast_details=None, param=None, p_level=None, overlays=None, runid=None, point_name=None, save=False, read_from_saved=False):
+        delta_index, coast_details=None, param=None, p_level=None, overlays=None, runid=None, point_name=None):
 
     datetime_start = datetime[0] if type(datetime) is list else datetime
     domains_with_subdomains = find_subdomains(domain_name=domain_name, datetime=datetime_start, model=model,
@@ -601,7 +570,7 @@ def plot_by_subdomains(plt_func, checkget_data_handler, datetime, steps, model, 
     #exit(1)
     for domain_name in domains_with_subdomains.index.values:
         dmet, data_domain, bad_param = checkget_data_handler(p_level=p_level, model=model, step=steps, date=datetime,
-                                                             domain_name=domain_name, all_param=param, save=save,read_from_saved=read_from_saved)
+                                                             domain_name=domain_name, all_param=param)
         subdom = domains_with_subdomains.loc[domain_name]
         ii = subdom[subdom == True]
         subdom_list = list(ii.index.values)
@@ -616,7 +585,6 @@ def none_or_str(value):
     if value == 'None':
         return None
     return value
-
 
 def chunck_func_call(func= None, chunktype="steps", chunk=6, **kwargs):
     
@@ -633,8 +601,6 @@ def chunck_func_call(func= None, chunktype="steps", chunk=6, **kwargs):
                 kwargs["steps"] = list(c)
                 func(**kwargs)
     
-
-
 def point_name2point_lonlat(point_name, site_file=f"{package_path}/data/sites.csv"):
     sites = pd.read_csv(site_file, sep=";", header=0, index_col=0)
 
