@@ -557,8 +557,6 @@ def find_subdomains(domain_name, datetime=None, model=None, num_point=1, domain_
     dom_frame = dom_frame.drop("sum", axis=1)
     return dom_frame
 
-
-
 def plot_by_subdomains(plt_func, checkget_data_handler, datetime, steps, model, domain_name, domain_lonlat, legend, info, grid, url, point_lonlat, use_latest,
         delta_index, coast_details=None, param=None, p_level=None, overlays=None, runid=None, point_name=None):
 
@@ -588,7 +586,6 @@ def none_or_str(value):
         return None
     return value
 
-
 def chunck_func_call(func= None, chunktype="steps", chunk=6, **kwargs):
     
     if chunktype==None: # do not split
@@ -604,8 +601,6 @@ def chunck_func_call(func= None, chunktype="steps", chunk=6, **kwargs):
                 kwargs["steps"] = list(c)
                 func(**kwargs)
     
-
-
 def point_name2point_lonlat(point_name, site_file=f"{package_path}/data/sites.csv"):
     sites = pd.read_csv(site_file, sep=";", header=0, index_col=0)
 

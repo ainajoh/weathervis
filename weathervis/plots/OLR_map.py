@@ -65,6 +65,25 @@ def plot_OLR(datetime,dmet,figax=None, scale=1, lonlat=None, steps=[0,2], coast_
       ax1.contour(dmet.x, dmet.y,
                              dmet.SIC[itim, :, :] if len(np.shape(dmet.SIC)) == 3 else dmet.SIC[itim,0, :, :],
                              zorder=2, linewidths=2.0, colors="black", levels=[0.1, 0.5])
+      #ax1.plot(7,80,transform=ccrs.PlateCarree())
+      #AINA remove when donen ssc---v---
+      lon_blue = [7,7,7,7,7]
+      lat_blue = [84,83,82,81,80]
+      blueline = ax1.plot([7,7,7,7,7,7], [84,83,82,81,80,79], transform=ccrs.PlateCarree(),
+      color='#70B6F4', zorder=6, linewidth=10)
+
+      bluepoint = ax1.scatter(lon_blue, lat_blue, s=900, transform=ccrs.PlateCarree(),
+      color='#70B6F4', zorder=7, linestyle='-', edgecolors='k', linewidths=3, marker='s')
+      
+      lon_red = [7,7,7,7,7,7,7,7,7,7,7,7,7,7]
+      lat_red = [80,79,78,77,76,75,74,73,72,71,70,69,68,67]
+      redline = ax1.plot([7,7,7,7,7,7,7,7,7,7,7,7,7], [79,78,77,76,75,74,73,72,71,70,69,68,67], transform=ccrs.PlateCarree(),
+      color='#FD7173', zorder=6, linewidth=10)
+      
+      redpoint = ax1.scatter(lon_red, lat_red, s=900, transform=ccrs.PlateCarree(),
+      color='#FD7173', zorder=6, linestyle='-', edgecolors='k', linewidths=3, marker='s')
+       #AINA remove when donen ssc -----
+
       
       if grid:
         nicegrid(ax=ax1,color="orange")
@@ -81,7 +100,7 @@ def plot_OLR(datetime,dmet,figax=None, scale=1, lonlat=None, steps=[0,2], coast_
       else:
         pass
         #plt.show()
-      #ax1.cla()
+      ax1.cla()
       itim += 1
   del MSLP, scale, itim, legend, grid, overlays, domain_name, data, mask, x, y,nx,ny
   del make_modelrun_folder, file_path
@@ -109,4 +128,4 @@ if __name__ == "__main__":
     gc.collect()
 
 
-    #python OLR_map.py --datetime 2020031300 --steps 10 --model AromeArctic --domain_name AromeArctic --overlays point_name point_name --point_name P84 P83 P82 P81 P80 P79 P78 P77 P76 P75 P74 P73 P72 P71 P70 P69 P68 P67 
+    #python OLR_map.py --datetime 2020031000 --steps 10 --model AromeArctic --domain_name AromeArctic --overlays point_name point_name --point_name P84 P83 P82 P81 P80 P79 P78 P77 P76 P75 P74 P73 P72 P71 P70 P69 P68 P67 
