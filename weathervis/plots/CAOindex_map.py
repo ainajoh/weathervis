@@ -2,7 +2,7 @@
 # python CAO.py --datetime 2020091000 --steps 0 1 --model MEPS --domain_name West_Norway
 
 from weathervis.config import *
-from weathervis.plots.add_overlays import add_overlay
+from weathervis.plots.add_overlays_new import add_overlay
 
 from weathervis.utils import filter_values_over_mountain, default_map_projection, default_mslp_contour, plot_by_subdomains
 import cartopy.crs as ccrs
@@ -16,7 +16,6 @@ import cartopy.feature as cfeature
 #from mpl_toolkits.axes_grid1 import make_axes_locatable ##__N
 from weathervis.checkget_data_handler import *
 import gc
-from weathervis.plots.add_overlays import add_overlay
 
 # suppress matplotlib warning
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -30,8 +29,8 @@ def plot_CAO(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", mod
     scale = data_domain.scale  # scale is larger for smaller domains in order to scale it up.
     print(scale)
     MSLP = filter_values_over_mountain(dmet.surface_geopotential[:], dmet.air_pressure_at_sea_level[:]/100) #in hpa
-    pt = potential_temperatur(dmet.air_temperature_pl, dmet.pressure*100)
-    pt_sst = potential_temperatur(dmet.SST, dmet.air_pressure_at_sea_level)
+    pt = potential_temperature(dmet.air_temperature_pl, dmet.pressure*100)
+    pt_sst = potential_temperature(dmet.SST, dmet.air_pressure_at_sea_level)
     dpt_sst = pt_sst[:, :, :] - pt[:, np.where(dmet.pressure == 850)[0], :, :].squeeze()
     
     dpt_sst = CAO_index(dmet.air_temperature_pl, dmet.pressure, dmet.SST, dmet.air_pressure_at_sea_level, p_level=850).squeeze()
@@ -79,7 +78,7 @@ def plot_CAO(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", mod
         CF_prec = ax1.contourf(dmet.x, dmet.y, DELTAPT[itim,:,:], zorder=0,
                               antialiased=True, extend="max", levels=lvl, colors=C, vmin=0, vmax=12)  #
         
-        ax1.contourf(dmet.x, dmet.y, SImask[itim, :, :], zorder=1, alpha=0.5, colors='azure')
+        ax1.contourf(dmet.x, dmet.y, SImask[itim, :, :], zorder=1, alpha=1, colors='azure')
         
         ax1.contour(dmet.x, dmet.y,
                              dmet.SIC[itim, :, :] if len(np.shape(dmet.SIC)) == 3 else dmet.SIC[itim,0, :, :],
@@ -105,7 +104,9 @@ def plot_CAO(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", mod
             nicegrid(ax=ax1)
         if overlays:
             print(kwargs["point_name"])
-            add_overlay(overlays, ax=ax1,crs=crs, **kwargs)
+            kwargs["col"] = ["red","red","red","red"]
+            kwargs["size"] =80
+            add_overlay(overlays,ax=ax1, **kwargs)
         if domain_name != model and data_domain != None and domain_name !=None:
             if domain_name !=None: eval(f"data_domain.{domain_name}()") 
             ax1.set_extent(data_domain.lonlat)

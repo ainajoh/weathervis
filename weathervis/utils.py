@@ -89,7 +89,8 @@ def nicegrid(ax, xx = np.arange(-20, 80, 20),yy = np.arange(50, 90, 4), color='g
     """
     gl = ax.gridlines(draw_labels=True, linewidth=1, color=color, alpha=alpha, linestyle=linestyle,zorder=10)
     gl.xlabels_top = False
-
+    #gl.xlabels_right = False
+    gl.ylabels_right = False
     gl.xlocator = mticker.FixedLocator(xx)
     gl.ylocator = mticker.FixedLocator(yy)
     gl.xlabel_style = {'color': color}

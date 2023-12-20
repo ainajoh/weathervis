@@ -4,7 +4,9 @@ import pandas as pd
 import shapely as sh
 import numpy as np
 import cartopy.crs as ccrs
-
+import os
+import matplotlib.patheffects as PathEffects
+package_path = os.path.dirname(__file__)
 def add_overlay(types=[None], crs=ccrs,  **kwargs): #for quick on/off in default map
   print("in add_overlays")
   print(kwargs)
@@ -20,11 +22,20 @@ def add_overlay(types=[None], crs=ccrs,  **kwargs): #for quick on/off in default
     #  add_topinfotext(**kwargs)
     #  #add_topinfotext(ax, model, datetime, leadtime, plot_name="missin_name", **kwargs)
  ##red #FF8886   blue #81d4fa
-def point_on_map(ax,col=["#81d4fa", "#FF8886"],size = 1200, **kwargs):
+#def point_on_map(ax,col=["#81d4fa", "#FF8886"],size = 1200, **kwargs):
+def point_on_map(ax, **kwargs):
   print("in overlays")
+  col = kwargs["col"]
+  size = kwargs["size"]
+  annotate=kwargs["point_name"]
+  pos = ["top", "bottom", "top", "top"]
+  xytext_y = [8,-20,8,-20]
+  #print(kwargs.size)
   #import cartopy.crs as ccrs
-  sites="../data/sites.csv"
+  sites=f"{package_path}/../data/sites.csv"
   locs = pd.read_csv(sites,sep=';')
+  transform = ccrs.PlateCarree()._as_mpl_transform(ax)
+
   with ax.hold_limits():
     i_p = 0
     for pn in kwargs["point_name"]:
@@ -34,8 +45,15 @@ def point_on_map(ax,col=["#81d4fa", "#FF8886"],size = 1200, **kwargs):
       pointplot = locs[locs["Name"]==pn] #sites.loc
       print(pointplot)
       print(float(pointplot["lon"].values[0]))
-      ax.scatter(float(pointplot["lon"].values[0]),float(pointplot["lat"].values[0]),s=size,color=col[i_p],marker='s',zorder=12, transform=ccrs.PlateCarree())
+      ax.scatter(float(pointplot["lon"].values[0]),float(pointplot["lat"].values[0]),s=size,color=col[i_p],marker='o',zorder=12, transform=ccrs.PlateCarree())
+      #for i, txt in enumerate(annotate): xytext=(-60, 30), textcoords='offset points'   xytext=(3, 0), textcoords='offset points',
+      txt= ax.annotate(pn, (float(pointplot["lon"].values[0]),float(pointplot["lat"].values[0])),  xytext=(0, xytext_y[i_p]), textcoords='offset points', fontsize=17, xycoords=transform, color=col[i_p], weight='bold',zorder=100)#, ha='left', va=pos[i_p], zorder=100)
+      txt.set_path_effects([PathEffects.withStroke(linewidth=5, foreground='w')])
+
+      #ha='right', va='top'
       i_p+=1
+
+
 def add_default_mslp_contour(x, y, MSLP, ax1, scale=1):
   # MSLP with contour labels every 10 hPa
   C_P = ax1.contour(x, y, MSLP, zorder=1, alpha=1.0,

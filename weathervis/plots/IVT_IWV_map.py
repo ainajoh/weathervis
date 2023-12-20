@@ -136,7 +136,9 @@ def plot_IVT_IWV(datetime, data_domain, dmet, steps=[0,2], coast_details="auto",
             if grid:
                 nicegrid(ax=ax1)
             if overlays:
-                add_overlay(overlays,ax=ax1,col="red", **kwargs)
+                kwargs["col"] = ["red","red","red","red"]
+                kwargs["size"] =80
+                add_overlay(overlays,ax=ax1, **kwargs)
 
             print(data_domain.lonlat)  # [15.8, 16.4, 69.2, 69.4]
             if domain_name != model and data_domain != None:  #
@@ -172,16 +174,19 @@ def plot_IVT_IWV(datetime, data_domain, dmet, steps=[0,2], coast_details="auto",
             B_brc = np.broadcast_to(dp, shape)
             # Swap back the axes. As before, this only changes our "point of view".
             B_brc = np.swapaxes(B_brc, IWV.ndim-1, 0)
+            #print(B_brc)
             IWV = np.sum(IWV * B_brc,axis=0) / 9.81
             
             #CC=ax1.contourf(x,y,IWV.squeeze(),levels=[1.0,2.0,3.0,4.0,5,6,7,8,9,10,12.5,15],
                 #                colors=('#FFFFFF','#ffffd9','#e0f3b2','#97d6b9','#41b6c4',
                 #                        '#1f80b8','#24429b','#081d58','#da30da','#a520a5','#600060'),vmin=1,
                 #                vmax=15,zorder=2,extend='both') 
+            #levels=[5,6,7,8,9,10,12,14,17,20,23,26,30,40],
+
             CC=ax1.contourf(x,
                             y,
                             IWV.squeeze(),
-                            levels=[5,6,7,8,9,10,12,14,17,20,23,26,30,40],
+                            levels=[2,3,4,5,6,7,8,9,10,11,12,13,14,15],
                             colors=('#FFFFFF','#ffffd9','#e0f3b2','#97d6b9','#41b6c4',
                                     '#1f80b8','#24429b','#081d58','#fa80fa','#e550e5','#ca30ca','#a520a5','#600060'),
                             vmin=5,
@@ -210,7 +215,7 @@ def plot_IVT_IWV(datetime, data_domain, dmet, steps=[0,2], coast_details="auto",
             )
             if legend:
                 plt.colorbar(CC,cax = ax_cb, fraction=0.046, pad=0.01, aspect=25,
-                            label=r"IVT (kg m-1 s-1)")
+                            label=r"IWV")
 
                 proxy = [plt.axhline(y=0, xmin=0, xmax=0, color="gray",zorder=7)]
                 # proxy.extend(proxy1)
@@ -222,7 +227,9 @@ def plot_IVT_IWV(datetime, data_domain, dmet, steps=[0,2], coast_details="auto",
             if grid:
                 nicegrid(ax=ax1)
             if overlays:
-                add_overlay(overlays,ax=ax1,col="red", **kwargs)
+                kwargs["col"] = ["red","red","red","red"]
+                kwargs["size"] =80
+                add_overlay(overlays,ax=ax1,**kwargs)
 
             print(data_domain.lonlat)  # [15.8, 16.4, 69.2, 69.4]
             if domain_name != model and data_domain != None:  #

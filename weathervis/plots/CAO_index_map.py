@@ -30,8 +30,8 @@ def plot_CAO(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", mod
     scale = data_domain.scale  # scale is larger for smaller domains in order to scale it up.
     print(scale)
     MSLP = filter_values_over_mountain(dmet.surface_geopotential[:], dmet.air_pressure_at_sea_level[:]/100) #in hpa
-    pt = potential_temperatur(dmet.air_temperature_pl, dmet.pressure*100)
-    pt_sst = potential_temperatur(dmet.SST, dmet.air_pressure_at_sea_level)
+    pt = potential_temperature(dmet.air_temperature_pl, dmet.pressure*100)
+    pt_sst = potential_temperature(dmet.SST, dmet.air_pressure_at_sea_level)
     dpt_sst = pt_sst[:, :, :] - pt[:, np.where(dmet.pressure == 850)[0], :, :].squeeze()
     
     dpt_sst = CAO_index(dmet.air_temperature_pl, dmet.pressure, dmet.SST, dmet.air_pressure_at_sea_level, p_level=850).squeeze()

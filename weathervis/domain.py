@@ -221,6 +221,14 @@ class domain():
         self.idx = lonlat2idx(self.lonlat, self.lon, self.lat)  # RIUGHNone#[0, -1, 0, -1]  # Index; y_min,y_max,x_min,x_max such that lat[y_min] = latmin
         self.scale = find_scale(self.lonlat)
 
+    def Andrews_paper(self):
+        # self.lonlat = [-10,60,30,90] #lonmin,lonmax,latmin,latmax,
+        self.lonlat = [-18.0, 80.0, 62.0, 88.0]  # [-30,90,10,91] #lonmin,lonmax,latmin,latmax,
+        self.lonlat = [0, 24., 68., 82.5] 
+        # url = "https://thredds.met.no/thredds/dodsC/aromearcticlatest/arome_arctic_sfx_2_5km_latest.nc?latitude,longitude"
+        self.idx = lonlat2idx(self.lonlat, self.lon, self.lat)  # RIUGHNone#[0, -1, 0, -1]  # Index; y_min,y_max,x_min,x_max such that lat[y_min] = latmin
+        self.scale = find_scale(self.lonlat)
+
     def CAO_fram(self):  # map
         url = "https://thredds.met.no/thredds/dodsC/aromearcticlatest/arome_arctic_sfx_2_5km_latest.nc?latitude,longitude"
 
