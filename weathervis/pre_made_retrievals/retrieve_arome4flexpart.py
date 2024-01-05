@@ -1,4 +1,4 @@
-from weathervis.domain import *  # require netcdf4
+from weathervis.domain import * 
 from weathervis.check_data import *
 from weathervis.utils import *
 from weathervis.get_data import *
@@ -7,18 +7,10 @@ from netCDF4 import Dataset
 import os
 import datetime
 import platform
+from weathervis.checkget_data_handler import *
 
-if "cyclone.hpc.uib.no" in platform.node():
-    print("detected cyclone")
-    #outputpath="/Data/gfi/work/cat010/flexpart_arome/input/"
-    #outputpath="/Data/gfi/work/hso039/flexpart_arome/input/"
-    user = os. environ['USER'];
-    outputpath="/Data/gfi/projects/isomet/projects/ISLAS/flexpart-arome_forecast/data/{0}/input/".format(user)
-else:
-    outputpath="./"
-    print("LOCAL")
 
-def retrieve_arome4flexpart(modelruntime,steps,lvl,xres,yres,model, use_latest):
+def retrieve_arome4flexpart(outputpath, modelruntime,steps,lvl,xres,yres,model, use_latest):
     """
 Retrieves arome model data to be used as inputs for flexpart-arome
 --------------------------------------------------------------------
@@ -33,7 +25,7 @@ from arome, but in flexpart it is called "SP". So "SP" is important to keep like
     variable2d_arome = {}  # dictionary containing 2dimentional variables
     variable3d_arome = {}  # dictionary containing 3dimentional variables
     variable2d_sfx = {}    # dictionary containing specific surfex variables
-    resol = 7              # precision of number
+    resol = 7              # precision of number in decimal
 
     #INITIATING PARAMETER (e.g air_temperature_2m) INFO.
     # Check that unit and description is correct with your data
@@ -80,13 +72,13 @@ from arome, but in flexpart it is called "SP". So "SP" is important to keep like
 
     variable2d_sfx['FMU'] = {}
     variable2d_sfx['FMU']['name'] = 'USTRESS'
-    variable2d_sfx['FMU']['units'] = 'Kg.m-1.s-1'
-    variable2d_sfx['FMU']['description'] = 'Surface wind stress (u)'
+    variable2d_sfx['FMU']['units'] = 'Kg.m-1.s-2'
+    variable2d_sfx['FMU']['description'] = 'Averaged screen level zonal wind stress (u)'
     variable2d_sfx['FMU']['precision'] = resol
     variable2d_sfx['FMV'] = {}
     variable2d_sfx['FMV']['name'] = 'VSTRESS'
-    variable2d_sfx['FMV']['units'] = 'Kg.m-1.s-1'
-    variable2d_sfx['FMV']['description'] = 'Surface wind stress (v)'
+    variable2d_sfx['FMV']['units'] = 'Kg.m-1.s-2'
+    variable2d_sfx['FMV']['description'] = 'Averaged screen level meridional wind stress (v)'
     variable2d_sfx['FMV']['precision'] = resol
 
     variable3d_arome['air_temperature_ml'] = {}
@@ -100,6 +92,11 @@ from arome, but in flexpart it is called "SP". So "SP" is important to keep like
     variable3d_arome['divergence_vertical'][
         'description'] = 'Non Hydrostatic divergence of vertical velocity: D = -g(w(i) -w(i-1))'
     variable3d_arome['divergence_vertical']['precision'] = resol
+    variable3d_arome['upward_air_velocity_ml'] = {}
+    variable3d_arome['upward_air_velocity_ml']['name'] = 'W'
+    variable3d_arome['upward_air_velocity_ml']['units'] = 'm/s'
+    variable3d_arome['upward_air_velocity_ml']['description'] = 'Vertical vind model levels'
+    variable3d_arome['upward_air_velocity_ml']['precision'] = resol
     variable3d_arome['x_wind_ml'] = {}
     variable3d_arome['x_wind_ml']['name'] = 'U_X'
     variable3d_arome['x_wind_ml']['units'] = 'm/s'
@@ -110,11 +107,13 @@ from arome, but in flexpart it is called "SP". So "SP" is important to keep like
     variable3d_arome['y_wind_ml']['units'] = 'm/s'
     variable3d_arome['y_wind_ml']['description'] = 'V wind along y axis on pressure sigmal levels'
     variable3d_arome['y_wind_ml']['precision'] = resol
-    # variable3d_arome['PRESS.DEPART']={}
-    # variable3d_arome['PRESS.DEPART']['name'] = 'NH_dP'
-    # variable3d_arome['PRESS.DEPART']['units'] = 'Pa'
-    # variable3d_arome['PRESS.DEPART']['description'] = 'NH departure from pressure'
-    # variable3d_arome['PRESS.DEPART']['precision'] = 1
+    ############
+    ## variable3d_arome['PRESS.DEPART']={}
+    ## variable3d_arome['PRESS.DEPART']['name'] = 'NH_dP'
+    ## variable3d_arome['PRESS.DEPART']['units'] = 'Pa'
+    ## variable3d_arome['PRESS.DEPART']['description'] = 'NH departure from pressure'
+    ## variable3d_arome['PRESS.DEPART']['precision'] = 1
+    ##############
     variable3d_arome['specific_humidity_ml'] = {}
     variable3d_arome['specific_humidity_ml']['name'] = 'Q'
     variable3d_arome['specific_humidity_ml']['units'] = 'kg/kg'
@@ -131,57 +130,35 @@ from arome, but in flexpart it is called "SP". So "SP" is important to keep like
     variable3d_arome['cloud_area_fraction_ml']['description'] = 'cloud fraction'
     variable3d_arome['cloud_area_fraction_ml']['precision'] = 1
 
-    #START RETRIEVING MODEL DATA
-    #2dArome
-    print("retrive 2darome")
+
     param2d_arome = [*variable2d_arome.keys()]
-    print(param2d_arome)
-    print("check 2d arome")
     arome2d = check_data(date=modelruntime, model=model, param=param2d_arome, use_latest=use_latest)
-    #
-    print(arome2d)
     file_arome2d= arome2d.file
-    print(arome2d.file)
-    print(arome2d.file.loc[0,"var"])
-    print("befor retrieve arome")
-
     dmap_arome2d = get_data(model=model, file=file_arome2d, param=param2d_arome, step=steps,date=modelruntime, use_latest=use_latest)
-    print("########AFT retrieve arome")
-
-    print(dmap_arome2d.url)
     dmap_arome2d.retrieve()
-    print(dmap_arome2d.__dir__)
-    print("check 3darome")
-    # 3dArome This can be included in 2darome for timeefficency
-    param3d_arome = [*variable3d_arome.keys()]
-    arome3d = check_data(date=modelruntime, model=model, param=param3d_arome, m_level=lvl, use_latest=use_latest)
-    file_arome3d = arome3d.file
-    print("done check 3darome")
 
-    print(file_arome3d)
-    print("get 3darome")
-    dmap_arome3d = get_data(model=model, file=file_arome3d, param=param3d_arome, step=steps,
-                        date=modelruntime,  m_level=lvl, use_latest=use_latest)
-    print(dmap_arome3d.url)
-    dmap_arome3d.retrieve()
-    print(dmap_arome3d.__dir__)
+    param3d_arome = [*variable3d_arome.keys()]
+    dmap_arome3d, data_domain, bad_param = checkget_data_handler(date=modelruntime, m_level=lvl, use_latest=use_latest,
+                                                         model=model, step=steps, all_param=param3d_arome)
+    print("DONE")
+    print(bad_param)
+    for bp in bad_param:
+        param3d_arome.remove(bp)
+
     print("retrive sfxarome")
-    #2dsfx
     param2d_sfx = [*variable2d_sfx.keys()]
-    sfx2d = check_data(date=modelruntime, model=model, param=param2d_sfx, use_latest=use_latest)
-    file_sfx2d=sfx2d.file
-    dmap_sfx2d = get_data(model=model, file=file_sfx2d, param=param2d_sfx, step=steps, date=modelruntime, use_latest=use_latest)
-    dmap_sfx2d.retrieve()
+    print(param2d_sfx)
+    dmap_sfx2d, data_domain, bad_param = checkget_data_handler(date=modelruntime, use_latest=use_latest,
+		                                                             model=model, step=steps, all_param=param2d_sfx)
+    print("badparam") 
+    print(bad_param)
 
     #attr
     url = f"https://thredds.met.no/thredds/dodsC/aromearcticarchive/2020/07/01/arome_arctic_full_2_5km_20200701T18Z.nc?projection_lambert,x,y"
     dataset = Dataset(url)
     attr = {}
     proj = dataset.variables["projection_lambert"]
-    #proj=dmap_arome2d.projection_lambert
 
-    #for t in range( 0, len(dmap_arome2d.time )):
-    #for t in np.arange(np.min(steps), np.max(steps) + 1, 1):
     for tidx in np.arange(0, len(steps), 1):
         t = steps[tidx]
         print("Inside for loop")
@@ -254,6 +231,7 @@ from arome, but in flexpart it is called "SP". So "SP" is important to keep like
         vid.description = 'latitude of the center grid'
         vid[:] = dmap_arome2d.latitude[::xres,::yres]
         print(param3d_arome)
+
         for param in param3d_arome:
             vid = ncid.createVariable(variable3d_arome[param]['name'], 'f4',('level','Y','X'),zlib=True)
             vid.units = variable3d_arome[param]['units']
@@ -269,30 +247,51 @@ from arome, but in flexpart it is called "SP". So "SP" is important to keep like
             vid.units = variable2d_arome[param]['units']
             vid.description = variable2d_arome[param]['description']
             expressiondata = f"dmap_arome2d.{param}[{tidx},0,::{xres},::{yres}]"
+            print(expressiondata)
             data = eval(expressiondata)
             if param =="surface_air_pressure":
                 print(param)
                 data = np.log(data)
             vid[:] = data
+        print(param2d_sfx)
         for param in param2d_sfx:
             vid = ncid.createVariable(variable2d_sfx[param]['name'], 'f4', ('Y', 'X'), zlib=True)
             vid.units = variable2d_sfx[param]['units']
             vid.description = variable2d_sfx[param]['description']
             expressiondata = f"dmap_sfx2d.{param}[{tidx},::{xres},::{yres}]"
+            print(expressiondata)
             data = eval(expressiondata)
             vid[:] = data
+
+
         ncid.close()
     #return variable2d_arome
-def fix(modelruntime, steps=[0,64], lvl=[0,64], archive=1):
+
+
+def fix(outputpath, modelruntime, steps=[0, 64], lvl=[0, 64], archive=1):
     print(modelruntime)
-    #lt = 7
-    #lvl = [0,1]  # 64   #64 #  49..#
-    #modelruntime = "2020031100"  # Camp start 20.feb - 14.march..
+    # lt = 7
+    # lvl = [0,1]  # 64   #64 #  49..#
+    # modelruntime = "2020031100"  # Camp start 20.feb - 14.march..
+
+    if "cyclone.hpc.uib.no" in platform.node() and outputpath == None:
+        print("detected cyclone")
+        # outputpath="/Data/gfi/work/cat010/flexpart_arome/input/"
+        # outputpath="/Data/gfi/work/hso039/flexpart_arome/input/"
+        user = os.environ['USER']
+        outputpath = "/Data/gfi/projects/isomet/projects/ISLAS/flexpart-arome_forecast/data/{0}/input/".format(user)
+    elif outputpath != None:
+        outputpath = outputpath
+    else:
+        outputpath = "./"
+        print("LOCAL")
+
     model = "AromeArctic"
     xres = 1
     yres = 1
-    use_latest = False if archive==1 else True
-    variable2d = retrieve_arome4flexpart(modelruntime,steps,lvl,xres,yres,model, use_latest)
+    use_latest = False if archive == 1 else True
+    variable2d = retrieve_arome4flexpart(outputpath, modelruntime, steps, lvl, xres, yres, model, use_latest)
+
 
 if __name__ == "__main__":
   import argparse
@@ -302,6 +301,7 @@ if __name__ == "__main__":
   #parser.add_argument("--steps", default= any_int_range(["0:64:1"]), nargs="+", type=str,help=" j")
   parser.add_argument("--m_levels", default=[0,64], nargs="+", type=int,help="model level, 64 is lowest")
   parser.add_argument("--archive", default=1, type=int,help="fetch from archive if 1")
+  parser.add_argument("--outputpath", default=None, type=str,help="where to save")
 
   args = parser.parse_args()
   #steps=any_int_range(args.steps)
@@ -310,7 +310,7 @@ if __name__ == "__main__":
   print(args.m_levels)
   print(m_levels)
   #exit(1)
-  fix(args.datetime, steps, m_levels, args.archive)
+  fix(args.outputpath, args.datetime, steps, m_levels, args.archive)
 
   #datetime, step=4, model= "MEPS", domain = None
   #retrieve_arome4flexpart
