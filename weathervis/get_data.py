@@ -420,6 +420,9 @@ class get_data():
             
             
             varvar = f"dataset.variables['{prm}'][{startsub}]" ##
+            #if prm=="y_wind_ml":
+                #print(varvar)
+                #exit(1)
             varvar = eval(varvar)
             dimlist = np.array(list(file["var"][prm]["dim"]))  # ('time', 'pressure', 'ensemble_member', 'y', 'x')
 

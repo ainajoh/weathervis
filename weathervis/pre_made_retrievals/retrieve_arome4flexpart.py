@@ -136,10 +136,14 @@ from arome, but in flexpart it is called "SP". So "SP" is important to keep like
     file_arome2d= arome2d.file
     dmap_arome2d = get_data(model=model, file=file_arome2d, param=param2d_arome, step=steps,date=modelruntime, use_latest=use_latest)
     dmap_arome2d.retrieve()
-
+    print("2d done nicely")
+   
     param3d_arome = [*variable3d_arome.keys()]
+    print(param3d_arome)
     dmap_arome3d, data_domain, bad_param = checkget_data_handler(date=modelruntime, m_level=lvl, use_latest=use_latest,
                                                          model=model, step=steps, all_param=param3d_arome)
+    print("3d done nicely")
+    exit(1)
     print("DONE")
     print(bad_param)
     for bp in bad_param:
