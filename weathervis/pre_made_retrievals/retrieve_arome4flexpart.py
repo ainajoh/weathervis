@@ -143,7 +143,7 @@ from arome, but in flexpart it is called "SP". So "SP" is important to keep like
     dmap_arome3d, data_domain, bad_param = checkget_data_handler(date=modelruntime, m_level=lvl, use_latest=use_latest,
                                                          model=model, step=steps, all_param=param3d_arome)
     print("3d done nicely")
-    exit(1)
+   
     print("DONE")
     print(bad_param)
     for bp in bad_param:
