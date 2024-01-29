@@ -107,7 +107,7 @@ def plot_IVT_IWV(datetime, data_domain, dmet, steps=[0,2], coast_details="auto",
             )
             
             # coastline
-            ax1.add_feature(cfeature.GSHHSFeature(scale='intermediate'),edgecolor="black", linewidth=1)  # ‘auto’, ‘coarse’, ‘low’, ‘intermediate’, ‘high, or ‘full’ (default is ‘auto’).
+            ax1.add_feature(cfeature.GSHHSFeature(scale="high"),edgecolor="black", linewidth=1)  # ‘auto’, ‘coarse’, ‘low’, ‘intermediate’, ‘high, or ‘full’ (default is ‘auto’).
             #ax1.add_feature(cfeature.GSHHSFeature(scale=coast_details))
 
             # Done plotting, now adjusting
@@ -129,7 +129,8 @@ def plot_IVT_IWV(datetime, data_domain, dmet, steps=[0,2], coast_details="auto",
                 proxy = [plt.axhline(y=0, xmin=0, xmax=0, color="gray",zorder=7)]
                 # proxy.extend(proxy1)
                 # legend's location fixed, otherwise it takes very long to find optimal spot
-                lg = ax1.legend(proxy, ["MSLP [hPa]"],loc='upper left')
+                lg = ax1.legend(proxy, [f"MSLP (hPa)", f"Sea ice at 50%"])
+
                 frame = lg.get_frame()
                 frame.set_facecolor('white')
                 frame.set_alpha(0.8)
@@ -167,7 +168,12 @@ def plot_IVT_IWV(datetime, data_domain, dmet, steps=[0,2], coast_details="auto",
             fig1, ax1 = plt.subplots(1, 1, figsize=(7, 9), subplot_kw={"projection": crs})
 
             # calculate IWV
-            IWV=dmet.specific_humidity_ml[itim,:,:,:]
+            #SImask = np.where(dmet.SIC >= 0.5, dmet.SIC, np.NaN)
+            ax1.contour(dmet.x, dmet.y,
+                             dmet.SIC[itim, :, :] if len(np.shape(dmet.SIC)) == 3 else dmet.SIC[itim,0, :, :],
+                             zorder=2, linewidths=2.0, colors="black", levels=[0.5])  #
+
+            IWV=dmet.specific_humidity_ml[itim,:,:,:] #kg/kg
             #print(IWV[itim,100,100])
             #p(n,k,j,i) = ap(k) + b(k)*ps(n,j,i)
             shape = np.swapaxes(IWV, IWV.ndim-1, 0).shape
@@ -198,7 +204,7 @@ def plot_IVT_IWV(datetime, data_domain, dmet, steps=[0,2], coast_details="auto",
                 dmet.x, dmet.y, MSLP[itim,0, :, :], ax1, scale=scale
             )
             # coastline
-            ax1.add_feature(cfeature.GSHHSFeature(scale='intermediate'),edgecolor="black", linewidth=1)  # ‘auto’, ‘coarse’, ‘low’, ‘intermediate’, ‘high, or ‘full’ (default is ‘auto’).
+            ax1.add_feature(cfeature.GSHHSFeature(scale="high"),edgecolor="black", linewidth=1)  # ‘auto’, ‘coarse’, ‘low’, ‘intermediate’, ‘high, or ‘full’ (default is ‘auto’).
             #ax1.add_feature(cfeature.GSHHSFeature(scale=coast_details))
             
             # Done plotting, now adjusting
@@ -215,15 +221,19 @@ def plot_IVT_IWV(datetime, data_domain, dmet, steps=[0,2], coast_details="auto",
             )
             if legend:
                 plt.colorbar(CC,cax = ax_cb, fraction=0.046, pad=0.01, aspect=25,
-                            label=r"IWV")
+                            label=r'IWV ($kg/m^2$)')
 
-                proxy = [plt.axhline(y=0, xmin=0, xmax=0, color="gray",zorder=7)]
+                #proxy = [plt.axhline(y=0, xmin=0, xmax=0, color="gray",zorder=7)]
+                proxy = [plt.axhline(y=0, xmin=1, xmax=1, color="grey"),
+                         plt.axhline(y=0, xmin=1, xmax=1, color="black", linewidth=2)]
                 # proxy.extend(proxy1)
                 # legend's location fixed, otherwise it takes very long to find optimal spot
-                lg = ax1.legend(proxy, ["MSLP [hPa]"],loc='upper left')
+                lg = ax1.legend(proxy, [f"MSLP (hPa)",f"Sea ice at 50%"])
+                #lg = ax1.legend(proxy, [f"MSLP (hPa)", f"Sea ice at 50%"])
                 frame = lg.get_frame()
+                #frame.set_zorder(10)
                 frame.set_facecolor('white')
-                frame.set_alpha(0.8)
+                frame.set_alpha(1.0)
             if grid:
                 nicegrid(ax=ax1)
             if overlays:
@@ -261,7 +271,7 @@ def plot_IVT_IWV(datetime, data_domain, dmet, steps=[0,2], coast_details="auto",
     gc.collect()
 
 
-def IVT_IWV(datetime,use_latest, delta_index, coast_details, steps=0, model="MEPS", domain_name=None, domain_lonlat=None, legend=False, info=False, grid=True,
+def IVT_IWV(datetime,use_latest, delta_index, coast_details="auto", steps=0, model="MEPS", domain_name=None, domain_lonlat=None, legend=False, info=False, grid=True,
         runid=None, outpath=None, url=None, point_lonlat =None,overlays=None, point_name=None):
     param = [
         'specific_humidity_ml',
@@ -269,7 +279,8 @@ def IVT_IWV(datetime,use_latest, delta_index, coast_details, steps=0, model="MEP
         'surface_geopotential',
         'surface_air_pressure',
         'x_wind_ml',
-        'y_wind_ml'
+        'y_wind_ml',
+        "SIC"
     ]
 
     
