@@ -21,7 +21,7 @@ import gc
 warnings.filterwarnings("ignore", category=UserWarning)
 
 
-def plot_CAO(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", model=None, domain_name=None,
+def plot_CAO(datetime, data_domain, dmet, steps=[0,2], coast_details="full", model=None, domain_name=None,
              domain_lonlat=None, legend=True, info=False, grid=True,runid=None, outpath=None, url = None, save= True, overlays=None, **kwargs):
     print(kwargs["point_name"])
     #eval(f"data_domain.{domain_name}()")  # get domain info
@@ -118,7 +118,7 @@ def plot_CAO(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", mod
         
         #ax1.contour(dmet.x, dmet.y, DELTAPT[itim,:,:], zorder=0,levels=lvl, colors=C, vmin=0, vmax=14)  #
 
-        ax1.contourf(dmet.x, dmet.y, SImask[itim, :, :], zorder=1, alpha=1, colors='azure')
+        ax1.contourf(dmet.x, dmet.y, SImask[itim, :, :], zorder=0, alpha=1, colors='azure')
         
 
         ax1.contour(dmet.x, dmet.y,
@@ -128,17 +128,20 @@ def plot_CAO(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", mod
         
         if legend:
             proxy = [plt.axhline(y=0, xmin=1, xmax=1, color="grey"),
-                    plt.axhline(y=0, xmin=1, xmax=1, color="black", linewidth=4)]
+                    plt.axhline(y=0, xmin=1, xmax=1, color="black", linewidth=2)]
             try:
                 ax_cb = adjustable_colorbar_cax(fig1, ax1)
+                #plt.colorbar(CF_prec, cax=ax_cb, fraction=0.046, pad=0.01, aspect=25,
+                #            label=r"$\theta_{SST}-\theta_{850} (K)$", extend="both")
                 plt.colorbar(CF_prec, cax=ax_cb, fraction=0.046, pad=0.01, aspect=25,
-                            label=r"$\theta_{SST}-\theta_{850}$", extend="both")
+                            label=r"CAOi $(K)$", extend="both")
             except:
                 pass
             #lg = ax1.legend(proxy, [f"MSLP (hPa)", f"Sea ice at 10%, 80%, 99%"])
             lg = ax1.legend(proxy, [f"MSLP (hPa)", f"Sea ice at 50%"])
 
             frame = lg.get_frame()
+            #frame.set_zorder(10)
             frame.set_facecolor('white')
             frame.set_alpha(1)
         datetime = datetime[0]

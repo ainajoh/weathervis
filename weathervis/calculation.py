@@ -52,6 +52,41 @@ def great_circle_distance(lon1, lat1, lon2, lat2, R=6378.137):
     distance = R * c
 
     return distance 
+def richardson_bulk(potential_temperature, height, u, v):
+    b=100; ust = 0.1 #just to play with flexpart addons
+    g=9.81
+    #potential_temperature = potential_temperature.squeeze()
+    #u = u.squeeze()
+    #v = v.squeeze()
+    #height = height.squeeze()
+
+
+    pt_ref = potential_temperature[:,-1,:,:]
+    height_ref = height[:,-1,:,:]
+    u_ref = u[:,-1,:,:]
+    v_ref = v[:,-1,:,:]
+    
+    buoy =  g/pt_ref * (potential_temperature-pt_ref)* (height-height_ref) 
+    shear = (u - u_ref)**2 + (v-v_ref)**2
+    shear_addon =  b*ust**2
+    ri = buoy/shear
+    #*(height(indzp)-height(indzp-1))/ g/pt_ref * 
+    #max((uprof(indzp)-uprof(indzp-1))**2 + (vprof(indzp)-vprof(indzp-1))**2 + b*ust**2, 0.1)
+    return ri
+
+def richardson(potential_temperature, height, u, v):
+    g=9.81
+    ri = np.zeros(np.shape(potential_temperature))
+    print(len(height[0,:,0,0]))
+    print(np.shape(height))
+    for k in range(0, len( height[0,:,0,0] )-1): #remember k direction is from top to down so k=0 is top
+        #so k+1 is under k
+        buoy =  (g/potential_temperature[:,k+1,:,:]) * (potential_temperature[:,k,:,:]-potential_temperature[:,k+1,:,:])* ( height[:,k,:,:] - height[:,k+1,:,:] ) 
+        shear = ( u[:,k,:,:] - u[:,k+1,:,:])**2 + ( v[:,k,:,:] - v[:,k+1,:,:] )**2
+        ri[:,k,:,:] = buoy/shear
+    #*(height(indzp)-height(indzp-1))/ g/pt_ref * 
+    #max((uprof(indzp)-uprof(indzp-1))**2 + (vprof(indzp)-vprof(indzp-1))**2 + b*ust**2, 0.1)
+    return ri
 
 def nearest_neighbour_idx(plon,plat, longitudes, latitudes, nmin=1):
     """

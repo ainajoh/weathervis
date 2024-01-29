@@ -75,7 +75,7 @@ def adjustable_colorbar_cax(fig1,ax1, orientation="horizontal"): #,data, **kwarg
     fig1.add_axes(ax_cb)
     return ax_cb
 
-def nicegrid(ax, xx = np.arange(-20, 80, 20),yy = np.arange(50, 90, 4), color='gray', alpha=0.5, linestyle='--'):
+def nicegrid(ax, xx = np.arange(-20, 80, 20),yy = np.arange(50, 90, 4), color='gray', alpha=0.5, linestyle='--',zorder=5):
     """A function for cartopy making nice gridlines
     input:
         ax: axis for a matplotlib cartopy figure  : Required
@@ -87,7 +87,7 @@ def nicegrid(ax, xx = np.arange(-20, 80, 20),yy = np.arange(50, 90, 4), color='g
     usage:
 
     """
-    gl = ax.gridlines(draw_labels=True, linewidth=1, color=color, alpha=alpha, linestyle=linestyle,zorder=10)
+    gl = ax.gridlines(draw_labels=True, linewidth=1, color=color, alpha=alpha, linestyle=linestyle,zorder=zorder)
     gl.xlabels_top = False
     #gl.xlabels_right = False
     gl.ylabels_right = False
@@ -430,12 +430,12 @@ def filter_values_over_mountain(geop, value):
     value = np.where(geop < 3000, value, np.NaN)#.squeeze()
     return value
 
-def default_mslp_contour( x, y, MSLP, ax1, scale=1):
+def default_mslp_contour( x, y, MSLP, ax1, scale=1, zorder=1):
     # MSLP with contour labels every 10 hPa
-    C_P = ax1.contour(x, y, MSLP, zorder=1, alpha=1.0,
+    C_P = ax1.contour(x, y, MSLP, zorder=zorder, alpha=1.0,
                       levels=np.arange(round(np.nanmin(MSLP), -1) - 10, round(np.nanmax(MSLP), -1) + 10, 1/scale),
                       colors='grey', linewidths=0.5)
-    C_P = ax1.contour( x, y, MSLP, zorder=2, alpha=1.0,
+    C_P = ax1.contour( x, y, MSLP, zorder=zorder+1, alpha=1.0,
                       levels=np.arange(round(np.nanmin(MSLP), -1) - 10, round(np.nanmax(MSLP), -1) + 10, 10/scale),
                       colors='grey', linewidths=1.0, label="MSLP [hPa]")
     ax1.clabel(C_P, C_P.levels, inline=True, fmt="%3.0f", fontsize=10)
