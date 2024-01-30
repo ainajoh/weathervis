@@ -69,7 +69,19 @@ from arome, but in flexpart it is called "SP". So "SP" is important to keep like
     variable2d_arome['integral_of_surface_downward_sensible_heat_flux_wrt_time']['units'] = 'J.m-2'
     variable2d_arome['integral_of_surface_downward_sensible_heat_flux_wrt_time']['description'] = 'Cum.Sensible heat flux'
     variable2d_arome['integral_of_surface_downward_sensible_heat_flux_wrt_time']['precision'] = resol
-
+    
+    #SFX_FMUC_ISBA
+    #variable2d_sfx['FMUC_ISBA'] = {}
+    #variable2d_sfx['FMUC_ISBA']['name'] = 'USTRESS'
+    #variable2d_sfx['FMUC_ISBA']['units'] = 'Kg.m-1.s-2'
+    #variable2d_sfx['FMUC_ISBA']['description'] = 'Averaged screen level zonal wind stress (u)'
+    #variable2d_sfx['FMUC_ISBA']['precision'] = resol
+    #variable2d_sfx['FMVC_ISBA'] = {}
+    #variable2d_sfx['FMVC_ISBA']['name'] = 'VSTRESS'
+    #variable2d_sfx['FMVC_ISBA']['units'] = 'Kg.m-1.s-2'
+    #variable2d_sfx['FMVC_ISBA']['description'] = 'Averaged screen level meridional wind stress (v)'
+    #variable2d_sfx['FMVC_ISBA']['precision'] = resol
+    
     variable2d_sfx['FMU'] = {}
     variable2d_sfx['FMU']['name'] = 'USTRESS'
     variable2d_sfx['FMU']['units'] = 'Kg.m-1.s-2'
