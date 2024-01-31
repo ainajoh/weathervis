@@ -33,7 +33,7 @@ from arome, but in flexpart it is called "SP". So "SP" is important to keep like
     variable2d_arome['surface_air_pressure'] = {}                                           # _FillValue: 9.96921E36
     variable2d_arome['surface_air_pressure']['name'] = 'SP'                                 # long_name: Surface air pressure, standard_name: surface_air_pressure
     variable2d_arome['surface_air_pressure']['units'] = 'Pa'                                # units: Pa
-    variable2d_arome['surface_air_pressure']['description'] = 'log of surface pressure'
+    variable2d_arome['surface_air_pressure']['description'] ='surface pressure'  # orginal'log of surface pressure'
     variable2d_arome['surface_air_pressure']['precision'] = resol
     #OK
     #CLSTEMPERATURE in arome france
@@ -196,61 +196,62 @@ from arome, but in flexpart it is called "SP". So "SP" is important to keep like
    
 
     #UNCOMMENT IF U EVER NEED TO DEACCUMULATE SURFACE FLUX form aa instead of surfex
-    #deaccumulate = False #euther deaccumulate here or in flexpart
-    #if deaccumulate:    #handle integral_of_surface_downward_sensible_heat_flux_wrt_time to deaccumulate
-    #    print("start deaccumulating")
-    #    averaged_sensible_heat_flux=deepcopy(dmap_arome2d.integral_of_surface_downward_sensible_heat_flux_wrt_time)
-    #    variable2d_arome['averaged_sensible_heat_flux'] = {}
-    #    variable2d_arome['averaged_sensible_heat_flux']['name'] = 'SSHF'
-    #    variable2d_arome['averaged_sensible_heat_flux']['units'] = 'J.m-2.s-1'
-    #    variable2d_arome['averaged_sensible_heat_flux']['description'] = 'One hour Averaged Sensible heat flux positive upward'
-    #    variable2d_arome['averaged_sensible_heat_flux']['precision'] = resol
-    #    param2d_arome = [*variable2d_arome.keys()]
-    #
-    #    if len(steps) > 1:
-    #        if steps[0] <= 1 :
-    #            print("A")
-    #            deaccum = dmap_arome2d.integral_of_surface_downward_sensible_heat_flux_wrt_time[1:,:] -  dmap_arome2d.integral_of_surface_downward_sensible_heat_flux_wrt_time[0:-1,:]
-    #        elif steps[0] > 1:
-    #            deaccum = np.empty((np.shape(dmap_arome2d.integral_of_surface_downward_sensible_heat_flux_wrt_time)))
-    #            dmet_surf, data_domain, bad_param = checkget_data_handler(date=modelruntime, use_latest=use_latest,
-    #                                                                    model=model, step=steps[0]-1, all_param=["integral_of_surface_downward_sensible_heat_flux_wrt_time"])
-    #            deacum1= dmap_arome2d.integral_of_surface_downward_sensible_heat_flux_wrt_time[0,:] - dmet_surf.integral_of_surface_downward_sensible_heat_flux_wrt_time[0,:]
-    #            deaccum2 = dmap_arome2d.integral_of_surface_downward_sensible_heat_flux_wrt_time[1:,:] -  dmap_arome2d.integral_of_surface_downward_sensible_heat_flux_wrt_time[0:-1,:]
-    #            deaccum[0,:]  = deacum1
-    #            deaccum[1:,:] = deaccum2
-    #        else:
-    #            print("B")
-    #            deaccum = dmap_arome2d.integral_of_surface_downward_sensible_heat_flux_wrt_time[2:,:] -  dmap_arome2d.integral_of_surface_downward_sensible_heat_flux_wrt_time[1:-1,:]
-    #
-    #    elif len(steps) == 1:
-    #        if steps[0] == 1: #first hour do not need de-accumulation
-    #            print("C")
-    #            deaccum = dmap_arome2d.integral_of_surface_downward_sensible_heat_flux_wrt_time[0:,:] 
-    #            pass
-    #        elif steps[0] !=0: #ok
-    #            print("D")
-    #            deaccum = np.empty((np.shape(dmap_arome2d.integral_of_surface_downward_sensible_heat_flux_wrt_time)))
-    #            dmet_surf, data_domain, bad_param = checkget_data_handler(date=modelruntime, use_latest=use_latest,
-    #                                                                    model=model, step=steps[0]-1, all_param=["integral_of_surface_downward_sensible_heat_flux_wrt_time"])
-    #            deaccum[0,:] = dmap_arome2d.integral_of_surface_downward_sensible_heat_flux_wrt_time[0,:] -  dmet_surf.integral_of_surface_downward_sensible_heat_flux_wrt_time[0,:]
-    #        
-    #        elif steps[0] == 0: #ok
-    #            print("E")
-    #            print("ERROR: leadtime 0 not possible due to lack of accumulated sensibile heat at initial time")
-    #            exit(1)
-    #    
-    #    if steps[0] == 0 and steps[1] != 1:
-    #        averaged_sensible_heat_flux[1:] = deaccum[:]
-    #    elif steps[0] == 0 and steps[1] == 1:
-    #        averaged_sensible_heat_flux[2:] = deaccum[:]
-    #    elif steps[0] == 1:
-    #        averaged_sensible_heat_flux[1:] = deaccum[:]
-    #    else:
-    #        averaged_sensible_heat_flux[:] = deaccum[:]
-    #
-    #    dmap_arome2d.averaged_sensible_heat_flux= -averaged_sensible_heat_flux[:]/3600.
-    #
+    #NBNBNB NOT USED JUST GOOD TO HAVE IN CASE WE CHANGE THE MIND OF WHAT TO USE IN FLEXPaRT
+    deaccumulate = True #euther deaccumulate here or in flexpart
+    if deaccumulate:    #handle integral_of_surface_downward_sensible_heat_flux_wrt_time to deaccumulate
+        print("start deaccumulating")
+        averaged_sensible_heat_flux=deepcopy(dmap_arome2d.integral_of_surface_downward_sensible_heat_flux_wrt_time)
+        variable2d_arome['averaged_sensible_heat_flux'] = {}
+        variable2d_arome['averaged_sensible_heat_flux']['name'] = 'SSHF_calcAA'
+        variable2d_arome['averaged_sensible_heat_flux']['units'] = 'J.m-2.s-1'
+        variable2d_arome['averaged_sensible_heat_flux']['description'] = 'One hour Averaged Sensible heat flux positive upward'
+        variable2d_arome['averaged_sensible_heat_flux']['precision'] = resol
+        param2d_arome = [*variable2d_arome.keys()]
+    
+        if len(steps) > 1:
+            if steps[0] <= 1 :
+                print("A")
+                deaccum = dmap_arome2d.integral_of_surface_downward_sensible_heat_flux_wrt_time[1:,:] -  dmap_arome2d.integral_of_surface_downward_sensible_heat_flux_wrt_time[0:-1,:]
+            elif steps[0] > 1:
+                deaccum = np.empty((np.shape(dmap_arome2d.integral_of_surface_downward_sensible_heat_flux_wrt_time)))
+                dmet_surf, data_domain, bad_param = checkget_data_handler(date=modelruntime, use_latest=use_latest,
+                                                                        model=model, step=steps[0]-1, all_param=["integral_of_surface_downward_sensible_heat_flux_wrt_time"])
+                deacum1= dmap_arome2d.integral_of_surface_downward_sensible_heat_flux_wrt_time[0,:] - dmet_surf.integral_of_surface_downward_sensible_heat_flux_wrt_time[0,:]
+                deaccum2 = dmap_arome2d.integral_of_surface_downward_sensible_heat_flux_wrt_time[1:,:] -  dmap_arome2d.integral_of_surface_downward_sensible_heat_flux_wrt_time[0:-1,:]
+                deaccum[0,:]  = deacum1
+                deaccum[1:,:] = deaccum2
+            else:
+                print("B")
+                deaccum = dmap_arome2d.integral_of_surface_downward_sensible_heat_flux_wrt_time[2:,:] -  dmap_arome2d.integral_of_surface_downward_sensible_heat_flux_wrt_time[1:-1,:]
+    
+        elif len(steps) == 1:
+            if steps[0] == 1: #first hour do not need de-accumulation
+                print("C")
+                deaccum = dmap_arome2d.integral_of_surface_downward_sensible_heat_flux_wrt_time[0:,:] 
+                pass
+            elif steps[0] !=0: #ok
+                print("D")
+                deaccum = np.empty((np.shape(dmap_arome2d.integral_of_surface_downward_sensible_heat_flux_wrt_time)))
+                dmet_surf, data_domain, bad_param = checkget_data_handler(date=modelruntime, use_latest=use_latest,
+                                                                        model=model, step=steps[0]-1, all_param=["integral_of_surface_downward_sensible_heat_flux_wrt_time"])
+                deaccum[0,:] = dmap_arome2d.integral_of_surface_downward_sensible_heat_flux_wrt_time[0,:] -  dmet_surf.integral_of_surface_downward_sensible_heat_flux_wrt_time[0,:]
+            
+            elif steps[0] == 0: #ok
+                print("E")
+                print("ERROR: leadtime 0 not possible due to lack of accumulated sensibile heat at initial time")
+                exit(1)
+        
+        if steps[0] == 0 and steps[1] != 1:
+            averaged_sensible_heat_flux[1:] = deaccum[:]
+        elif steps[0] == 0 and steps[1] == 1:
+            averaged_sensible_heat_flux[2:] = deaccum[:]
+        elif steps[0] == 1:
+            averaged_sensible_heat_flux[1:] = deaccum[:]
+        else:
+            averaged_sensible_heat_flux[:] = deaccum[:]
+    
+        dmap_arome2d.averaged_sensible_heat_flux= -averaged_sensible_heat_flux[:]/3600.
+    
     #    #just to compare calc
     #    print(np.shape(deaccum))
     #    print(dmap_arome2d.integral_of_surface_downward_sensible_heat_flux_wrt_time[:,0,308,262])
@@ -384,7 +385,7 @@ from arome, but in flexpart it is called "SP". So "SP" is important to keep like
             data = eval(expressiondata)
             if param =="surface_air_pressure":
                 print(param)
-                data = np.log(data)
+                #data = np.log(data) Only needed if log oressure is expected
             vid[:] = data
         print(param2d_sfx)
         for param in param2d_sfx:
@@ -401,9 +402,6 @@ from arome, but in flexpart it is called "SP". So "SP" is important to keep like
 
 def fix(outputpath, modelruntime, steps=[0, 64], lvl=[0, 64], archive=1):
     print(modelruntime)
-    # lt = 7
-    # lvl = [0,1]  # 64   #64 #  49..#
-    # modelruntime = "2020031100"  # Camp start 20.feb - 14.march..
 
     if "cyclone.hpc.uib.no" in platform.node() and outputpath == None:
         print("detected cyclone")
@@ -429,7 +427,6 @@ if __name__ == "__main__":
   parser = argparse.ArgumentParser()
   parser.add_argument("--datetime", help="YYYYMMDDHH for modelrun", required=True, type=str)
   parser.add_argument("--steps", default=[0,64], nargs="+", type=int,help=" j")
-  #parser.add_argument("--steps", default= any_int_range(["0:64:1"]), nargs="+", type=str,help=" j")
   parser.add_argument("--m_levels", default=[0,64], nargs="+", type=int,help="model level, 64 is lowest")
   parser.add_argument("--archive", default=1, type=int,help="fetch from archive if 1")
   parser.add_argument("--outputpath", default=None, type=str,help="where to save")
@@ -442,12 +439,6 @@ if __name__ == "__main__":
       args.steps.remove(0)
       if not args.steps:
           exit(1)
-      
   steps = list(np.arange(args.steps[0], args.steps[-1]+1, 1)) if (len(args.steps)>1 and args.steps[0]!=args.steps[-1]) else [args.steps[0]]
   
-  print(args.m_levels)
-  print(m_levels)
-  print(args.steps)
-  print(steps)
-  #exit(1)
   fix(args.outputpath, args.datetime, steps, m_levels, args.archive)
