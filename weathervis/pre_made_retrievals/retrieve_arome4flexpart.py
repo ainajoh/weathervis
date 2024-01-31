@@ -69,8 +69,10 @@ from arome, but in flexpart it is called "SP". So "SP" is important to keep like
     variable2d_arome['integral_of_surface_downward_sensible_heat_flux_wrt_time']['units'] = 'J.m-2'
     variable2d_arome['integral_of_surface_downward_sensible_heat_flux_wrt_time']['description'] = 'Cum.Sensible heat flux'
     variable2d_arome['integral_of_surface_downward_sensible_heat_flux_wrt_time']['precision'] = resol
+
     
-    #SFX_FMUC_ISBA
+    
+    #AMJ: SFX_FMUC_ISBA THIS IS ONLY OVER LAND
     #variable2d_sfx['FMUC_ISBA'] = {}
     #variable2d_sfx['FMUC_ISBA']['name'] = 'USTRESS'
     #variable2d_sfx['FMUC_ISBA']['units'] = 'Kg.m-1.s-2'
@@ -82,6 +84,7 @@ from arome, but in flexpart it is called "SP". So "SP" is important to keep like
     #variable2d_sfx['FMVC_ISBA']['description'] = 'Averaged screen level meridional wind stress (v)'
     #variable2d_sfx['FMVC_ISBA']['precision'] = resol
     
+    #Hour averaged which is what flexpart likes
     variable2d_sfx['FMU'] = {}
     variable2d_sfx['FMU']['name'] = 'USTRESS'
     variable2d_sfx['FMU']['units'] = 'Kg.m-1.s-2'
@@ -99,16 +102,20 @@ from arome, but in flexpart it is called "SP". So "SP" is important to keep like
     variable3d_arome['air_temperature_ml']['description'] = 'temperature on pressure sigmal levels'
     variable3d_arome['air_temperature_ml']['precision'] = resol  # digit precision
     variable3d_arome['divergence_vertical'] = {}
+   
+   #divergence vetrical was used in FLEXPART-AROME original, but since we have W we use that instead... but should check effect as they are different
     variable3d_arome['divergence_vertical']['name'] = 'NH_dW'
     variable3d_arome['divergence_vertical']['units'] = 'm/s * g'
     variable3d_arome['divergence_vertical'][
         'description'] = 'Non Hydrostatic divergence of vertical velocity: D = -g(w(i) -w(i-1))'
     variable3d_arome['divergence_vertical']['precision'] = resol
+    
     variable3d_arome['upward_air_velocity_ml'] = {}
     variable3d_arome['upward_air_velocity_ml']['name'] = 'W'
     variable3d_arome['upward_air_velocity_ml']['units'] = 'm/s'
     variable3d_arome['upward_air_velocity_ml']['description'] = 'Vertical vind model levels'
     variable3d_arome['upward_air_velocity_ml']['precision'] = resol
+    
     variable3d_arome['x_wind_ml'] = {}
     variable3d_arome['x_wind_ml']['name'] = 'U_X'
     variable3d_arome['x_wind_ml']['units'] = 'm/s'
@@ -149,7 +156,71 @@ from arome, but in flexpart it is called "SP". So "SP" is important to keep like
     dmap_arome2d = get_data(model=model, file=file_arome2d, param=param2d_arome, step=steps,date=modelruntime, use_latest=use_latest)
     dmap_arome2d.retrieve()
     print("2d done nicely")
-   
+    #print(dmap_arome2d.units.time)
+    #exit(1)
+
+
+    deaccumulate = True #euther deaccumulate here or in flexpart
+    averaged_sensible_heat_flux=deepcopy(dmap_arome2d.integral_of_surface_downward_sensible_heat_flux_wrt_time)
+    #handle integral_of_surface_downward_sensible_heat_flux_wrt_time to deaccumulate
+    if deaccumulate:
+        variable2d_arome['averaged_sensible_heat_flux'] = {}
+        variable2d_arome['averaged_sensible_heat_flux']['name'] = 'SSHF'
+        variable2d_arome['averaged_sensible_heat_flux']['units'] = 'J.m-2.s-1'
+        variable2d_arome['averaged_sensible_heat_flux']['description'] = 'Sensible heat flux'
+        variable2d_arome['averaged_sensible_heat_flux']['precision'] = resol
+        param2d_arome = [*variable2d_arome.keys()]
+
+        if len(steps) > 1:
+            if steps[0] <= 1 :
+                print("A")
+                deaccum = dmap_arome2d.integral_of_surface_downward_sensible_heat_flux_wrt_time[1:,:] -  dmap_arome2d.integral_of_surface_downward_sensible_heat_flux_wrt_time[0:-1,:]
+            elif steps[0] > 1:
+                deaccum = np.empty((np.shape(dmap_arome2d.integral_of_surface_downward_sensible_heat_flux_wrt_time)))
+                dmet_surf, data_domain, bad_param = checkget_data_handler(date=modelruntime, use_latest=use_latest,
+                                                                        model=model, step=steps[0]-1, all_param=["integral_of_surface_downward_sensible_heat_flux_wrt_time"])
+                deacum1= dmap_arome2d.integral_of_surface_downward_sensible_heat_flux_wrt_time[0,:] - dmet_surf.integral_of_surface_downward_sensible_heat_flux_wrt_time[0,:]
+                deaccum2 = dmap_arome2d.integral_of_surface_downward_sensible_heat_flux_wrt_time[1:,:] -  dmap_arome2d.integral_of_surface_downward_sensible_heat_flux_wrt_time[0:-1,:]
+                deaccum[0,:]  = deacum1
+                deaccum[1:,:] = deaccum2
+            else:
+                print("B")
+                deaccum = dmap_arome2d.integral_of_surface_downward_sensible_heat_flux_wrt_time[2:,:] -  dmap_arome2d.integral_of_surface_downward_sensible_heat_flux_wrt_time[1:-1,:]
+
+        elif len(steps) == 1:
+            if steps[0] == 1: #first hour do not need de-accumulation
+                print("C")
+                deaccum = dmap_arome2d.integral_of_surface_downward_sensible_heat_flux_wrt_time[0:,:] 
+                pass
+            elif steps[0] !=0: #ok
+                print("D")
+                deaccum = np.empty((np.shape(dmap_arome2d.integral_of_surface_downward_sensible_heat_flux_wrt_time)))
+                dmet_surf, data_domain, bad_param = checkget_data_handler(date=modelruntime, use_latest=use_latest,
+                                                                        model=model, step=steps[0]-1, all_param=["integral_of_surface_downward_sensible_heat_flux_wrt_time"])
+                deaccum[0,:] = dmap_arome2d.integral_of_surface_downward_sensible_heat_flux_wrt_time[0,:] -  dmet_surf.integral_of_surface_downward_sensible_heat_flux_wrt_time[0,:]
+            
+            elif steps[0] == 0: #ok
+                print("E")
+                print("ERROR: leadtime 0 not possible due to lack of accumulated sensibile heat at initial time")
+                exit(1)
+        print(np.shape(deaccum))
+        print(dmap_arome2d.integral_of_surface_downward_sensible_heat_flux_wrt_time[:,0,308,262])
+        
+        print(deaccum[:,0,308,262])
+
+        if steps[0] == 0 and steps[1] != 1:
+            averaged_sensible_heat_flux[1:] = deaccum[:]
+        elif steps[0] == 0 and steps[1] == 1:
+            averaged_sensible_heat_flux[2:] = deaccum[:]
+        elif steps[0] == 1:
+            averaged_sensible_heat_flux[1:] = deaccum[:]
+        else:
+            averaged_sensible_heat_flux[:] = deaccum[:]
+
+        print(averaged_sensible_heat_flux[:,0,308,262])
+
+        dmap_arome2d.averaged_sensible_heat_flux= -averaged_sensible_heat_flux[:]/3600.
+        print(dmap_arome2d.averaged_sensible_heat_flux[:,0,308,262])
     param3d_arome = [*variable3d_arome.keys()]
     print(param3d_arome)
     dmap_arome3d, data_domain, bad_param = checkget_data_handler(date=modelruntime, m_level=lvl, use_latest=use_latest,
@@ -168,7 +239,8 @@ from arome, but in flexpart it is called "SP". So "SP" is important to keep like
 		                                                             model=model, step=steps, all_param=param2d_sfx)
     print("badparam") 
     print(bad_param)
-
+    
+    
     #attr
     url = f"https://thredds.met.no/thredds/dodsC/aromearcticarchive/2020/07/01/arome_arctic_full_2_5km_20200701T18Z.nc?projection_lambert,x,y"
     dataset = Dataset(url)
@@ -219,9 +291,14 @@ from arome, but in flexpart it is called "SP". So "SP" is important to keep like
 
         print("Create netcdf")
         ncid.setncatts(attr)
+        time= ncid.createDimension('time', 1)
         x = ncid.createDimension('X', len(dmap_arome2d.x[::xres]))
         y = ncid.createDimension('Y', len(dmap_arome2d.y[::yres]))
         level = ncid.createDimension('level', len(dmap_arome3d.hybrid))
+        times = ncid.createVariable('time', 'i4', ('time',)) #AMJ
+        times[:] = dmap_arome2d.time[tidx]
+        times.units = dmap_arome2d.units.time
+
         xs = ncid.createVariable('X', 'i4', ('X',))
         xs.units = 'none'
         xs[:] = range(1, len(dmap_arome2d.x[::xres]) + 1)
@@ -322,9 +399,19 @@ if __name__ == "__main__":
   args = parser.parse_args()
   #steps=any_int_range(args.steps)
   m_levels = list(np.arange(args.m_levels[0], args.m_levels[-1]+1, 1))
-  steps = list(np.arange(args.steps[0], args.steps[-1], 1))
+
+  if args.steps[0]==0: 
+      print("NB 0 ledtime can not be used due to sensibile heat not available here")
+      args.steps.remove(0)
+      if not args.steps:
+          exit(1)
+          
+  steps = list(np.arange(args.steps[0], args.steps[-1]+1, 1)) if len(args.steps)>1 else [args.steps[0]]
+  
   print(args.m_levels)
   print(m_levels)
+  print(args.steps)
+  print(steps)
   #exit(1)
   fix(args.outputpath, args.datetime, steps, m_levels, args.archive)
 
