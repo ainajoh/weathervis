@@ -321,12 +321,15 @@ from arome, but in flexpart it is called "SP". So "SP" is important to keep like
         attr['xdim'] = np.long(len(dmap_arome2d.x[::xres]))#np.long(dataset.variables["x"].getncattr("_ChunkSizes"))  # Use: None
         attr['input_lat'] = proj.getncattr("latitude_of_projection_origin")  # Use: None
         attr['reference_lat'] = proj.getncattr("latitude_of_projection_origin")
-        attr['y_resolution'] = np.double("2500.0") #np.double("2500.0")*yres   # Use: None
+        attr['y_resolution'] = np.double("2500.0") # 
         attr['date'] =  validdate.strftime("%Y%m%d") # "20180331"
         attr['input_lon'] = proj.getncattr("longitude_of_central_meridian")  # Use: None
-        
+        print(attr['input_lon'])
+        print(attr['input_lat'])
+        #exit(1)
         find_inputpos = nearest_neighbour(plat=attr['input_lat'], plon=attr['input_lon'],longitudes=dmap_arome2d.longitude, latitudes=dmap_arome2d.latitude )
-        attr['input_position'] = find_inputpos[0][0] # 359??  # Use: None
+        print(find_inputpos[0])
+        attr['input_position'] = 'none'#np.double(find_inputpos[0])#find_inputpos[0][0] # 359??  # Use: None
         attr['geoid'] = proj.getncattr("earth_radius") #6370000#6371229.0 #
         attr['center_lat'] = proj.getncattr("latitude_of_projection_origin")
 
@@ -440,5 +443,6 @@ if __name__ == "__main__":
       if not args.steps:
           exit(1)
   steps = list(np.arange(args.steps[0], args.steps[-1]+1, 1)) if (len(args.steps)>1 and args.steps[0]!=args.steps[-1]) else [args.steps[0]]
-  
+  print(steps)
+  #exit(1)
   fix(args.outputpath, args.datetime, steps, m_levels, args.archive)
