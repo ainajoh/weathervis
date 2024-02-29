@@ -63,8 +63,9 @@ class domain():
         if (file is not None and isinstance(file, pd.DataFrame) ):  #type(file)==pd.core.frame.DataFrame):
             
             self.url = file.loc[0,'url']
-        elif (file is not None):
-            
+        elif (file is not None ):
+            #print(file.latitude)
+            print(type(file))
             self.url = file.loc['url']
         elif (url is not None):
             

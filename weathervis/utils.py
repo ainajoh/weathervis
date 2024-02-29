@@ -479,9 +479,15 @@ def default_arguments():
     parser.add_argument("--overlays", default=None, nargs="+", help="Display legend", type=str)
     parser.add_argument("--chunktype", default=None,  help="eg steps", type=str)
     parser.add_argument("--chunks", default=6,  help="Display legend", type=int)
+    parser.add_argument("--save2file", default=False,  help="Display legend", type=str)
+    parser.add_argument("--read_from_saved", default=False,  help="Display legend", type=str)
+
+
 
     args = parser.parse_args()
-
+    #print(args.save2file)
+    #print(type(args.save2file))
+    #exit(1)
     global OUTPUTPATH
     if args.outpath != None:
         OUTPUTPATH = args.outpath
@@ -559,8 +565,8 @@ def find_subdomains(domain_name, datetime=None, model=None, num_point=1, domain_
     return dom_frame
 
 def plot_by_subdomains(plt_func, checkget_data_handler, datetime, steps, model, domain_name, domain_lonlat, legend, info, grid, url, point_lonlat, use_latest,
-        delta_index, coast_details=None, param=None, p_level=None, overlays=None, runid=None, point_name=None):
-
+        delta_index, coast_details=None, param=None, p_level=None, overlays=None, runid=None, point_name=None,save2file=False, read_from_saved=False,):
+ 
     datetime_start = datetime[0] if type(datetime) is list else datetime
     domains_with_subdomains = find_subdomains(domain_name=domain_name, datetime=datetime_start, model=model,
                                               domain_lonlat=domain_lonlat,
@@ -571,7 +577,8 @@ def plot_by_subdomains(plt_func, checkget_data_handler, datetime, steps, model, 
     #exit(1)
     for domain_name in domains_with_subdomains.index.values:
         dmet, data_domain, bad_param = checkget_data_handler(p_level=p_level, model=model, step=steps, date=datetime,
-                                                             domain_name=domain_name, all_param=param)
+                                                             domain_name=domain_name, all_param=param, save2file=save2file, read_from_saved=read_from_saved)
+   
         subdom = domains_with_subdomains.loc[domain_name]
         ii = subdom[subdom == True]
         subdom_list = list(ii.index.values)

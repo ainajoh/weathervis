@@ -23,10 +23,14 @@ warnings.filterwarnings("ignore", category=UserWarning)
 
 
 def plot_CAOindex_point(point, dmet, barb=True,fillbg=False, **args):
+    
     rad = (len(dmet.x)/2)*2.5
-    textinfo = f"{point.name}; cord: ({point['lat']}, {point['lon']}), radius:{rad} km"
+    #exit(1)
+    textinfo = f"{point.index}; cord: ({point['lat']}, {point['lon']}), radius:{rad} km"
     #textinfo = f"{point.index.values[0]}; cord: ({point['lat'].values[0]}, {point['lon'].values[0]}), radius:{rad} km"
     print(textinfo)
+    print("plottes")
+    #exit(1)
     CAOi = CAO_index(dmet.air_temperature_pl,dmet.pressure,dmet.SST,dmet.air_pressure_at_sea_level, p_level=850)
     CAOialleval= ( CAOi != np.nan).sum(axis=(1,2))
     CAOiabove4 = ( CAOi >= 4).sum(axis=(1,2))
@@ -105,9 +109,9 @@ def CAO(datetime,use_latest, delta_index, coast_details, steps=0, model="MEPS", 
     param= ["air_pressure_at_sea_level", "surface_geopotential", "air_temperature_pl", "SST", "SIC"]  # add later
     p_level = [850, 1000]
     domain_name= None
-    point_name=point_name[0]
+    #point_name=point_name[0]
     package_path = os.path.dirname(__file__)
-    sites = pd.read_csv(f"{package_path}/../data/sites.csv", sep=";", header=0, index_col=0)
+    sites = pd.read_csv(f"{package_path}../data/sites.csv", sep=";", header=0, index_col=0)
     point = sites.loc[point_name]
     #lonlat = [sites.loc[point_name].lon, sites.loc[point_name].lat]
     print(steps)

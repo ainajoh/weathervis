@@ -434,15 +434,16 @@ if __name__ == "__main__":
   parser.add_argument("--archive", default=1, type=int,help="fetch from archive if 1")
   parser.add_argument("--outputpath", default=None, type=str,help="where to save")
 
+  #--outputpath /Volumes/workingspace/flexpart_boundary/
   args = parser.parse_args()
   m_levels = list(np.arange(args.m_levels[0], args.m_levels[-1]+1, 1))
-
-  if args.steps[0]==0: 
-      print("NB 0 ledtime can not be used due to sensibile heat not available here")
-      args.steps.remove(0)
-      if not args.steps:
-          exit(1)
   steps = list(np.arange(args.steps[0], args.steps[-1]+1, 1)) if (len(args.steps)>1 and args.steps[0]!=args.steps[-1]) else [args.steps[0]]
+  #steps=np.array(steps)
+  if steps[0]==0: 
+      print("NB 0 ledtime can not be used due to sensibile heat not available here")
+      steps.remove(0)
+      if not steps:
+          exit(1)
   print(steps)
   #exit(1)
   fix(args.outputpath, args.datetime, steps, m_levels, args.archive)

@@ -212,7 +212,7 @@ def retrievenow(our_choice,model,step, date,fileobj,m_level,p_level, domain_name
 
     return dmet, data_domain,bad_param
 #@profile
-def checkget_data_handler(all_param, date=None, save=False, read_from_saved=False, model=None, num_point=1,step=[0], p_level= None, m_level=None, mbrs=None, domain_name=None, domain_lonlat=None, point_name=None,point_lonlat=None,use_latest=False,delta_index=None, url=None,first_run=True):
+def checkget_data_handler(all_param, date=None, save2file=False, read_from_saved=False, model=None, num_point=1,step=[0], p_level= None, m_level=None, mbrs=None, domain_name=None, domain_lonlat=None, point_name=None,point_lonlat=None,use_latest=False,delta_index=None, url=None,first_run=True):
     print("################ checkget_data_handler in checkget_data_handler.py #############################")
     #step = [step] if type(step) == int else step #isinstance(<var>, int)
     step = step.tolist() if type(step).__module__ == np.__name__ else step
@@ -221,29 +221,32 @@ def checkget_data_handler(all_param, date=None, save=False, read_from_saved=Fals
     point_lonlat = point_lonlat.tolist() if type(point_lonlat).__module__ == np.__name__ else point_lonlat
 
     print(date)
-    print(step)
-    print(point_lonlat)
-
+    
     if read_from_saved:
         dmet = read_data(read_from_saved)
+        data_domain = domain_input_handler(file = dmet, url=url, dt=date, model=model, domain_name=domain_name, domain_lonlat=domain_lonlat,
+                                           point_name=point_name, point_lonlat=point_lonlat, delta_index=delta_index, num_point=num_point)
+        #exit(1)
         return dmet, "", ""
-    
+    #print("aa")
+    #exit(1)
     if (point_name or point_lonlat) and first_run:
-        dmet,data_domain,bad_param = points_handler(all_param=all_param, date=date, save=save, 
+        
+        dmet,data_domain,bad_param = points_handler(all_param=all_param, date=date, save2file=save2file, 
                                                     read_from_saved=read_from_saved, model=model,
                                                     num_point=num_point,step=step, p_level= p_level, 
                                                     m_level=m_level, mbrs=mbrs, domain_name=domain_name,
                                                     domain_lonlat=domain_lonlat, point_name=point_name,
                                                     point_lonlat=point_lonlat,use_latest=use_latest,
                                                     delta_index=delta_index, url= url)
-        if save: 
-            save_data(dmet,data_domain,bad_param, save)  
+        if save2file: 
+            save_data(dmet,data_domain,bad_param, save2file)  
 
         return dmet,data_domain,bad_param
-
+  
     if type(date) is list:
         print("date list")
-        dmet,data_domain,bad_param = time_handler( all_param=all_param, date=date, save=save, 
+        dmet,data_domain,bad_param = time_handler( all_param=all_param, date=date, save2file=save2file, 
                                                     read_from_saved=read_from_saved, model=model,
                                                     num_point=num_point,step=step, p_level= p_level, 
                                                     m_level=m_level, mbrs=mbrs, domain_name=domain_name,
@@ -255,8 +258,8 @@ def checkget_data_handler(all_param, date=None, save=False, read_from_saved=Fals
         #    save_data(dmet,data_domain,bad_param, save)   
         # 
         if not (point_name or point_lonlat): 
-            if save: 
-                save_data(dmet,data_domain,bad_param, save)
+            if save2file: 
+                save_data(dmet,data_domain,bad_param, save2file)
         return dmet,data_domain,bad_param
 
     #exit(1)
@@ -311,10 +314,10 @@ def checkget_data_handler(all_param, date=None, save=False, read_from_saved=Fals
 def make_dimdict(dmet):
     pass
 
-def save_data(dmet,data_domain,bad_param, save="Buffer.nc"):
+def save_data(dmet,data_domain,bad_param, save2file="Buffer.nc"):
     print("in save_data")
     #print(dmet.param)#print(dir(dmet.dim))#print(vars(dmet.attr))
-    file =save
+    file =save2file
     ncid = Dataset(file, 'w')
 
     #print(vars(dmet).keys())
@@ -386,9 +389,9 @@ def read_data(read_from_saved="Buffer.nc"):
     print("in read data")
     file=read_from_saved
     data = Dataset(file,"a")
-
+    
     print(data)
-    #exit(1)
+    
     dmet = dummyobject()
     dmet.units=dummyobject()
     dmet.dim=dummyobject()    
@@ -406,6 +409,7 @@ def read_data(read_from_saved="Buffer.nc"):
 
     print(dir(dmet))
     print(dir(dmet.__getattribute__))
+    
     #data_domain = domain(dt, dmet.model, file=file, use_latest=dmet.use_latest,delta_index=dmet.delta_index, url=url, num_point=num_point)
     return dmet
 
