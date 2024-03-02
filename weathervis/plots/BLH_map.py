@@ -173,7 +173,7 @@ def plot_BLH(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", mod
 
 
 def BLH(datetime,use_latest, delta_index, coast_details, steps=0, model="MEPS", domain_name=None, domain_lonlat=None, legend=False, info=False, grid=True,
-        runid=None, outpath=None, url=None, point_lonlat =None,overlays=None, point_name=None):
+        runid=None, outpath=None, url=None, point_lonlat =None,overlays=None, point_name=None, save2file=False, read_from_saved=False)
     param = [
         "air_pressure_at_sea_level",
         "surface_geopotential",
@@ -185,7 +185,7 @@ def BLH(datetime,use_latest, delta_index, coast_details, steps=0, model="MEPS", 
     
     plot_by_subdomains(plot_BLH,checkget_data_handler, datetime, steps, model, domain_name, domain_lonlat, legend,
                        info, grid, url, point_lonlat, use_latest,
-                       delta_index, coast_details, param, p_level,overlays, runid, point_name)
+                       delta_index, coast_details, param, p_level,overlays, runid, point_name, save2file=save2file,read_from_saved=read_from_saved)
 
 
 if __name__ == "__main__":
@@ -196,5 +196,5 @@ if __name__ == "__main__":
             func=BLH,chunktype= args.chunktype, chunk=args.chunks, datetime=args.datetime, steps=args.steps, model=args.model,
             domain_name=args.domain_name, domain_lonlat=args.domain_lonlat, legend=args.legend, info=args.info, grid=args.grid, runid=args.id,
             outpath=args.outpath, use_latest=args.use_latest,delta_index=args.delta_index, coast_details=args.coast_details, url=args.url,
-            point_lonlat =args.point_lonlat, overlays= args.overlays, point_name=args.point_name)
+            point_lonlat =args.point_lonlat, overlays= args.overlays, point_name=args.point_name,save2file=args.save2file, read_from_saved=args.read_from_saved)
     gc.collect()

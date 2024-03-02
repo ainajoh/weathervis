@@ -363,9 +363,11 @@ from arome, but in flexpart it is called "SP". So "SP" is important to keep like
 
         vid = ncid.createVariable('LON', 'f4', ('Y', 'X'), zlib=True)
         vid.description = 'longitude of the center grid'
+        vid.units="degrees_east"  #georeferenced
         vid[:] = dmap_arome2d.longitude[::xres,::yres]
         vid = ncid.createVariable('LAT', 'f4', ('Y', 'X'), zlib=True)
         vid.description = 'latitude of the center grid'
+        vid.units="degrees_north" #georeferenced
         vid[:] = dmap_arome2d.latitude[::xres,::yres]
         print(param3d_arome)
 
