@@ -12,7 +12,7 @@ from weathervis.domain import *  # require netcdf4
 import re
 import pkgutil
 import ast
-
+import xarray as xr
 """
 ###################################################################
 This module gets the data defined by the user 
@@ -443,8 +443,140 @@ class get_data():
         dataset.close()
         iteration += 1
 
+    def thredds_xarray(self, url, file, savefile=True, load=False):
+        """
+        Retrieves the data from thredds and set it as attributes to the global object.
+        Parameters
+        ----------
+        url:
+        file
+        Returns
+        -------
+        """
+        logging.info("-------> start retrieve from thredds")
+        print("################ thredds in get_data.py #############################")
+        print(url)
+        #dataset = Dataset(url)
+        dataset = xr.open_dataset(url, engine='netcdf4')
+        self.dataset=dataset
+        return
+        self.indexidct = dict.fromkeys(self.indexidct, ":")  #reset the index dictionary
+        #print(dataset)
+        print(dataset.attrs.keys())
+        print("st loop")
+        for k in dataset.attrs.keys(): #info of the file
+            print(k)
+            ss = f"{k}"
+            self.__dict__[ss] = dataset.attrs[k]
+        print("e loop")
+        
+        logging.info("-------> Getting variable: ")
+        iteration =-1
+        iindx = self.idx[1] # 218 219 218]
+        jindx = self.idx[0] 
+        point = [(x,y) for x,y in zip(iindx,jindx)]
+        point2 = [(x, y) for x in np.arange(min(iindx),max(iindx)+1) for y in np.arange(min(jindx),max(jindx)+1)]
+        main_list = list(set(point2) - set(point)) 
+
+        for prm in self.param:
+            iteration += 1
+            logging.info(prm)
+            dimlist = list(file["var"][prm]["dim"])  # List of the variables the param depends on ('time', 'pressure', 'ensemble_member', 'y', 'x')
+            pressure_dim = list(filter(re.compile(f'press*').match, dimlist))
+            model_dim = list(filter(re.compile(f'.*hybrid*').match, dimlist))
+            x_dim = list(filter(re.compile(f'x*').match, dimlist))
+
+            #height_dim = list(filter(re.compile(f'.*height*').match, dimlist))
+            #mbrs_dim = list(filter(re.compile(f'.*ensemble*').match, dimlist))
+
+            startsub = ":" #retrieve everything if startsub = :
+            t_arr = np.arange(0,int(self.file["dim"]["time"]["shape"]))
+            idx = np.where(t_arr[:, None] == np.array(self.step)[None, :])[0]
+            idx = ",".join([str(i) for i in idx - idx[0]])
+            idx = '[{:}]'.format(idx)
+            self.indexidct["time"] = ''.join(str(idx))
+            newlist1 = [self.indexidct[i] for i in dimlist]
+            startsub = ','.join(newlist1) if newlist1 else ":"
+            if pressure_dim:
+                if self.p_level is None:
+                    pass
+                idx = np.where(np.array(self.file["p_levels"][pressure_dim[0]])[:,None]==np.array(self.p_level)[None,:])[0]
+                idx = ",".join([str(i) for i in idx -idx[0]])
+                idx = '[{:}]'.format(idx)
+                self.indexidct[pressure_dim[0]] = ''.join(str(idx))
+                newlist1 = [self.indexidct[i] for i in dimlist]  # convert dependent variable name to our set values. E.g: time = step = [0:1:0]
+                startsub = ','.join(newlist1)  # example: ('time', 'pressure','ensemble_member','y','x') = [0:1:0][0:1:1][0:1:10][0:1:798][0:1:978]
+            elif model_dim:
+                lev_num = np.arange(0,len(self.file["m_levels"][model_dim[0]]))
+                if self.m_level is None:
+                    self.m_level = lev_num
+                idx = \
+                np.where(np.array(lev_num)[:, None] == np.array(self.m_level)[None, :])[0]
+                idx = ",".join([str(i) for i in idx - idx[0]])
+                idx = '[{:}]'.format(idx)
+                self.indexidct[model_dim[0]] = ''.join(str(idx))
+                newlist1 = [self.indexidct[i] for i in
+                            dimlist]  # convert dependent variable name to our set values. E.g: time = step = [0:1:0]
+                startsub = ','.join(newlist1)  # ex
+            #dimlist
+            self.dim.__dict__[prm] = dimlist
+            print(dataset.variables[prm].attrs.keys())
+            #exit(1)
+            if "units" in dataset.variables[prm].attrs.keys():
+                self.units.__dict__[prm] = dataset.variables[prm].attrs["units"]
+            
+            if "_FillValue" in dataset.variables[prm].attrs.keys():
+                self.FillValue.__dict__[prm] = int(dataset.variables[prm].attrs["_FillValue"])
+            else:
+                self.FillValue.__dict__[prm] = np.nan
+            if prm == "projection_lambert":
+                for k in dataset.variables[prm].attrs.keys():
+                    ss = f"{k}_{prm}"
+                    self.__dict__[ss] = dataset.variables[prm].attrs[k]
+                    self.attr.__dict__[ss] = dataset.variables[prm].attrs[k] #wish this takes over, and delete the one above at one point
+                    #if ss not in self.param: 
+                    #    self.param = np.append(self.param, ss)
+            
+            
+
+            varvar = f"dataset.variables['{prm}'][{startsub}]" ##
+            #if prm=="y_wind_ml":
+                #print(varvar)
+                #exit(1)
+            print("here")
+            print(varvar)
+            
+            varvar = eval(varvar)
+            varvar = varvar.values
+            
+
+            dimlist = np.array(list(file["var"][prm]["dim"]))  # ('time', 'pressure', 'ensemble_member', 'y', 'x')
+            
+            if not self.mbrs_bool and any(np.isin(dimlist, "ensemble_member")):#"ensemble_member" in dimlist:
+                indxmember = np.where(dimlist == "ensemble_member")[0][0]
+                varvar = dataset.variables[prm][:].squeeze(axis=indxmember)
+            if x_dim:
+                pass
+                #print(prm)
+                #Todo: remove unwanted indeices that is in main_list. When we ask for 3 gridpoint it gives 4 due to retrieving min to max, so retrieving odd values gives one more than intended. But also asking for 300 gives 400 values so probably this bug increses. 
+                #for x,y in main_list:
+                #    #varrem = f"dataset.variables['{prm}'][{startsub}]" ##
+                    
+            
+            print("here2")
+            #exit(1)
+
+
+            self.__dict__[prm] = varvar
+            print("done")
+        print("bf close")
+        dataset.close()
+        iteration += 1
+
     def retrieve(self):
         #self.url = self.make_url()
+        #self.thredds_xarray(self.url, self.file)
         self.thredds(self.url, self.file)
+
 
     class dummyobject(object):pass

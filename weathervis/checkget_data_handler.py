@@ -151,7 +151,8 @@ def retrievenow(our_choice,model,step, date,fileobj,m_level,p_level, domain_name
     ourparam = [k for k, v in combo.items() if v == ourfilename]
 
     dmet = get_data(model=model, param=ourparam, file=ourfileobj, step=step, date=date, m_level=m_level, p_level=p_level, data_domain=data_domain, use_latest=use_latest)
-
+    #print(dmet)
+    #exit(1)
     dmet.retrieve()
 
     for i in range(1,len(our_choice.file)):

@@ -173,7 +173,7 @@ def plot_BLH(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", mod
 
 
 def BLH(datetime,use_latest, delta_index, coast_details, steps=0, model="MEPS", domain_name=None, domain_lonlat=None, legend=False, info=False, grid=True,
-        runid=None, outpath=None, url=None, point_lonlat =None,overlays=None, point_name=None, save2file=False, read_from_saved=False)
+        runid=None, outpath=None, url=None, point_lonlat =None,overlays=None, point_name=None, save2file=False, read_from_saved=False):
     param = [
         "air_pressure_at_sea_level",
         "surface_geopotential",
