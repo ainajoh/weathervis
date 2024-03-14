@@ -94,8 +94,8 @@ def plot_map(cross, dmet, data_domain, kwargs):
     plot_OLR(figax=[fig1,ax1], model = kwargs.model, datetime= kwargs.datetime,dmet=dmet,scale=scale,steps=kwargs.steps,lonlat=dmet.lonlat, save=False)
     ax1.scatter(cross.longitude, cross.latitude,transform=ccrs.PlateCarree(), marker = "o", color="blue",  edgecolor="blue", zorder=3 )    
 
-    #ax1.add_feature(cfeature.GSHHSFeature(scale="auto"))
-    #ax1.set_extent(lonlat)
+    ax1.add_feature(cfeature.GSHHSFeature(scale="auto"))
+    ax1.set_extent(dmet.lonlat)
     plt.show()
 def plot_Vertical_cross_section(cross):
     """Use less"""
@@ -162,10 +162,10 @@ def plot_Vertical_cross_section(cross):
     #pc = ax.pcolormesh(x_ax, cross.pressure, cross.turbulent_kinetic_energy_ml, cmap="Reds", shading='nearest', zorder=1)#,norm=norm)
     print(np.shape(cross.ri))
     #pc = ax.pcolormesh(x_ax, cross.pressure, cross.turbulent_kinetic_energy_ml, cmap="Reds", shading='nearest', zorder=1)#,norm=norm)
-    norm = matplotlib.colors.Normalize(vmin=-500, vmax=500)
+    #norm = matplotlib.colors.Normalize(vmin=-500, vmax=500)
     lvl = [0.25, 0, -0.25, 0.5, 0.75, 1, 1.25, 1.5]
     pc = ax.pcolormesh(x_ax, cross.pressure, cross.ri,vmax=0.25, vmin=-5,shading='nearest', zorder=1, cmap="cool")#,norm=norm)
-    pc.cmap.set_over('gray')
+    #pc.cmap.set_over('gray')
     ax.text(78, 2150, 'Boundary Layer Height',fontsize=15, rotation=10)
 
     CS = ax.contour(x_ax, cross.pressure, cross.pt, colors="k",levels = 12)
@@ -176,36 +176,6 @@ def plot_Vertical_cross_section(cross):
     print( cross.atmosphere_boundary_layer_thickness )
     PBLH = ax.plot(x[-1, :], cross.atmosphere_boundary_layer_thickness, linewidth=5, color="k")
     
-    minCAF = np.zeros(np.shape(cross.cloud_area_fraction_ml))
-    xx, yy = np.where(cross.cloud_area_fraction_ml < 0.5)
-    minCAF[xx, yy] = 1
-    xx, yy = np.where(cross.cloud_area_fraction_ml < 0.01)
-    minCAF[xx, yy] = 0
-    xx, yy = np.where(cross.cloud_area_fraction_ml > 0.5)
-    minCAF[xx, yy] = 2
-    minCAF[np.where(minCAF == 0)] = np.nan
-    #maxCAF = np.zeros(np.shape(cross.CAF))
-    #xx, yy = np.where(cross.cloud_area_fraction_ml > 0.5)
-    #maxCAF[xx, yy] = 1
-    #maxCAF[np.where(maxCAF == 0)] = np.nan
-    #CAF = ax.contour(x_ax, cross.pressure, cross.cloud_area_fraction_ml, colors="white", vmin=0.001 )
-
-    #CAF = ax.contourf(x_ax,cross.pressure, minCAF, colors="none", hatches=["--", "---"])
-    # ax2.contourf(x, zi, minCAF, colors="none", hatches=["--", "---"])
-    #for i, collection in enumerate(CAF.collections):
-    #    collection.set_edgecolor("white")
-
-    #artists, labels = CAF.legend_elements(str_format="{:2.1f}".format)
-    #ax.legend(
-    #            artists,
-    #            ["1-50% Cloud cover", "50-100% Cloud cover"],
-    #            handleheight=2,
-    ##            framealpha=1.0,
-    #            loc="upper left",
-    #            fontsize=14,
-    #        )
-    #
-    #ax.set_ylim([0, 5000])
     plt.gca().invert_xaxis()
     cbar_ri=plt.colorbar(pc)
     cbar_ri.set_label('Richardson #',fontsize=15)
@@ -224,8 +194,8 @@ def plot_Vertical_cross_section(cross):
     tb = ax2.pcolormesh(x_ax, cross.pressure, cross.turbulent_kinetic_energy_ml, cmap="Reds", shading='nearest', zorder=1)#,norm=norm)
     PBLH = ax2.plot(x[-1, :], cross.atmosphere_boundary_layer_thickness, linewidth=5, color="k")
     
-    #CS = ax2.contour(x_ax,cross.pressure, cross.pt, colors="white",levels = 12)
-    #ax2.clabel(CS, CS.levels, inline=True,fontsize=10)
+    #CS = ax2.contour(x_ax,cross.pressure, cross.cloud_area_fraction_ml, colors="white",levels = 12)
+    #ax2.clabel(CS, CS.levels, inline=True,fontsize=10)  #cloud_area_fraction_ml
 
     plt.gca().invert_xaxis()
     cbar_tke= plt.colorbar(tb)
@@ -251,7 +221,65 @@ def plot_Vertical_cross_section(cross):
                 dpi=300,
             )
     
-    #cbar_tke.set_label('Ri')
+    ##################################################################################
+
+    fig3, ax3 = plt.subplots(figsize=(14, 6))    
+    #pc3 = ax3.pcolormesh(x_ax, cross.pressure, cross.ri, vmax=20, vmin=-20, shading='nearest', zorder=1, cmap="PiYG")#,norm=norm)
+    # norm=matplotlib.colors.LogNorm()
+    pc3 = ax3.pcolormesh(x_ax, cross.pressure, cross.ri, vmax=20, vmin=-20, norm=matplotlib.colors.LogNorm(),shading='nearest', zorder=1, cmap="PiYG")#,norm=norm)
+
+    CS = ax3.contour(x_ax, cross.pressure, cross.pt, colors="k",levels = 12)
+    fmt = matplotlib.ticker.StrMethodFormatter(r"$\theta=${x:,g}")  #fmt=r'$\theta=$%1.0f'
+    ax3.clabel(CS, CS.levels, inline=False,fontsize=10, fmt=fmt)
+    
+    PBLH = ax3.plot(x[-1, :], cross.atmosphere_boundary_layer_thickness, linewidth=5, color="k")
+    ax3.text(78, 2150, 'Boundary Layer Height',fontsize=15, rotation=10)
+
+    plt.gca().invert_xaxis()
+    cbar_ri2=plt.colorbar(pc3, extend="both")
+    cbar_ri2.set_label('Richardson #',fontsize=15)
+    ax3.set_ylabel("Height [m]")
+    ax3.set_xlabel("Latitudes")
+
+    ax3.add_patch(Rectangle((79.5, -650), 4.5, 300, color='#70B6F4', alpha=0.8, clip_on=False)) #blue
+    ax3.add_patch(Rectangle((66.9, -650), 12.6, 300, color='#FD7173', alpha=0.8, clip_on=False)) #red
+    plt.savefig("Ri3.png",
+                bbox_inches="tight",
+                dpi=300,
+            )
+##################################################################################
+    fig4, ax4 = plt.subplots(figsize=(14, 6))
+
+    CS = ax4.contour(x_ax, cross.pressure, cross.pt, colors="k",levels = 12)
+    fmt = matplotlib.ticker.StrMethodFormatter(r"$\theta=${x:,g}")  #fmt=r'$\theta=$%1.0f'
+    ax4.clabel(CS, CS.levels, inline=False,fontsize=10, fmt=fmt)
+
+    tb = ax4.pcolormesh(x_ax, cross.pressure, cross.turbulent_kinetic_energy_ml, cmap="Reds", shading='nearest', zorder=1)#,norm=norm)
+    
+    PBLH = ax4.plot(x[-1, :], cross.atmosphere_boundary_layer_thickness, linewidth=5, color="k")
+    ax4.text(78, 2150, 'Boundary Layer Height',fontsize=15, rotation=10)
+
+    lvl = [0]
+    pc = ax4.contour(x_ax, cross.pressure, cross.ri, levels=lvl, shading='nearest', zorder=1, colors=["green"], linewidths=5,)#,norm=norm) #colors="white
+    ax4.text(76, 750, 'Ri=0',fontsize=15, rotation=10, color="green")
+
+    plt.gca().invert_xaxis()
+    cbar_tke= plt.colorbar(tb)
+    cbar_tke.set_label(r'Turbulent Kinetic Energy $[m^2⋅s^{-2}]$',fontsize=15)
+    cbar_tke.ax.tick_params(labelsize=15)
+    ax4.set_ylabel("Height [m]")
+    ax4.set_xlabel("Latitudes")
+
+    ax4.add_patch(Rectangle((79.5, -650), 4.5, 300, color='#70B6F4', alpha=0.8, clip_on=False)) #blue
+    ax4.add_patch(Rectangle((66.9, -650), 12.6, 300, color='#FD7173', alpha=0.8, clip_on=False)) #red
+
+    plt.savefig("TKE4.png",
+                bbox_inches="tight",
+                dpi=300,
+            )
+##################################################################################
+    #fig5, ax5 = plt.subplots(figsize=(14, 6))
+
 
 
     #plt.show()
@@ -261,11 +289,12 @@ def Vertical_cross_section(kwargs, point_time_file=None):
     """
     #param = ["air_temperature_ml","surface_geopotential","surface_air_pressure","specific_humidity_ml",
     #         "air_pressure_at_sea_level","x_wind_ml","y_wind_ml", "SST", "turbulent_kinetic_energy_ml"]
-    param = ["cloud_area_fraction_ml", "air_temperature_ml","surface_geopotential","surface_air_pressure","specific_humidity_ml","turbulent_kinetic_energy_ml","atmosphere_boundary_layer_thickness", "y_wind_ml", "x_wind_ml"]
+    param = ["SIC","toa_outgoing_longwave_flux","air_pressure_at_sea_level","SST","cloud_area_fraction_ml", "air_temperature_ml","surface_geopotential","surface_air_pressure","specific_humidity_ml","turbulent_kinetic_energy_ml","atmosphere_boundary_layer_thickness", "y_wind_ml", "x_wind_ml"]
     #param.extend(OLR_map.param) #get more parameters that was used in the OLR.map 
     param = list(set(param))
     kwargs.m_level = np.arange(20, 64, 1)
 
+    print(kwargs.point_name)
     line_endpoints = ("ice_cross", "end_cross") #or kwargs.point_name 
     line = tuple(point_name2point_lonlat(line_endpoints))  #has to be on the form ((lon,lat),(lon,lat)), so a tuple. Would be nice to include many poinst here..?
     kwargs.point_name = None; kwargs.point_lonlat = None   #We want to retrieve the entire model
@@ -282,8 +311,8 @@ def Vertical_cross_section(kwargs, point_time_file=None):
         kwargs,join_pt = move_cross_with_the_flow_or_observation(kwargs, line, nbre, speed=30, tbra=1 )
    
     #########follow airmass###########
-    #kwargs = pre_defined_points_retrieved(line, kwargs): "allwind_A202003100600.nc"          # If u want to retrieve only the points NB: Avoid if u have many points > 20
-    dmet, data_domain, bad_param = checkget_data_handler(all_param=param,save="SSC_23.nc",read_from_saved="SSC_23.nc",#"TKE_A2020031000+07.nc",#"wind_A2020031000+6.nc", #"buffer_newM.nc", 
+    #kwargs = pre_defined_points_retrieved(line, kwargs): "allwind_A202003100600.nc"    "SSC_23.nc       # If u want to retrieve only the points NB: Avoid if u have many points > 20
+    dmet, data_domain, bad_param = checkget_data_handler(all_param=param,save=False,read_from_saved="paper1cross_line.nc",#"TKE_A2020031000+07.nc",#"wind_A2020031000+6.nc", #"buffer_newM.nc", 
                                                         model=kwargs.model,  date=kwargs.datetime,
                                                         step=kwargs.steps,   m_level=kwargs.m_level,
                                                         point_name=kwargs.point_name, 
@@ -362,7 +391,7 @@ def Vertical_cross_section(kwargs, point_time_file=None):
             setattr(cross,k, p_array)
     
     plot_Vertical_cross_section(cross)
-    #plot_map(cross, dmet, data_domain, kwargs)
+    plot_map(cross, dmet, data_domain, kwargs)
 
 
 
