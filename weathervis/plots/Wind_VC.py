@@ -124,11 +124,12 @@ def plot_Vertical_cross_section(cross):
     mi = 230#np.min((cross.air_temperature_ml[cross.z < 5000].min()))
     ma = 280#np.max((cross.air_temperature_ml[cross.z < 5000].max()))
     norm = matplotlib.colors.Normalize(vmin=mi, vmax=ma)
-    cross.pressure = cross.pressure.squeeze()
+    cross.pressure = cross.pressure.squeeze()#,1000)#/1000 #m to km
     cross.z = cross.z.squeeze()
 
     cross.air_temperature_ml = cross.air_temperature_ml.squeeze()
     cross.turbulent_kinetic_energy_ml = cross.turbulent_kinetic_energy_ml.squeeze()
+    #cross.atmosphere_boundary_layer_thickness = np.divide(cross.atmosphere_boundary_layer_thickness,1000)#/1000 ##m to km
 
     #print(np.shape(cross.air_temperature_ml))
     #print(np.shape(cross.pressure))
@@ -179,11 +180,16 @@ def plot_Vertical_cross_section(cross):
     plt.gca().invert_xaxis()
     cbar_ri=plt.colorbar(pc)
     cbar_ri.set_label('Richardson #',fontsize=15)
-    ax.set_ylabel("Height [m]")
+    #ax.set_ylabel("Height [m]")
+    ax.set_ylabel("Height / km")
     ax.set_xlabel("Latitudes")
     
     ax.add_patch(Rectangle((79.5, -650), 4.5, 300, color='#70B6F4', alpha=0.8, clip_on=False)) #blue
-    ax.add_patch(Rectangle((66.9, -650), 12.6, 300, color='#FD7173', alpha=0.8, clip_on=False)) #red
+    ax.add_patch(Rectangle((68.9, -650), 10.6, 300, color='#FD7173', alpha=0.8, clip_on=False)) #red
+
+    ax.set_yticks(np.arange(0,6000,1000))
+    ax.set_yticklabels(np.arange(0,6,1))
+
     plt.savefig("Ri.png",
                 bbox_inches="tight",
                 dpi=300,
@@ -201,7 +207,7 @@ def plot_Vertical_cross_section(cross):
     cbar_tke= plt.colorbar(tb)
     cbar_tke.set_label(r'Turbulent Kinetic Energy $[m^2⋅s^{-2}]$',fontsize=15)
     cbar_tke.ax.tick_params(labelsize=15)
-    ax2.set_ylabel("Height [m]")
+    ax2.set_ylabel("Height / km")
     ax2.set_xlabel("Latitudes")
     #plt.savefig("TKE.svg")
     ax2.text(78, 2150, 'Boundary Layer Height',fontsize=15, rotation=10)
@@ -213,9 +219,11 @@ def plot_Vertical_cross_section(cross):
     #ax2.add_patch(Rectangle((-0.2, -0.35), 11.2, 0.7, color='C1', alpha=0.8)) 500
 
     ax2.add_patch(Rectangle((79.5, -650), 4.5, 300, color='#70B6F4', alpha=0.8, clip_on=False)) #blue
-    ax2.add_patch(Rectangle((66.9, -650), 12.6, 300, color='#FD7173', alpha=0.8, clip_on=False)) #red
+    ax2.add_patch(Rectangle((68.9, -650), 10.6, 300, color='#FD7173', alpha=0.8, clip_on=False)) #red
     #ax2.add_patch(Rectangle((70, 80), 500, 1000, color='r', alpha=0.8))
     #70B6F4   #FD7173
+    ax2.set_yticks(np.arange(0,6000,1000))
+    ax2.set_yticklabels(np.arange(0,6,1))
     plt.savefig("TKE.png",
                 bbox_inches="tight",
                 dpi=300,
@@ -226,7 +234,7 @@ def plot_Vertical_cross_section(cross):
     fig3, ax3 = plt.subplots(figsize=(14, 6))    
     #pc3 = ax3.pcolormesh(x_ax, cross.pressure, cross.ri, vmax=20, vmin=-20, shading='nearest', zorder=1, cmap="PiYG")#,norm=norm)
     # norm=matplotlib.colors.LogNorm()
-    pc3 = ax3.pcolormesh(x_ax, cross.pressure, cross.ri, vmax=20, vmin=-20, norm=matplotlib.colors.LogNorm(),shading='nearest', zorder=1, cmap="PiYG")#,norm=norm)
+    pc3 = ax3.pcolormesh(x_ax, cross.pressure, cross.ri, vmax=20, vmin=-20,shading='nearest', zorder=1, cmap="PiYG")#,norm=norm)
 
     CS = ax3.contour(x_ax, cross.pressure, cross.pt, colors="k",levels = 12)
     fmt = matplotlib.ticker.StrMethodFormatter(r"$\theta=${x:,g}")  #fmt=r'$\theta=$%1.0f'
@@ -238,11 +246,18 @@ def plot_Vertical_cross_section(cross):
     plt.gca().invert_xaxis()
     cbar_ri2=plt.colorbar(pc3, extend="both")
     cbar_ri2.set_label('Richardson #',fontsize=15)
-    ax3.set_ylabel("Height [m]")
+    #ax3.set_ylabel("Height [m]")
+    ax3.set_ylabel("Height / km")
     ax3.set_xlabel("Latitudes")
 
     ax3.add_patch(Rectangle((79.5, -650), 4.5, 300, color='#70B6F4', alpha=0.8, clip_on=False)) #blue
-    ax3.add_patch(Rectangle((66.9, -650), 12.6, 300, color='#FD7173', alpha=0.8, clip_on=False)) #red
+    ax3.add_patch(Rectangle((68.9, -650), 10.6, 300, color='#FD7173', alpha=0.8, clip_on=False)) #red
+    #m2km = lambda x, _: f'{x/1000:g}'
+    #ax.xaxis.set_major_formatter(m2km)
+    #ax.yaxis.set_major_formatter(m2km)
+    ax3.set_yticks(np.arange(0,6000,1000))
+    ax3.set_yticklabels(np.arange(0,6,1))
+
     plt.savefig("Ri3.png",
                 bbox_inches="tight",
                 dpi=300,
@@ -265,14 +280,16 @@ def plot_Vertical_cross_section(cross):
 
     plt.gca().invert_xaxis()
     cbar_tke= plt.colorbar(tb)
-    cbar_tke.set_label(r'Turbulent Kinetic Energy $[m^2⋅s^{-2}]$',fontsize=15)
+    cbar_tke.set_label(r'Turbulent Kinetic Energy / $m^2⋅s^{-2}$',fontsize=15)
     cbar_tke.ax.tick_params(labelsize=15)
-    ax4.set_ylabel("Height [m]")
+    ax4.set_ylabel("Height / km")
     ax4.set_xlabel("Latitudes")
 
     ax4.add_patch(Rectangle((79.5, -650), 4.5, 300, color='#70B6F4', alpha=0.8, clip_on=False)) #blue
-    ax4.add_patch(Rectangle((66.9, -650), 12.6, 300, color='#FD7173', alpha=0.8, clip_on=False)) #red
+    ax4.add_patch(Rectangle((68.9, -650), 10.6, 300, color='#FD7173', alpha=0.8, clip_on=False)) #red
 
+    ax4.set_yticks(np.arange(0,6000,1000))
+    ax4.set_yticklabels(np.arange(0,6,1))
     plt.savefig("TKE4.png",
                 bbox_inches="tight",
                 dpi=300,
@@ -401,3 +418,4 @@ if __name__ == "__main__":
     gc.collect()
 
 
+#python Wind_VC.py  --datetime 2020031000 --model AromeArctic --steps 6 --domain_name AromeArctic

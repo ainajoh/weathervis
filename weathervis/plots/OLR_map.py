@@ -75,9 +75,9 @@ def plot_OLR(datetime,dmet,figax=None, scale=1, lonlat=None, steps=[0,2], coast_
       bluepoint = ax1.scatter(lon_blue, lat_blue, s=900, transform=ccrs.PlateCarree(),
       color='#70B6F4', zorder=7, linestyle='-', edgecolors='k', linewidths=3, marker='s')
       
-      lon_red = [7,7,7,7,7,7,7,7,7,7,7,7,7]
-      lat_red = [79,78,77,76,75,74,73,72,71,70,69,68,67]
-      redline = ax1.plot([7,7,7,7,7,7,7,7,7,7,7,7,7], [79,78,77,76,75,74,73,72,71,70,69,68,67], transform=ccrs.PlateCarree(),
+      lon_red = [7,7,7,7,7,7,7,7,7,7,7]
+      lat_red = [79,78,77,76,75,74,73,72,71,70,69]
+      redline = ax1.plot([7,7,7,7,7,7,7,7,7,7,7], [79,78,77,76,75,74,73,72,71,70,69], transform=ccrs.PlateCarree(),
       color='#FD7173', zorder=6, linewidth=10)
       
       redpoint = ax1.scatter(lon_red, lat_red, s=900, transform=ccrs.PlateCarree(),

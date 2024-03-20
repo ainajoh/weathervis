@@ -87,12 +87,29 @@ def nicegrid(ax, xx = np.arange(-20, 80, 20),yy = np.arange(50, 90, 4), color='g
     usage:
 
     """
-    gl = ax.gridlines(draw_labels=True, linewidth=1, color=color, alpha=alpha, linestyle=linestyle,zorder=10)
+    gl = ax.gridlines(draw_labels=True, linewidth=1, color=color, alpha=alpha, linestyle=linestyle,zorder=9)#, y_inline=True, x_inline=True)
     gl.xlabels_top = False
+    gl.top_labels, gl.right_labels = False, False
+    gl.xlabel_style, gl.ylabel_style = {'weight': 'bold'}, {'weight': 'bold'}
+    gl.xpadding = -10
+    gl.ypadding = -10
 
+    gl.rotate_labels=False
+    #gl.ylabels_right = False
+    #gl.ylabels_left = False
+
+    #gl.ylabel_style = {'size':60}
+    #gl.left_labels
+    #gl.xlocator = mticker.FixedLocator(xx)
+    #gl.ylocator = mticker.FixedLocator(yy)
     gl.xlocator = mticker.FixedLocator(xx)
-    gl.ylocator = mticker.FixedLocator(yy)
-    gl.xlabel_style = {'color': color}
+    gl.ylocator = mticker.FixedLocator([82,78,74,70]) #[85,79,74,69]  [78,75,72, 69]
+
+    #for artist in gl.bottom_labels:
+    #    artist.set_visible(True)
+
+    gl.xlabel_style = {'color': color, 'size': 40}
+    gl.ylabel_style = {'color': color, 'size': 40}
 
 def remove_pcolormesh_border(xx,yy,data):
     """
