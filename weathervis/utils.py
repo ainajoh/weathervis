@@ -75,7 +75,7 @@ def adjustable_colorbar_cax(fig1,ax1, orientation="horizontal"): #,data, **kwarg
     fig1.add_axes(ax_cb)
     return ax_cb
 
-def nicegrid(ax, xx = np.arange(-20, 80, 20),yy = np.arange(50, 90, 4), color='gray', alpha=0.5, linestyle='--'):
+def nicegrid(ax, xx = np.arange(-20, 80, 10),yy = np.arange(50, 90, 4), color='gray', alpha=0.5, linestyle='--'):
     """A function for cartopy making nice gridlines
     input:
         ax: axis for a matplotlib cartopy figure  : Required
@@ -87,14 +87,22 @@ def nicegrid(ax, xx = np.arange(-20, 80, 20),yy = np.arange(50, 90, 4), color='g
     usage:
 
     """
-    gl = ax.gridlines(draw_labels=True, linewidth=1, color=color, alpha=alpha, linestyle=linestyle,zorder=9)#, y_inline=True, x_inline=True)
+    gl = ax.gridlines(draw_labels=True, linewidth=1, color=color, alpha=alpha, linestyle=linestyle,zorder=9, y_inline=False, x_inline=False)
+    #gl.xlabels_top = False
+    #gl.top_labels, gl.right_labels = False, False
+    #gl.left_labels = False
+    gl.ylabels_right = False
+    #gl.xlabels_right = None
     gl.xlabels_top = False
-    gl.top_labels, gl.right_labels = False, False
-    gl.xlabel_style, gl.ylabel_style = {'weight': 'bold'}, {'weight': 'bold'}
-    gl.xpadding = -10
-    gl.ypadding = -10
+    gl.ylabels_left = False
 
-    gl.rotate_labels=False
+
+
+    #gl.xlabel_style, gl.ylabel_style = {'weight': 'bold'}, {'weight': 'bold'}
+    gl.xpadding = -400
+    #gl.ypadding = -700
+
+    #gl.rotate_labels=False
     #gl.ylabels_right = False
     #gl.ylabels_left = False
 
@@ -102,14 +110,30 @@ def nicegrid(ax, xx = np.arange(-20, 80, 20),yy = np.arange(50, 90, 4), color='g
     #gl.left_labels
     #gl.xlocator = mticker.FixedLocator(xx)
     #gl.ylocator = mticker.FixedLocator(yy)
-    gl.xlocator = mticker.FixedLocator(xx)
-    gl.ylocator = mticker.FixedLocator([82,78,74,70]) #[85,79,74,69]  [78,75,72, 69]
+    gl.xlocator = mticker.FixedLocator([-10,0,10])
+    gl.ylocator = mticker.FixedLocator([82,78,74]) #[85,79,74,69]  [78,75,72, 69]
 
     #for artist in gl.bottom_labels:
     #    artist.set_visible(True)
 
     gl.xlabel_style = {'color': color, 'size': 40}
     gl.ylabel_style = {'color': color, 'size': 40}
+
+
+    gl2 = ax.gridlines(draw_labels=False, linewidth=1, color=color, alpha=alpha, linestyle=linestyle,zorder=9, y_inline=False, x_inline=False)
+    gl2.ylocator = mticker.FixedLocator([86,82,78,74,70,66]) #[85,79,74,69]  [78,75,72, 69]
+    gl2.xlocator = mticker.FixedLocator(xx)
+
+    gl3 = ax.gridlines(draw_labels=True, linewidth=1, color=color, alpha=alpha, linestyle=linestyle,zorder=9, y_inline=False, x_inline=False)
+    gl3.ylocator = mticker.FixedLocator([82,78,74]) #[85,79,74,69]  [78,75,72, 69]
+    gl3.xlocator = mticker.FixedLocator([])
+    gl3.xpadding = -400
+    gl3.ylabels_right = False
+    gl3.ylabels_left = False
+    gl3.xlabel_style = {'color': color, 'size': 40}
+    gl3.ylabel_style = {'color': color, 'size': 40}
+
+
 
 def remove_pcolormesh_border(xx,yy,data):
     """
