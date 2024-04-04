@@ -171,17 +171,20 @@ def plot_Vertical_cross_section(cross):
 
     CS = ax.contour(x_ax, cross.pressure, cross.pt, colors="k",levels = 12)
     #fmt = matplotlib.ticker.StrMethodFormatter("x:1.0f")  #fmt=r'$\theta=$%1.0f'
-    fmt = matplotlib.ticker.StrMethodFormatter(r"$\theta=${x:,g}")  #fmt=r'$\theta=$%1.0f'
+    #fmt = matplotlib.ticker.StrMethodFormatter(r"$\theta=${x:,g}")  #fmt=r'$\theta=$%1.0f'
+    fmt = matplotlib.ticker.StrMethodFormatter(r"{x:,g}")  #fmt=r'$\theta=$%1.0f'
 
-    ax.clabel(CS, CS.levels, inline=False,fontsize=10, fmt=fmt)
+    #ax.clabel(CS, CS.levels, inline=True,fontsize=10)
+    ax.clabel(CS, CS.levels, inline=True,fontsize=10, fmt=fmt)
+
     print( cross.atmosphere_boundary_layer_thickness )
     PBLH = ax.plot(x[-1, :], cross.atmosphere_boundary_layer_thickness, linewidth=5, color="k")
     
     plt.gca().invert_xaxis()
     cbar_ri=plt.colorbar(pc)
-    cbar_ri.set_label('Richardson #',fontsize=15)
+    cbar_ri.set_label('Richardson number',fontsize=15)
     #ax.set_ylabel("Height [m]")
-    ax.set_ylabel("Height / km")
+    ax.set_ylabel("Height / km") 
     ax.set_xlabel("Latitudes")
     
     ax.add_patch(Rectangle((79.5, -650), 4.5, 300, color='#70B6F4', alpha=0.8, clip_on=False)) #blue
@@ -205,7 +208,7 @@ def plot_Vertical_cross_section(cross):
 
     plt.gca().invert_xaxis()
     cbar_tke= plt.colorbar(tb)
-    cbar_tke.set_label(r'Turbulent Kinetic Energy $[m^2⋅s^{-2}]$',fontsize=15)
+    cbar_tke.set_label(r'Turbulent Kinetic Energy / $m^2⋅s^{-2}$',fontsize=15)
     cbar_tke.ax.tick_params(labelsize=15)
     ax2.set_ylabel("Height / km")
     ax2.set_xlabel("Latitudes")
@@ -237,15 +240,15 @@ def plot_Vertical_cross_section(cross):
     pc3 = ax3.pcolormesh(x_ax, cross.pressure, cross.ri, vmax=20, vmin=-20,shading='nearest', zorder=1, cmap="PiYG")#,norm=norm)
 
     CS = ax3.contour(x_ax, cross.pressure, cross.pt, colors="k",levels = 12)
-    fmt = matplotlib.ticker.StrMethodFormatter(r"$\theta=${x:,g}")  #fmt=r'$\theta=$%1.0f'
-    ax3.clabel(CS, CS.levels, inline=False,fontsize=10, fmt=fmt)
+    fmt = matplotlib.ticker.StrMethodFormatter(r"{x:,g}")  #fmt=r'$\theta=$%1.0f'
+    ax3.clabel(CS, CS.levels, inline=True,fontsize=10, fmt=fmt)
     
     PBLH = ax3.plot(x[-1, :], cross.atmosphere_boundary_layer_thickness, linewidth=5, color="k")
     ax3.text(78, 2150, 'Boundary Layer Height',fontsize=15, rotation=10)
 
     plt.gca().invert_xaxis()
     cbar_ri2=plt.colorbar(pc3, extend="both")
-    cbar_ri2.set_label('Richardson #',fontsize=15)
+    cbar_ri2.set_label('Richardson number',fontsize=15)
     #ax3.set_ylabel("Height [m]")
     ax3.set_ylabel("Height / km")
     ax3.set_xlabel("Latitudes")
@@ -266,8 +269,8 @@ def plot_Vertical_cross_section(cross):
     fig4, ax4 = plt.subplots(figsize=(14, 6))
 
     CS = ax4.contour(x_ax, cross.pressure, cross.pt, colors="k",levels = 12)
-    fmt = matplotlib.ticker.StrMethodFormatter(r"$\theta=${x:,g}")  #fmt=r'$\theta=$%1.0f'
-    ax4.clabel(CS, CS.levels, inline=False,fontsize=10, fmt=fmt)
+    fmt = matplotlib.ticker.StrMethodFormatter(r"{x:,g}")  #fmt=r'$\theta=$%1.0f'
+    ax4.clabel(CS, CS.levels, inline=True,fontsize=10, fmt=fmt)
 
     tb = ax4.pcolormesh(x_ax, cross.pressure, cross.turbulent_kinetic_energy_ml, cmap="Reds", shading='nearest', zorder=1)#,norm=norm)
     
@@ -275,8 +278,8 @@ def plot_Vertical_cross_section(cross):
     ax4.text(78, 2150, 'Boundary Layer Height',fontsize=15, rotation=10)
 
     lvl = [0]
-    pc = ax4.contour(x_ax, cross.pressure, cross.ri, levels=lvl, shading='nearest', zorder=1, colors=["green"], linewidths=5,)#,norm=norm) #colors="white
-    ax4.text(76, 750, 'Ri=0',fontsize=15, rotation=10, color="green")
+    #pc = ax4.contour(x_ax, cross.pressure, cross.ri, levels=lvl, shading='nearest', zorder=1, colors=["green"], linewidths=5,)#,norm=norm) #colors="white
+    #ax4.text(76, 750, 'Ri=0',fontsize=15, rotation=10, color="green")
 
     plt.gca().invert_xaxis()
     cbar_tke= plt.colorbar(tb)
