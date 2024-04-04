@@ -213,7 +213,7 @@ class get_data():
             pressure_dim = list(filter(re.compile(f'press*').match, dimlist))
             model_dim = list(filter(re.compile(f'.*hybrid*').match, dimlist))
             height_dim = list(filter(re.compile(f'.*height*').match, dimlist))
-            other_dim = list(filter(re.compile(f'.*top_of_atmosphere*|.*mean_sea_level*').match, dimlist))
+            other_dim = list(filter(re.compile(f'.*top_of_atmosphere*|.*mean_sea_level*|atmosphere_as_single_layer').match, dimlist))
             ens_mbr_dim = list(filter(re.compile(f'.*ensemble*').match, dimlist))
             x_dim = list(filter(re.compile(f'x.*?(\d+)/*').match, dimlist))
             y_dim = list(filter(re.compile(f'y.*?(\d+)/*').match, dimlist))
