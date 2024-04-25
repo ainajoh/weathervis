@@ -187,6 +187,10 @@ def plot_Vertical_cross_section(cross):
     ax.set_ylabel("Height / km") 
     ax.set_xlabel("Latitudes")
     
+    M=1
+    N=0
+    #ax=fig.add_subplot(nrows=M,ncols=N, index=M+N+1)
+
     ax.add_patch(Rectangle((79.5, -650), 4.5, 300, color='#70B6F4', alpha=0.8, clip_on=False)) #blue
     ax.add_patch(Rectangle((68.9, -650), 10.6, 300, color='#FD7173', alpha=0.8, clip_on=False)) #red
 
@@ -309,7 +313,8 @@ def Vertical_cross_section(kwargs, point_time_file=None):
     """
     #param = ["air_temperature_ml","surface_geopotential","surface_air_pressure","specific_humidity_ml",
     #         "air_pressure_at_sea_level","x_wind_ml","y_wind_ml", "SST", "turbulent_kinetic_energy_ml"]
-    param = ["SIC","toa_outgoing_longwave_flux","air_pressure_at_sea_level","SST","cloud_area_fraction_ml", "air_temperature_ml","surface_geopotential","surface_air_pressure","specific_humidity_ml","turbulent_kinetic_energy_ml","atmosphere_boundary_layer_thickness", "y_wind_ml", "x_wind_ml"]
+    param = ["SIC","toa_outgoing_longwave_flux","air_pressure_at_sea_level","SST","cloud_area_fraction_ml", "air_temperature_ml","surface_geopotential","surface_air_pressure","specific_humidity_ml","turbulent_kinetic_energy_ml","atmosphere_boundary_layer_thickness", "y_wind_ml", "x_wind_ml",
+             "lifting_condensation_level", "cloud_base_altitude", "high_type_cloud_area_fraction","medium_type_cloud_area_fraction","low_type_cloud_area_fraction","cloud_area_fraction"]
     #param.extend(OLR_map.param) #get more parameters that was used in the OLR.map 
     param = list(set(param))
     kwargs.m_level = np.arange(20, 64, 1)
@@ -332,7 +337,7 @@ def Vertical_cross_section(kwargs, point_time_file=None):
    
     #########follow airmass###########
     #kwargs = pre_defined_points_retrieved(line, kwargs): "allwind_A202003100600.nc"    "SSC_23.nc       # If u want to retrieve only the points NB: Avoid if u have many points > 20
-    dmet, data_domain, bad_param = checkget_data_handler(all_param=param,save=False,read_from_saved="paper1cross_line.nc",#"TKE_A2020031000+07.nc",#"wind_A2020031000+6.nc", #"buffer_newM.nc", 
+    dmet, data_domain, bad_param = checkget_data_handler(all_param=param,save=False,read_from_saved="paper1cross_line_rh.nc",#"TKE_A2020031000+07.nc",#"wind_A2020031000+6.nc", #"buffer_newM.nc", 
                                                         model=kwargs.model,  date=kwargs.datetime,
                                                         step=kwargs.steps,   m_level=kwargs.m_level,
                                                         point_name=kwargs.point_name, 
@@ -346,11 +351,11 @@ def Vertical_cross_section(kwargs, point_time_file=None):
     dmet.pt = potential_temperatur(dmet.air_temperature_ml, dmet.pressure)
     print(dmet.model)
     dmet.ri = richardson( dmet.pt,dmet.z,dmet.x_wind_ml, dmet.y_wind_ml )
-
+    dmet.rh = relative_humidity(dmet.air_temperature_ml, dmet.specific_humidity_ml,dmet.pressure )
     
 
 
-    param = param + ["pt", "ri"]
+    param = param + ["pt", "ri", "rh"]
     param_4cross = param
 
     required_vars4cross = {"lat": dmet.latitude,"rlat": dmet.y,"lon": dmet.longitude, "rlon": dmet.x, 

@@ -282,7 +282,6 @@ def interpolate(data, grid, interplevels):
     except:
         interplevels = [interplevels]
         nintlev = len(interplevels)
-    print(shape)
     shape[-3] = nintlev
 
     outdata = np.ones(shape) * np.nan
@@ -329,12 +328,8 @@ def CAO_index(air_temperature_pl, pressure, SST,air_pressure_at_sea_level, p_lev
     pt = potential_temperatur(air_temperature_pl, pressure*100)  #4, 2, 36, 36)
     pt_sst = potential_temperatur(SST, air_pressure_at_sea_level)
 
-    print(np.shape(air_temperature_pl))
-    print(np.shape(pt)) #(50, 102)
-    print(np.shape(pt_sst)) #(102)
-    print(pressure)
+   
     #dpt_sst = pt_sst[:] - pt[np.where(pressure == p_level)[0],:].squeeze() #
-    #print(np.shape(dpt_sst)) #(50, 102)
 
     #exit(1)
     #try: 
@@ -342,9 +337,7 @@ def CAO_index(air_temperature_pl, pressure, SST,air_pressure_at_sea_level, p_lev
     #except: 
     #    air_pressure_at_sea_level = air_pressure_at_sea_level
     pt_sst = potential_temperatur(SST, air_pressure_at_sea_level)
-    #print(np.shape(SST))   #(4, 36, 36)
-    #print(np.shape(air_pressure_at_sea_level))  #(4, 1, 36, 36)
-    #print(np.shape(pt_sst))   #(4, 4, 36, 36) but #(4, 36, 36) if squeezing air.pressure
+
     dpt_sst = pt_sst[:, :, :] - pt[:, np.where(pressure == p_level)[0], :, :].squeeze()
     return dpt_sst
 
@@ -400,16 +393,25 @@ def richardson_bulk(potential_temperature, height, u, v):
     #max((uprof(indzp)-uprof(indzp-1))**2 + (vprof(indzp)-vprof(indzp-1))**2 + b*ust**2, 0.1)
     return ri
 
-def richardson(potential_temperature, height, u, v):
+def richardson(potential_temperature, height, u, v, dim=("time", "level", "x", "y")):
     g=9.81
     ri = np.zeros(np.shape(potential_temperature))
-    print(len(height[0,:,0,0]))
-    print(np.shape(height))
-    for k in range(0, len( height[0,:,0,0] )-1): #remember k direction is from top to down so k=0 is top
+
+    hh=  height[0,:,0,0] if len(np.shape( height))>3 else height
+    for k in range(0, len( hh )-1): #remember k direction is from top to down so k=0 is top
         #so k+1 is under k
-        buoy =  (g/potential_temperature[:,k+1,:,:]) * (potential_temperature[:,k,:,:]-potential_temperature[:,k+1,:,:])* ( height[:,k,:,:] - height[:,k+1,:,:] ) 
-        shear = ( u[:,k,:,:] - u[:,k+1,:,:])**2 + ( v[:,k,:,:] - v[:,k+1,:,:] )**2
-        ri[:,k,:,:] = buoy/shear
+        if "time" in dim:
+            buoy =  (g/potential_temperature[:,k+1,:,:]) * (potential_temperature[:,k,:,:]-potential_temperature[:,k+1,:,:])* ( height[:,k,:,:] - height[:,k+1,:,:] ) 
+            shear = ( u[:,k,:,:] - u[:,k+1,:,:])**2 + ( v[:,k,:,:] - v[:,k+1,:,:] )**2
+            ri[:,k,:,:] = buoy/shear
+        elif "x" in dim:
+            buoy =  (g/potential_temperature[k+1,:,:]) * (potential_temperature[k,:,:]-potential_temperature[k+1,:,:])* ( height[k,:,:] - height[k+1,:,:] ) 
+            shear = ( u[k,:,:] - u[k+1,:,:])**2 + ( v[k,:,:] - v[k+1,:,:] )**2
+            ri[k,:,:] = buoy/shear
+        else:
+            buoy =  (g/potential_temperature[k+1]) * (potential_temperature[k]-potential_temperature[k+1])* ( height[k] - height[k+1] ) 
+            shear = ( u[k] - u[k+1])**2 + ( v[k] - v[k+1] )**2
+            ri[k] = buoy/shear
     #*(height(indzp)-height(indzp-1))/ g/pt_ref * 
     #max((uprof(indzp)-uprof(indzp-1))**2 + (vprof(indzp)-vprof(indzp-1))**2 + b*ust**2, 0.1)
     return ri
@@ -459,11 +461,7 @@ def potential_temperatur(temperature, pressure):
     cp = 1004.  #[J/kg] specific heat for dry air (WH)
     theta = np.full(np.shape(temperature), np.nan)
     #print(np.shape(theta))
-    print("hey")
-    print(len(np.shape(theta))) #3
-    print(len(np.shape(pressure))) #4
-    print(np.shape(theta)) #3 (6, 36, 35)
-    print(np.shape(pressure)) #4 (6, 1, 36, 35)
+
     if len(np.shape(theta)) ==4:
         if len(np.shape(pressure)) ==1:
             for i in range(0,len(pressure)):
@@ -471,15 +469,23 @@ def potential_temperatur(temperature, pressure):
         else:
             for i in range(0,np.shape(pressure)[1]):
                 theta[:,i,:,:] = temperature[:,i,:,:]  * (p0 / pressure[:,i,:,:]) ** (Rd/cp) #[K]
-
     
     elif len(np.shape(theta)) ==1:
-        for i in range(0,len(pressure)):
-            theta[i] = temperature[i]  * (p0 / pressure[i]) ** (Rd/cp) #[K]
+        print(pressure[0])
+        print(pressure[30])
+        print(pressure[64])
+        theta = temperature  * (p0 / pressure) ** (Rd/cp) #[K]
+
+        #for i in range(0,len(pressure)):
+        #    theta[i] = temperature[i]  * (p0 / pressure[i]) ** (Rd/cp) #[K]
+    
     elif len(np.shape(theta)) ==3:
         if len(np.shape(pressure)) == 4:
             pressure=pressure.squeeze(axis=1)
             theta = temperature  * (p0 / pressure) ** (Rd/cp) #[K]
+        elif len(np.shape(pressure)) ==len(np.shape(theta)):
+            theta = temperature  * (p0 / pressure) ** (Rd/cp) #[K]
+
         else:
             for i in range(0,np.shape(pressure)[1]):
                 theta[:,i,:,:] = temperature[:,i,:,:]  * (p0 / pressure[:,i,:,:]) ** (Rd/cp) #[K]
@@ -534,7 +540,7 @@ def dexcess(mslp,SST, q2m):
     d = 48.2 - 0.54 * RH
     return d#.squeeze()
 
-def virtual_temp(air_temperature_ml=None, specific_humidity_ml=None, dmet=None):
+def virtual_temp(air_temperature_ml=None, specific_humidity_ml=None, dmet=None, dim=("time", "level", "x", "y")):
     """
 
     Parameters
@@ -553,7 +559,17 @@ def virtual_temp(air_temperature_ml=None, specific_humidity_ml=None, dmet=None):
         levelSize = np.shape(dmet.air_temperature_ml)[1]
         air_temperature_ml=dmet.air_temperature_ml
     else:
-        timeSize, levelSize, ySize, xSize = np.shape(air_temperature_ml)
+        if dim[0]=="time":
+            timeSize, levelSize, ySize, xSize = np.shape(air_temperature_ml) 
+        else:
+
+            if len(np.shape(air_temperature_ml)) == 1: 
+                levelSize = np.shape(air_temperature_ml)[0]
+            elif len(np.shape(air_temperature_ml))==2 and "level" in dim:
+                levelSize, points = np.shape(air_temperature_ml)
+            elif  len(np.shape(air_temperature_ml))==3:
+                levelSize, ySize, xSize = np.shape(air_temperature_ml)
+
 
 
     t_v_level = np.zeros(shape= np.shape(air_temperature_ml))
@@ -565,7 +581,11 @@ def virtual_temp(air_temperature_ml=None, specific_humidity_ml=None, dmet=None):
     for k in levels_r:
         #print(k)
         #print( air_temperature_ml[:, k, :])
-        t_v_level[:, k, ...] = air_temperature_ml[:, k, ...] * (1. + 0.609133 * specific_humidity_ml[:, k, ...])
+        if  dim[0]=="time":
+            t_v_level[:, k, ...] = air_temperature_ml[:, k, ...] * (1. + 0.609133 * specific_humidity_ml[:, k, ...])
+        else: 
+            t_v_level[k, ...] = air_temperature_ml[k, ...] * (1. + 0.609133 * specific_humidity_ml[k, ...])
+
     return t_v_level
 
 def lapserate(T_ml, z, srf_T = None):
@@ -627,7 +647,7 @@ def lapserate(T_ml, z, srf_T = None):
 # HEIGHT HANDLING
 #####################################################################################################################
 #model levels to pressure levels
-def _ml2pl_full2full( ap, b, surface_air_pressure ):
+def _ml2pl_full2full( ap, b, surface_air_pressure, dim=("time", "level","x","y") ):
     """
     Calculate pressure on the same modellevels 
     Parameters
@@ -645,17 +665,31 @@ def _ml2pl_full2full( ap, b, surface_air_pressure ):
     p(n,k,j,i) = ap(k) + b(k)*ps(n,j,i)
     p [Pa] pressure on each half modellevel.
     """
-    timeSize = np.shape(surface_air_pressure)[0]
+    timeSize =np.shape(surface_air_pressure)[0] if dim[0] == "time" else 0
     levelSize = np.shape(ap)[0]
+    #print(levelSize)
+    #exit(1)
     if len(np.shape(surface_air_pressure)) !=1: #if we calculate for multiple positions
         sap = surface_air_pressure[:, 0, :, :] if len(np.shape(surface_air_pressure)) ==4 else surface_air_pressure #removes unwanted dimention
-        ySize = np.shape(surface_air_pressure)[-2] #lat in y
-        xSize = np.shape(surface_air_pressure)[-1] #lon in x
+        ySize = np.shape(surface_air_pressure)[-2] if "y" in dim else 0#lat in y
+        xSize = np.shape(surface_air_pressure)[-1] if "x" in dim else 0##lon in x
         if len(np.shape(ap))==1: #if one dimentional: most often the case
             levelSize = np.shape(ap)[0]
-            p = np.zeros(shape = (timeSize, levelSize, ySize, xSize))
+            if timeSize != 0 and ySize !=0:
+                p = np.zeros(shape = (timeSize, levelSize, ySize, xSize))
+            elif timeSize == 0 and ySize !=0:
+                p = np.zeros(shape =(levelSize, ySize, xSize))
+            else:
+                p = np.zeros(shape =(levelSize))
+
             for k in range(0,levelSize):
-                p[:, k, :, :] = ap[k] + b[k] * sap[:,:,:]  #(10,1,1,1) = (10,1) + (10,1) * (10,1,1)
+                if len(np.shape(p))==4:
+                    p[:, k, :, :] = ap[k] + b[k] * sap[:]
+                elif len(np.shape(p))==3:#print()
+                    p[ k, ...] = ap[k] + b[k] * sap[:]
+                else:
+                    p[ k] = ap[k] + b[k] * sap
+        
         else: #if ap is not one dimentional but changes with time, like if we glue together different dataset at different times 
             levelSize = np.shape(ap)[1] 
             p = np.zeros(shape = (timeSize, levelSize, ySize, xSize))
@@ -663,9 +697,18 @@ def _ml2pl_full2full( ap, b, surface_air_pressure ):
                 for t in range(0,timeSize):
                     p[t, k, :, :] = ap[t, k] + b[t, k] * sap[t,:,:]  #(10,1,1,1) = (10,1) + (10,1) * (10,1,1)
     else: #if we calculate for just one positions
-        p = np.zeros(shape = (timeSize, levelSize))
-        for k in range(0,levelSize):
-            p[:,k] = ap[:,k] + b[:,k] * surface_air_pressure
+        if dim[0] == "time":
+            p = np.zeros(shape = (timeSize, levelSize))
+            for k in range(0,levelSize):
+                p[:,k] = ap[:,k] + b[:,k] * surface_air_pressure
+        else:
+            p = np.zeros(shape = (levelSize))
+
+            for k in range(0,levelSize):
+
+                p[ k] = ap[k] + b[k] * surface_air_pressure[0]
+    
+    
     return p
     
 
@@ -739,7 +782,7 @@ def _ml2pl_full2half( ap, b, surface_air_pressure ):
         bh[k] = 2*b[k] - bh[k-1]
     ph = _ml2pl_full2full( ah, bh, surface_air_pressure)
     return ph
-def ml2pl( ap=None, b=None, surface_air_pressure=None, inputlevel="full", returnlevel="full", dmet=None, dim=None):
+def ml2pl( ap=None, b=None, surface_air_pressure=None, inputlevel="full", returnlevel="full", dmet=None, dim=("time", "height", "x", "y")):
     """
     Check if pressure is on half or full levels, and calls the appropriate function for this.
 
@@ -763,7 +806,7 @@ def ml2pl( ap=None, b=None, surface_air_pressure=None, inputlevel="full", return
     Source: https://github.com/metno/NWPdocs/wiki/Calculating-model-level-height/_compare/041362b7f5fdc02f5e1ee3dea00ffc9d8d47c2bc...f0b453779e547d96f44bf17803d845061627f7a8
     """
     if inputlevel=="full" and returnlevel=="full":
-        p = _ml2pl_full2full( ap, b, surface_air_pressure)
+        p = _ml2pl_full2full( ap, b, surface_air_pressure, dim=dim)
     return p
 
 #model/pressure levels to geopotential height
@@ -791,7 +834,7 @@ def cheat_alt(m_level):
 
     alt = np.array([H[i] for i in m_level])
     return alt
-def _pl2alt_half2full_gl( air_temperature_ml, specific_humidity_ml, p): #or heighttoreturn
+def _pl2alt_half2full_gl( air_temperature_ml, specific_humidity_ml, p, dim=("time", "height", "x", "y")): #or heighttoreturn
     """
     Parameters
     ----------
@@ -871,7 +914,7 @@ def _pl2alt_half2full_gl( air_temperature_ml, specific_humidity_ml, p): #or heig
     print("")
     return geotoreturn_m
 
-def _pl2alt_full2full_gl(dmet=None, dim=None, ap=None, b=None, surface_air_pressure=None, air_temperature_ml=None, specific_humidity_ml=None,pressure=None): #or heighttoreturn
+def _pl2alt_full2full_gl(dmet=None, ap=None, b=None, surface_air_pressure=None, air_temperature_ml=None, specific_humidity_ml=None,pressure=None, dim=("time", "height", "level")): #or heighttoreturn
     """
     when pressure comes in full levels, this works best anyway. 50 meter difference at highest levels. 
     """
@@ -881,49 +924,63 @@ def _pl2alt_full2full_gl(dmet=None, dim=None, ap=None, b=None, surface_air_press
         levelSize = np.shape(dmet.air_temperature_ml)[1]
     if len(np.shape(air_temperature_ml)) ==4:
         timeSize, levelSize, ySize, xSize = np.shape(air_temperature_ml)
-    else:
+    elif len(np.shape(air_temperature_ml)) ==3:
         timeSize, levelSize, point= np.shape(air_temperature_ml)
+    elif len(np.shape(air_temperature_ml)) ==1:
+        levelSize =  np.shape(air_temperature_ml)[0]
+    elif len(np.shape(air_temperature_ml)) ==2:
+        levelSize,point  =  np.shape(air_temperature_ml)
 
     Rd = 287.05 #[J/kg K] Gas constant for dry air
     g0 = 9.80665
     z_h = 0  # 0 since geopotential is 0 at sea level
-    Tv = virtual_temp(air_temperature_ml, specific_humidity_ml, dmet)
+    Tv = virtual_temp(air_temperature_ml, specific_humidity_ml, dmet, dim=dim)
     #Tv = air_temperature_ml
-    p = ml2pl( ap, b, surface_air_pressure, inputlevel="full", returnlevel="full") if pressure is None else pressure
-    h = np.zeros(shape = np.shape(air_temperature_ml)) #p = np.zeros(shape = (timeSize, levelSize, ySize, xSize))
+    p = ml2pl( ap, b, surface_air_pressure, inputlevel="full", returnlevel="full", dim=dim) if pressure is None else pressure
+
+    h = np.zeros(shape = np.shape(air_temperature_ml))# if  len( np.shape(air_temperature_ml)) >1 else np.zeros(shape = np.shape(air_temperature_ml[0]))  #p = np.zeros(shape = (timeSize, levelSize, ySize, xSize))
     #print(np.shape(surface_air_pressure))
     #print(np.shape(p))
     #print(np.shape(Tv))
     #exit(1)
     #h[:,-1,:,:] = Rd*Tv[:,-1,:,:]/g0 * np.log(surface_air_pressure[:,:,:,:]/p[:,-1,:,:]) + z_h
-    h[:,-1,:] = Rd*Tv[:,-1,:]/g0 * np.log(surface_air_pressure[:,0,:]/p[:,-1,:]) + z_h #(3, 3, 1, 1)
-    
+    if dim[0]=="time":
+        h[:,-1,:] = Rd*Tv[:,-1,:]/g0 * np.log(surface_air_pressure[:,0,:]/p[:,-1,:]) + z_h #(3, 3, 1, 1)
+    elif "x" in dim: 
+        h[-1,...] = Rd*Tv[-1,...]/g0 * np.log(surface_air_pressure[:]/p[-1,...]) + z_h #(3, 3, 1, 1)
+    else: 
+
+        h[-1] = Rd*Tv[-1]/g0 * np.log(surface_air_pressure/p[-1]) + z_h #(3, 3, 1, 1)
+
+
+
     for i in range(0,levelSize-1):
         i =levelSize-2-i
-        #print(i)
-        Tv_mean = (Tv[:,i+1,...]+ Tv[:,i,...]) /2#np.average([Tv[:,i+1,...],Tv[:,i,...]], axis=0)
-        g = g0*(1-2*h[:,i+1,...]/6378137) #just for fun. no effect
-        #dtv = (Tv[:,i+1,...]- Tv[:,i,...])
-        #logtv = np.log(Tv[:,i+1,...]/Tv[:,i,...])
-        #Tv_mean = dtv/logtv
 
-        #returntv
-        h[:,i,...] = Rd*Tv_mean/g * np.log(p[:,i+1,...]/p[:,i,...]) + h[:,i+1,...]
+        if "time" in dim:
+            Tv_mean = (Tv[:,i+1,...]+ Tv[:,i,...]) /2#np.average([Tv[:,i+1,...],Tv[:,i,...]], axis=0)
+            g = g0*(1-2*h[:,i+1,...]/6378137) #just for fun. no effect
+            h[:,i,...] = Rd*Tv_mean/g * np.log(p[:,i+1,...]/p[:,i,...]) + h[:,i+1,...]
+        else:
+            Tv_mean = (Tv[i+1] + Tv[i]) /2#np.average([Tv[:,i+1,...],Tv[:,i,...]], axis=0)
+            g = g0*(1-2*h[i+1]/6378137) #just for fun. no effect
+            h[i] = Rd*Tv_mean/g * np.log(p[i+1]/p[i]) + h[i+1]
+
     gph = h
     #exit(1)
     return gph
-def ml2alt( air_temperature_ml, specific_humidity_ml, ap, b, surface_air_pressure, surface_geopotential=None, inputlevel="full", returnlevel="full",pressure=None ):     #https://confluence.ecmwf.int/pages/viewpage.action?pageId=68163209
+def ml2alt( air_temperature_ml, specific_humidity_ml, ap, b, surface_air_pressure, surface_geopotential=None, inputlevel="full", returnlevel="full",pressure=None , dim=("time","level", "x","y")):     #https://confluence.ecmwf.int/pages/viewpage.action?pageId=68163209
     if inputlevel == "full" and returnlevel == "full": #default
-        p     = _ml2pl_full2full( ap=ap, b=b,surface_air_pressure= surface_air_pressure ) if pressure is None else pressure
-        gph_m = _pl2alt_full2full_gl( ap=ap, b=b,surface_air_pressure= surface_air_pressure, air_temperature_ml=air_temperature_ml, specific_humidity_ml=specific_humidity_ml, pressure=p ) #
+        p     = _ml2pl_full2full( ap=ap, b=b,surface_air_pressure= surface_air_pressure, dim=dim ) if pressure is None else pressure
+        gph_m = _pl2alt_full2full_gl( ap=ap, b=b,surface_air_pressure= surface_air_pressure, air_temperature_ml=air_temperature_ml, specific_humidity_ml=specific_humidity_ml, pressure=p, dim=dim) #
     if inputlevel == "half" and returnlevel == "full": #If staggered
         p     = _ml2pl_full2half( ap, b, surface_air_pressure ) if pressure is None else pressure
         gph_m = _pl2alt_half2full_gl( air_temperature_ml, specific_humidity_ml, p ) #
     gph_m = gph_m + surface_geopotential/9.81 if surface_geopotential is not None else gph_m
     return gph_m
 
-def pl2alt(ap=None, b=None, surface_air_pressure=None, air_temperature_ml=None, specific_humidity_ml=None,pressure=None,surface_geopotential=None, dmet=None):
-    alt = _pl2alt_full2full_gl(ap=ap, b=b, surface_air_pressure=surface_air_pressure, air_temperature_ml=air_temperature_ml, specific_humidity_ml=specific_humidity_ml,pressure=None, dmet=dmet)
+def pl2alt(ap=None, b=None, surface_air_pressure=None, air_temperature_ml=None, specific_humidity_ml=None,pressure=None,surface_geopotential=None, dmet=None, dim=("time", "height", "x", "y")):
+    alt = _pl2alt_full2full_gl(ap=ap, b=b, surface_air_pressure=surface_air_pressure, air_temperature_ml=air_temperature_ml, specific_humidity_ml=specific_humidity_ml,pressure=None, dmet=dmet, dim=dim)
     alt = alt + surface_geopotential/9.81 if surface_geopotential is not None else alt
     return alt
 
@@ -1076,10 +1133,8 @@ def xwind2uwind( xwind, ywind, model, alpha=None ):
         if model == "AromeArctic": 
             alpha_nc = Dataset("../data/alpha_full_AA.nc")
             alpha = alpha_nc.variables["alpha"][:,:]
-            print(alpha)
             alpha_nc.close()
     
-    print(np.shape(alpha))
     u = np.zeros(shape=np.shape(xwind))
     v = np.zeros(shape=np.shape(ywind))
     for t in range(0,np.shape(xwind)[0]):
