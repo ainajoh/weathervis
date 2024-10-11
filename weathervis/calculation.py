@@ -74,6 +74,32 @@ def richardson_bulk(potential_temperature, height, u, v):
     #max((uprof(indzp)-uprof(indzp-1))**2 + (vprof(indzp)-vprof(indzp-1))**2 + b*ust**2, 0.1)
     return ri
 
+
+def calc_obukhov(T1M,ps,tsurf,H, ustress,vstress,ak1,bk1 ):#P1M ):
+    r_air=284.
+    cpa=1004.
+    karman=0.4
+    ga=9.81
+    tv=   tsurf            #temp at surface-best if virtual
+    rhoa=ps/(r_air*tv)   #air density
+    #plev=P1M  #pressure at 1 model level: =ak(1)+bk(1)*ps 
+    plev = ak1+bk1*ps 
+    theta=T1M*(100000./plev)**(r_air/cpa) # potential temperature
+    stress = np.sqrt(ustress**2 + vstress**2)  #surface stress N/m^2
+    ustar = np.sqrt(abs(stress)/rhoa)
+    #ustar = ustar.where(ustar >= 0, 1e-8)
+    ustar[ustar < 0] =  1e-8
+    thetastar=-H/(rhoa*cpa*ustar)
+
+    #obukhov=obukhov.where()theta*ustar**2/(karman*ga*thetastar)
+    #if(abs(thetastar) >.1e-10): 
+    ol=theta*ustar**2/(karman*ga*thetastar)
+    ol[abs(thetastar)<1e-10] = np.nan
+    #ol=ol.where(abs(thetastar)>1e-10, np.nan)
+
+    return ol
+
+
 def richardson(potential_temperature, height, u, v):
     g=9.81
     ri = np.zeros(np.shape(potential_temperature))
