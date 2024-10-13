@@ -21,7 +21,7 @@ from matplotlib.colors import ListedColormap, BoundaryNorm
 global obukhov_map
 MyObject = type('MyObject', (object,), {})
 obukhov_map = MyObject()
-_param = ["H", "surface_geopotential", "air_temperature_ml", "air_temperature_2m", "FMU", "FMV", "ap", "b","air_pressure_at_sea_level","toa_outgoing_longwave_flux","surface_air_pressure"]
+_param = ["H", "surface_geopotential", "air_temperature_ml", "air_temperature_2m", "air_temperature_0m", "FMU", "FMV", "ap", "b","air_pressure_at_sea_level","toa_outgoing_longwave_flux","surface_air_pressure"]
 setattr(obukhov_map, "param", _param)
 #obukhov(T1M = ds.T[64,:,:],ps= ds.SP,tsurf=ds.T2m, 
 #        H=ds.SSHF,ustress= ds.USTRESS, vstress=ds.VSTRESS, 
@@ -41,6 +41,7 @@ def plot_obukhov(datetime,dmet,figax=None, scale=1, lonlat=None, steps=[0,2], co
   T1M=dmet.air_temperature_ml[-1].squeeze()
   ps = dmet.surface_air_pressure[:].squeeze()
   tsurf=dmet.air_temperature_2m[:].squeeze()
+  #tsurf=dmet.air_temperature_0m[:].squeeze()
   H=dmet.H[:].squeeze()
   ustress=dmet.FMU[:].squeeze()
   vstress=dmet.FMV[:].squeeze()
@@ -82,32 +83,73 @@ def plot_obukhov(datetime,dmet,figax=None, scale=1, lonlat=None, steps=[0,2], co
 
       #Obukhov length
 
-      coolwarm = plt.get_cmap('tab10')
-      colors = coolwarm(np.linspace(0, 1, 10))  # Get 256 colors from the coolwarm cmap
+      coolwarm = plt.get_cmap('tab20b_r') #tab10'
+      colors = coolwarm(np.linspace(0, 1, 100))  # Get 256 colors from the coolwarm cmap
       new_cmap = coolwarm#ListedColormap(colors)
       new_cmap.set_over('black')
       new_cmap.set_under('black')
       levels=[-500,-200,-100,-50,10,50,100,200,500]
       norm = BoundaryNorm([-500,-200,-100,-50,10,50,100,200,500],ncolors=coolwarm.N)
+      ol2 = deepcopy(ol)
+      ol2[ol2<-50] = np.nan
+      ol2[ol2>10] = np.nan
+      norm2 = BoundaryNorm([10,0,-50],ncolors=10)
 
+      ol3 = deepcopy(ol) #pnly stable
+      ol3[ol3<0] = np.nan
+
+      ol4 = deepcopy(ol) #only unstable
+      ol4[ol4>0] = np.nan
+      #tab20b
       #cs =ax1.pcolormesh(x, y, T1M, alpha=0.5, zorder=3)
-      #cs =ax1.pcolormesh(x, y, T1M, alpha=0.5, vmin=-500, vmax=500, zorder=3)
-      cs = ax1.pcolormesh(x, y, ol, cmap=new_cmap, norm=norm, vmax=500, vmin=-500,zorder=3, alpha=1)#, cbar_kwargs={'label': 'Air temperature (K)'}) #ransform=crs,
+      #cs =ax1.pcolormesh(x, y, ol, alpha=0.5, vmin=-500, vmax=500, zorder=3)
+      #cs = ax1.pcolormesh(x, y, ol, cmap=new_cmap, norm=norm, vmax=500, vmin=-500,zorder=3, alpha=1)#, cbar_kwargs={'label': 'Air temperature (K)'}) #ransform=crs,
+      cs = ax1.pcolormesh(x, y, ol, cmap="tab20b_r", vmax=500, vmin=-500,zorder=3, alpha=1)#, cbar_kwargs={'label': 'Air temperature (K)'}) #ransform=crs,
+
+      #cs2 = ax1.pcolormesh(x, y, ol2, cmap="Reds_r", vmax=0, vmin=-50,zorder=4, alpha=1)
+      #cs = ax1.pcolormesh(x, y, ol3, cmap="Blues_r", vmax=500, vmin=0,zorder=4, alpha=1)
+      #cs4 = ax1.pcolormesh(x, y, ol4, cmap="hot", vmax=0, vmin=-500,zorder=4, alpha=1)
+
       #cs = ax1.contourf(x, y, ol, cmap=coolwarm, levels=levels, extend="both", vmax=500, vmin=-500,zorder=3, alpha=0.7)#, cbar_kwargs={'label': 'Air temperature (K)'}) #ransform=crs,
       #      ax1.pcolormesh(x, y, data[ :, :], vmin=-230,vmax=-110, cmap=plt.cm.Greys_r)
       #  ax1.add_feature(cfeature.GSHHSFeature(scale='intermediate'),edgecolor="brown", linewidth=0.5)  # ‘auto’, ‘coarse’, ‘low’, ‘intermediate’, ‘high, or ‘full’ (default is ‘auto’).
 
       #plt.colorbar(cs,extend="both")
       
-      latsline= np.arange(69,84,1)
+      latsline= np.arange(69,85,1)
       lons7 = np.full_like(latsline, 7)
-      ax1.plot(lons7,latsline,color='blue', linestyle='-', linewidth=4,transform=ccrs.Geodetic(), marker="o", markersize=7, zorder=5)
+      ax1.plot(lons7,latsline,color='white', linestyle='-', linewidth=4,transform=ccrs.Geodetic(), marker="o", markersize=7, zorder=5)
+      
+      stablecolor="blue"
+      neutralcolor="k"
+      unstablecolor="red"
+      markeredgecolor="white"
+      markeredgewidth=1
+      #markerfacecolor='red', markeredgewidth=2, markeredgecolor='black'
+      ax1.plot(7, 84, markerfacecolor=neutralcolor, markeredgewidth=markeredgewidth, markeredgecolor=markeredgecolor, transform=ccrs.Geodetic(), marker="o", markersize=7, zorder=6)
+      ax1.plot(7, 83, markerfacecolor=stablecolor, markeredgewidth=markeredgewidth, markeredgecolor=markeredgecolor,transform=ccrs.Geodetic(), marker="o", markersize=7, zorder=6)
+      ax1.plot(7, 82, markerfacecolor=stablecolor, markeredgewidth=markeredgewidth, markeredgecolor=markeredgecolor,transform=ccrs.Geodetic(), marker="o", markersize=7, zorder=6)
+      ax1.plot(7, 81, markerfacecolor=stablecolor, markeredgewidth=markeredgewidth, markeredgecolor=markeredgecolor,transform=ccrs.Geodetic(), marker="o", markersize=7, zorder=6)
+      ax1.plot(7, 80, markerfacecolor=unstablecolor, markeredgewidth=markeredgewidth, markeredgecolor=markeredgecolor,transform=ccrs.Geodetic(), marker="o", markersize=7, zorder=6)
+      ax1.plot(7, 79, markerfacecolor=unstablecolor, markeredgewidth=markeredgewidth, markeredgecolor=markeredgecolor,transform=ccrs.Geodetic(), marker="o", markersize=7, zorder=6)
+      ax1.plot(7, 78, markerfacecolor=unstablecolor, markeredgewidth=markeredgewidth, markeredgecolor=markeredgecolor,transform=ccrs.Geodetic(), marker="o", markersize=7, zorder=6)
+      ax1.plot(7, 77, markerfacecolor=unstablecolor,markeredgewidth=markeredgewidth, markeredgecolor=markeredgecolor, transform=ccrs.Geodetic(), marker="o", markersize=7, zorder=6)
+      ax1.plot(7, 76, markerfacecolor=unstablecolor, markeredgewidth=markeredgewidth, markeredgecolor=markeredgecolor,transform=ccrs.Geodetic(), marker="o", markersize=7, zorder=6)
+      ax1.plot(7, 75, markerfacecolor=unstablecolor, markeredgewidth=markeredgewidth, markeredgecolor=markeredgecolor,transform=ccrs.Geodetic(), marker="o", markersize=7, zorder=6)
+      ax1.plot(7, 74, markerfacecolor=unstablecolor, markeredgewidth=markeredgewidth, markeredgecolor=markeredgecolor,transform=ccrs.Geodetic(), marker="o", markersize=7, zorder=6)
+      ax1.plot(7, 73, markerfacecolor=unstablecolor, markeredgewidth=markeredgewidth, markeredgecolor=markeredgecolor,transform=ccrs.Geodetic(), marker="o", markersize=7, zorder=6)
+      ax1.plot(7, 72, markerfacecolor=unstablecolor, markeredgewidth=markeredgewidth, markeredgecolor=markeredgecolor,transform=ccrs.Geodetic(), marker="o", markersize=7, zorder=6)
+      ax1.plot(7, 71, markerfacecolor=unstablecolor, markeredgewidth=markeredgewidth, markeredgecolor=markeredgecolor,transform=ccrs.Geodetic(), marker="o", markersize=7, zorder=6)
+      ax1.plot(7, 70, markerfacecolor=unstablecolor, markeredgewidth=markeredgewidth, markeredgecolor=markeredgecolor,transform=ccrs.Geodetic(), marker="o", markersize=7, zorder=6)
+      ax1.plot(7, 69, markerfacecolor=unstablecolor, markeredgewidth=markeredgewidth, markeredgecolor=markeredgecolor,transform=ccrs.Geodetic(), marker="o", markersize=7, zorder=6)
+  
+      
       #ax1.plot(7,77,color='black', linestyle='-', lw=2, marker="o",transform=ccrs.Geodetic())
       legend=True;grid=True
       if legend:
         ax_cb = adjustable_colorbar_cax(fig1, ax1)
         plt.colorbar(cs,extend="both", cax = ax_cb, fraction=0.046, pad=0.01, aspect=25,
-                label=r"Monin obukhob length", alpha=1)
+                label=r"Monin–Obukhov length / m", alpha=1)
         #plt.colorbar(cs,extend="both",fraction=0.046,
         #        label=r"Monin obukhob length")
 
@@ -128,6 +170,7 @@ def plot_obukhov(datetime,dmet,figax=None, scale=1, lonlat=None, steps=[0,2], co
         ax1.set_extent(data_domain.lonlat)
 
       ax1.set_extent([10,30,67,85])
+      #ax1.set_extent([9,30,67,86])
 
       make_modelrun_folder = setup_directory(OUTPUTPATH, "{0}".format(datetime))
       file_path = "{0}/{1}_{2}_{3}_{4}+{5:02d}.png".format(make_modelrun_folder, model, domain_name, "obukhov", datetime,leadtime)
@@ -152,7 +195,7 @@ def obukhov(datetime,use_latest, delta_index, coast_details, steps=0, model="Aro
         runid=None, outpath=None, url=None, point_lonlat =None,overlays=None, point_name=None):
     param = obukhov_map.param #["air_pressure_at_sea_level", "surface_geopotential", "toa_outgoing_longwave_flux", "SIC"]
     p_level = None
-    m_level=[65]
+    m_level=[64] #64 is lowest level
     plot_by_subdomains(plt_func= plot_obukhov, checkget_data_handler= checkget_data_handler, datetime=datetime, steps=steps,model= model, domain_name=domain_name,domain_lonlat=  domain_lonlat, legend=legend,
                        info=info, grid=grid, url=url, point_lonlat=point_lonlat, use_latest=use_latest,
                        delta_index=delta_index, coast_details=coast_details, param=param, p_level=p_level,m_level=m_level,overlays=overlays, runid=runid, point_name=point_name,

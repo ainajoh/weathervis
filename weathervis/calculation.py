@@ -76,20 +76,21 @@ def richardson_bulk(potential_temperature, height, u, v):
 
 
 def calc_obukhov(T1M,ps,tsurf,H, ustress,vstress,ak1,bk1 ):#P1M ):
-    r_air=284.
-    cpa=1004.
+    #surface value used to calculate air density only. 
+    r_air=287.05
+    cpa=1004.6
     karman=0.4
     ga=9.81
-    tv=   tsurf            #temp at surface-best if virtual
-    rhoa=ps/(r_air*tv)   #air density
-    #plev=P1M  #pressure at 1 model level: =ak(1)+bk(1)*ps 
-    plev = ak1+bk1*ps 
+    e = calc_ew(T1M)
+    tv=tsurf*(1.+0.378*e/ps)               # virtual temperature
+    rhoa=ps/(r_air*tv)   #air density taken from sirface
+    plev = ak1+bk1*ps  #pressure at 1 model level: =ak(1)+bk(1)*ps 
     theta=T1M*(100000./plev)**(r_air/cpa) # potential temperature
     stress = np.sqrt(ustress**2 + vstress**2)  #surface stress N/m^2
     ustar = np.sqrt(abs(stress)/rhoa)
     #ustar = ustar.where(ustar >= 0, 1e-8)
     ustar[ustar < 0] =  1e-8
-    thetastar=-H/(rhoa*cpa*ustar)
+    thetastar=-H/(rhoa*cpa*ustar) #minus infront when H is expected posotive upward
 
     #obukhov=obukhov.where()theta*ustar**2/(karman*ga*thetastar)
     #if(abs(thetastar) >.1e-10): 
@@ -99,6 +100,24 @@ def calc_obukhov(T1M,ps,tsurf,H, ustress,vstress,ak1,bk1 ):#P1M ):
 
     return ol
 
+def calc_ew(x):
+    #x=temp
+    #if(x < 0.):
+    #    print('sorry: t not in [k]')
+    #    exit(1)
+    y=373.16/x
+    a=-7.90298*(y-1.)
+    a=a+(5.02808*0.43429*np.log(y))
+    c=(1.-(1./y))*11.344
+    c=-1.+(10.**c)
+    c=-1.3816*c/(10.**7)
+    d=(1.-y)*3.49149
+    d=-1.+(10.**d)
+    d=8.1328*d/(10.**3)
+    y=a+c+d
+    ew=101324.6*(10.**y)       # Saettigungsdampfdruck in Pa
+
+    return ew
 
 def richardson(potential_temperature, height, u, v):
     g=9.81

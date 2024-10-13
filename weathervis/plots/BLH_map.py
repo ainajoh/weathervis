@@ -32,15 +32,15 @@ import gc
 warnings.filterwarnings("ignore", category=UserWarning)  # suppress matplotlib warning
 
 
-def plot_BLH(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", model=None, domain_name=None,
+def plot_BLH(datetime, data_domain, dmet, scale=1, steps=[0,2], coast_details="auto", model=None, domain_name=None,
              domain_lonlat=None, legend=True, info=False, grid=True,runid=None, outpath=None, url = None, save= True, overlays=None, **kwargs):
 
-    eval(f"data_domain.{domain_name}()")  # get domain info
+    #eval(f"data_domain.{domain_name}()")  # get domain info
     ## CALCULATE AND INITIALISE ####################
 
-    scale = (
-        data_domain.scale
-    )  # scale is larger for smaller domains in order to scale it up.
+    #scale = (
+    ##    data_domain.scale
+    #)  # scale is larger for smaller domains in order to scale it up.
     dmet.air_pressure_at_sea_level /= 100
     plev = 0  # velocity presuure level at first request
     MSLP = filter_values_over_mountain(
@@ -97,7 +97,7 @@ def plot_BLH(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", mod
                 BLH[itim, 0, :, :],
                 zorder=1,
                 alpha=0.5,
-                levels=np.arange(50, 5000, 200),
+                levels=np.arange(100, 2000, 300),
                 linewidths=0.7,
                 label="BLH",
                 cmap="summer",
@@ -147,10 +147,10 @@ def plot_BLH(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", mod
             if grid:
                 nicegrid(ax=ax1)
 
-            print(data_domain.lonlat)  # [15.8, 16.4, 69.2, 69.4]
+            #print(data_domain.lonlat)  # [15.8, 16.4, 69.2, 69.4]
             if domain_name != model and data_domain != None:  #
                 ax1.set_extent(data_domain.lonlat)
-
+            ax1.set_extent([10,30,67,85])
             # runid == "" if runid == None else runid
             # make_modelrun_folder = setup_directory(OUTPUTPATH, "{0}-{1}".format(dt, runid))
 
@@ -163,6 +163,7 @@ def plot_BLH(datetime, data_domain, dmet, steps=[0,2], coast_details="auto", mod
             fig1.savefig(file_path, bbox_inches="tight", dpi=200)
             ax1.cla()
             itim += 1
+            
     plt.close(fig1)
     plt.close("all")
     del MSLP, scale, itim, legend, grid, overlays, domain_name, ax_cb, W, BLH
@@ -182,7 +183,8 @@ def BLH(datetime,use_latest, delta_index, coast_details, steps=0, model="MEPS", 
     ]
     p_level = [850]
     print(datetime)
-    
+    save2file=False
+    read_from_saved="BLH.nc"
     plot_by_subdomains(plot_BLH,checkget_data_handler, datetime, steps, model, domain_name, domain_lonlat, legend,
                        info, grid, url, point_lonlat, use_latest,
                        delta_index, coast_details, param, p_level,overlays, runid, point_name, save2file=save2file,read_from_saved=read_from_saved)
