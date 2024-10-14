@@ -17,6 +17,7 @@ import gc
 from weathervis.plots.add_overlays import add_overlay
 from matplotlib.colors import ListedColormap, BoundaryNorm
 
+plt.rcParams.update({'font.size': 15})
 
 global obukhov_map
 MyObject = type('MyObject', (object,), {})
@@ -75,7 +76,7 @@ def plot_obukhov(datetime,dmet,figax=None, scale=1, lonlat=None, steps=[0,2], co
       data[mask] = np.nan
       #ax1.pcolormesh(x, y, data[ :, :], vmin=-230,vmax=-110, cmap=plt.cm.Greys_r, zorder=2, alpha=1)
       ax1.add_feature(cfeature.GSHHSFeature(scale='high'),linewidth=0.5, zorder=6, facecolor='gray')  # ‘auto’, ‘coarse’, ‘low’, ‘intermediate’, ‘high, or ‘full’ (default is ‘auto’).
-      ax1.text(0, 1, "{0}_obukhov_{1}+{2:02d}".format(model, datetime, leadtime), ha='left', va='bottom', transform=ax1.transAxes,color='dimgrey')
+      #ax1.text(0, 1, "{0}_obukhov_{1}+{2:02d}".format(model, datetime, leadtime), ha='left', va='bottom', transform=ax1.transAxes,color='dimgrey')
       
       #land_feature = cfeature.GSHHSFeature(scale='auto', levels=[1], facecolor='gray')
       #ax.add_feature(land_feature)
@@ -163,7 +164,7 @@ def plot_obukhov(datetime,dmet,figax=None, scale=1, lonlat=None, steps=[0,2], co
         #frame.set_alpha(0.8)
        
       if grid:
-        nicegrid(ax=ax1,zorder=5)
+        nicegrid(ax=ax1,zorder=5,yy=[84,83,82,81,80,79,78,77,76,75,74,73,72,71,70,69])
       if overlays:
         add_overlay(overlays, ax=ax1, **kwargs)
       if domain_name != model and data_domain != None:

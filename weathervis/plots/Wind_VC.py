@@ -337,7 +337,7 @@ def Vertical_cross_section(kwargs, point_time_file=None):
    
     #########follow airmass###########
     #kwargs = pre_defined_points_retrieved(line, kwargs): "allwind_A202003100600.nc"    "SSC_23.nc       # If u want to retrieve only the points NB: Avoid if u have many points > 20
-    dmet, data_domain, bad_param = checkget_data_handler(all_param=param,save=False,read_from_saved="paper1cross_line_rh.nc",#"TKE_A2020031000+07.nc",#"wind_A2020031000+6.nc", #"buffer_newM.nc", 
+    dmet, data_domain, bad_param = checkget_data_handler(all_param=param,save2file="wind_vc.nc",read_from_saved=False,#"TKE_A2020031000+07.nc",#"wind_A2020031000+6.nc", #"buffer_newM.nc", 
                                                         model=kwargs.model,  date=kwargs.datetime,
                                                         step=kwargs.steps,   m_level=kwargs.m_level,
                                                         point_name=kwargs.point_name, 
