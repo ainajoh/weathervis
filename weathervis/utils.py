@@ -87,13 +87,57 @@ def nicegrid(ax, xx = np.arange(-20, 80, 20),yy = np.arange(50, 90, 4), color='g
     usage:
 
     """
-    gl = ax.gridlines(draw_labels=True, linewidth=1, color=color, alpha=alpha, linestyle=linestyle,zorder=zorder)
-    gl.xlabels_top = False
-    #gl.xlabels_right = False
+    gl = ax.gridlines(draw_labels=True, linewidth=1, color=color, alpha=alpha, linestyle=linestyle,zorder=9, y_inline=False, x_inline=True)
+    #gl.xlabels_top = False
+    #gl.top_labels, gl.right_labels = False, False
+    #gl.left_labels = False
     gl.ylabels_right = False
+    #gl.xlabels_right = None
+    gl.xlabels_top = False
+    gl.ylabels_left = False
+    gl.ylabels_bottom = False
+    gl.xlabels_bottom = False
+
+
+
+
+    #gl.xlabel_style, gl.ylabel_style = {'weight': 'bold'}, {'weight': 'bold'}
+    gl.xpadding = 0#-400
+    #gl.ypadding = -700
+
+    #gl.rotate_labels=False
+    #gl.ylabels_right = False
+    #gl.ylabels_left = False
+
+    #gl.ylabel_style = {'size':60}
+    #gl.left_labels
     gl.xlocator = mticker.FixedLocator(xx)
     gl.ylocator = mticker.FixedLocator(yy)
-    gl.xlabel_style = {'color': color}
+    ##gl.xlocator = mticker.FixedLocator([-10,0,10])
+    ##gl.ylocator = mticker.FixedLocator([82,78,74]) #[85,79,74,69]  [78,75,72, 69]
+
+    #for artist in gl.bottom_labels:
+    #    artist.set_visible(True)
+
+    gl.xlabel_style = {'color': color, 'size': 15}
+    gl.ylabel_style = {'color': color, 'size': 15}
+
+
+    #gl2 = ax.gridlines(draw_labels=False, linewidth=1, color=color, alpha=alpha, linestyle=linestyle,zorder=9, y_inline=False, x_inline=False)
+    #gl2.ylocator = mticker.FixedLocator([86,82,78,74,70,66]) #[85,79,74,69]  [78,75,72, 69]
+    #gl2.xlocator = mticker.FixedLocator(xx)
+
+    gl3 = ax.gridlines(draw_labels=True, linewidth=1, color=color, alpha=alpha, linestyle=linestyle,zorder=9, y_inline=True, x_inline=True)
+    gl3.ylocator = mticker.FixedLocator(yy[4::2]) #[85,79,74,69]  [78,75,72, 69]
+    gl3.xlocator = mticker.FixedLocator([])
+    gl3.xpadding = 0
+    gl3.ylabels_right = False
+    gl3.ylabels_left = True
+    gl3.ylabels_bottom = False
+    #gl3.xlabels_bottom = False
+
+    gl3.xlabel_style = {'color': color, 'size': 15}
+    gl3.ylabel_style = {'color': color, 'size': 15}
 
 def remove_pcolormesh_border(xx,yy,data):
     """
@@ -565,7 +609,8 @@ def find_subdomains(domain_name, datetime=None, model=None, num_point=1, domain_
     return dom_frame
 
 def plot_by_subdomains(plt_func, checkget_data_handler, datetime, steps, model, domain_name, domain_lonlat, legend, info, grid, url, point_lonlat, use_latest,
-        delta_index, coast_details=None, param=None, p_level=None,m_level=None, overlays=None, runid=None, point_name=None,save2file=False, read_from_saved=False,):
+        delta_index, coast_details=None, param=None, p_level=None,m_level=None, overlays=None, runid=None, point_name=None,save2file=False, read_from_saved=False,
+        outpath=None):
  
     datetime_start = datetime[0] if type(datetime) is list else datetime
     domains_with_subdomains = find_subdomains(domain_name=domain_name, datetime=datetime_start, model=model,
@@ -587,7 +632,8 @@ def plot_by_subdomains(plt_func, checkget_data_handler, datetime, steps, model, 
             for sub in subdom_list:
                 plt_func(datetime=datetime, steps=steps, model=model, domain_name=sub, data_domain=data_domain,
                          domain_lonlat=domain_lonlat, legend=legend, info=info, grid=grid, url=url,
-                         dmet=dmet, coast_details=coast_details, overlays=overlays, point_name=point_name)
+                         dmet=dmet, coast_details=coast_details, overlays=overlays, point_name=point_name,
+                         outpath=outpath)
 
 def none_or_str(value):
     if value == 'None':

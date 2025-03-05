@@ -60,20 +60,20 @@ def plot_obukhov(datetime,dmet,figax=None, scale=1, lonlat=None, steps=[0,2], co
   itim = 0
   for leadtime in np.array(steps): #
       print('Plotting {0} + {1:02d} UTC'.format(datetime, leadtime))
-      ax1 = default_mslp_contour(dmet.x, dmet.y, MSLP[itim, 0, :, :], ax1, scale=scale)
+      #ax1 = default_mslp_contour(dmet.x, dmet.y, MSLP[itim, 0, :, :], ax1, scale=scale)
       x,y = np.meshgrid(dmet.x, dmet.y)
-      nx, ny = x.shape
-      mask = (
-            (x[:-1, :-1] > 1e20) |
-            (x[1:, :-1] > 1e20) |
-            (x[:-1, 1:] > 1e20) |
-            (x[1:, 1:] > 1e20) |
-            (x[:-1, :-1] > 1e20) |
-            (x[1:, :-1] > 1e20) |
-            (x[:-1, 1:] > 1e20) |
-            (x[1:, 1:] > 1e20))
-      data =  dmet.toa_outgoing_longwave_flux[itim, 0,:nx - 1, :ny - 1].copy()
-      data[mask] = np.nan
+      #nx, ny = x.shape
+      #mask = (
+      #      (x[:-1, :-1] > 1e20) |
+      #      (x[1:, :-1] > 1e20) |
+      #      (x[:-1, 1:] > 1e20) |
+      #      (x[1:, 1:] > 1e20) |
+      #      (x[:-1, :-1] > 1e20) |
+      #      (x[1:, :-1] > 1e20) |
+      #      (x[:-1, 1:] > 1e20) |
+      #      (x[1:, 1:] > 1e20))
+      #data =  dmet.toa_outgoing_longwave_flux[itim, 0,:nx - 1, :ny - 1].copy()
+      #data[mask] = np.nan
       #ax1.pcolormesh(x, y, data[ :, :], vmin=-230,vmax=-110, cmap=plt.cm.Greys_r, zorder=2, alpha=1)
       ax1.add_feature(cfeature.GSHHSFeature(scale='high'),linewidth=0.5, zorder=6, facecolor='gray')  # ‘auto’, ‘coarse’, ‘low’, ‘intermediate’, ‘high, or ‘full’ (default is ‘auto’).
       #ax1.text(0, 1, "{0}_obukhov_{1}+{2:02d}".format(model, datetime, leadtime), ha='left', va='bottom', transform=ax1.transAxes,color='dimgrey')
@@ -183,7 +183,7 @@ def plot_obukhov(datetime,dmet,figax=None, scale=1, lonlat=None, steps=[0,2], co
         #plt.show()
       #ax1.cla()
       itim += 1
-  del MSLP, scale, itim, legend, grid, overlays, domain_name, data, mask, x, y,nx,ny
+  del MSLP, scale, itim, legend, grid, overlays, domain_name, x, y
   del make_modelrun_folder, file_path
   if figax is None:
     plt.close(fig1)

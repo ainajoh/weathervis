@@ -128,6 +128,11 @@ from arome, but in flexpart it is called "SP". So "SP" is important to keep like
     variable3d_arome['air_temperature_ml']['description'] = 'temperature on pressure sigmal levels'   # grid_mapping: projection_lambert
     variable3d_arome['air_temperature_ml']['precision'] = resol                                       # digit precision
     
+    variable2d_arome['atmosphere_boundary_layer_thickness'] = {}                                             # _FillValue: 9.96921E36
+    variable2d_arome['atmosphere_boundary_layer_thickness']['name'] = 'BLH'                                  # long_name: Screen level temperature (T2M), standard_name: air_temperature
+    variable2d_arome['atmosphere_boundary_layer_thickness']['units'] = 'm'                                   # units: K
+    variable2d_arome['atmosphere_boundary_layer_thickness']['description'] = 'Boundary layer thickness'
+    variable2d_arome['atmosphere_boundary_layer_thickness']['precision'] = resol
     
     #OK NB: divergence vetrical was used in FLEXPART-AROME original, but since we have W we use that instead...but should check effect as they are different
     #VERTIC.DIVER in arome france
@@ -327,8 +332,8 @@ from arome, but in flexpart it is called "SP". So "SP" is important to keep like
         print(attr['input_lon'])
         print(attr['input_lat'])
         #exit(1)
-        find_inputpos = nearest_neighbour(plat=attr['input_lat'], plon=attr['input_lon'],longitudes=dmap_arome2d.longitude, latitudes=dmap_arome2d.latitude )
-        print(find_inputpos[0])
+        #find_inputpos = nearest_neighbour(plat=attr['input_lat'], plon=attr['input_lon'],longitudes=dmap_arome2d.longitude, latitudes=dmap_arome2d.latitude )
+        #print(find_inputpos[0])
         attr['input_position'] = 'none'#np.double(find_inputpos[0])#find_inputpos[0][0] # 359??  # Use: None
         attr['geoid'] = proj.getncattr("earth_radius") #6370000#6371229.0 #
         attr['center_lat'] = proj.getncattr("latitude_of_projection_origin")
@@ -419,8 +424,9 @@ def fix(outputpath, modelruntime, steps=[0, 64], lvl=[0, 64], archive=1):
     else:
         outputpath = "./"
         print("LOCAL")
-
+    
     model = "AromeArctic"
+    #model ="MEPS"
     xres = 1
     yres = 1
     use_latest = False if archive == 1 else True

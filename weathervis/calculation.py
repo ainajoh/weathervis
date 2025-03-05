@@ -543,7 +543,7 @@ def specific_humidity(T, rh,p):
     #p in Pa
     #rh in frac no %
     Rd = 287.0
-    Rv=461.0
+    Rv = 461.0
     TC = T-273.15
     es = 6.1094 * np.exp(17.625 * TC / (TC + 243.04))*100 #pa
     e = rh * es
